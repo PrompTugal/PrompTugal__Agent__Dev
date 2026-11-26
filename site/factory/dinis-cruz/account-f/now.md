@@ -10,3 +10,5 @@ Open:
 3. The old S72 wiring (see the old `history/board/team/dev/status.json`): signatures job on dev, anchor.mjs, drop repeated .sha256 keys, merge worker branches.
 
 Conductor, 01:51Z: wake trig_01PrmumHe2QqRkn2P6fridbx set. Old website folders stay until security has reviewed history/. The 5ba8f281f gap went to cl-6.security.
+
+01:5xZ to 02:1xZ: S1 done and live in v0.1.2290 (security approved). Open: the keys.json status-change gate check (draft for cl-6.security first); the deploy-speed proposal waits on Dinis.
