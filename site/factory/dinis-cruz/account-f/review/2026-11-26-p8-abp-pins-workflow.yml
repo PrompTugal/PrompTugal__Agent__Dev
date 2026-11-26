@@ -1,0 +1,49 @@
+# DRAFT, not installed (cl-6.dev, 26 Nov 2026; record 2026-11-26__abp-p8 revision 4; for cl-6.security's review). The CI check of the ABP kit v2.2b:
+# a change to .claude/** or abp/** must carry abp/pins.json signed by cl-6.abp's key. The kit's ci-check.mjs and pinlib.mjs come from the ABP repository at a
+# commit pinned here by its full id (not from the repository under check), and the key comes from the organisation variable ABP_PIN_KEY_SHA256 (set through
+# IaC; recompute it from site/keys/cl-6.abp.json, do not trust a message). Offline after the checkout; no secret; read-only token.
+#
+# Not a required status yet: the website tracks .claude/** from the old kit and has no abp/pins.json, so the check fails there until cl-6.abp installs the
+# pins. Until then the job is advisory (continue-on-error); cl-6.infra makes it a required status on dev once the pins exist.
+# Open: ci-check.mjs wants --floor (the last accepted sequence) and --last-pins-sha (the SHA-256 of the last accepted abp/pins.json), "kept by CI". The
+# default workflow token cannot write repository variables, so they are read from variables ABP_PINS_FLOOR and ABP_PINS_LAST_SHA that cl-6.infra's App sets
+# after each accepted push (IaC #25: Variables write); this workflow only reads them.
+name: abp-pins
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+permissions:
+  contents: read
+jobs:
+  abp-pins:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: ${{ vars.ABP_PINS_ENFORCE != 'yes' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: repo
+          fetch-depth: 1
+          persist-credentials: false
+      - name: The kit, from the ABP repository at a pinned commit (outside the repository under check)
+        run: |
+          set -euo pipefail
+          git init -q kit
+          git -C kit remote add origin https://github.com/PrompTugal/PrompTugal__Agent__ABP.git
+          git -C kit fetch -q --depth 1 origin b87acfff1e7a8adf4feb1ce5a9f9933b57c91cc2
+          git -C kit checkout -q FETCH_HEAD
+          test "$(git -C kit rev-parse HEAD)" = b87acfff1e7a8adf4feb1ce5a9f9933b57c91cc2
+      - name: Check the pins
+        env:
+          ABP_PIN_KEY_SHA256: ${{ vars.ABP_PIN_KEY_SHA256 }}
+          FLOOR: ${{ vars.ABP_PINS_FLOOR }}
+          LAST_SHA: ${{ vars.ABP_PINS_LAST_SHA }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          test -n "$ABP_PIN_KEY_SHA256" || { echo "ABP_PIN_KEY_SHA256 is not set: the key must come from outside the repository"; exit 1; }
+          args=(--repo "$REPO" --floor "${FLOOR:-0}")
+          if [ -n "${LAST_SHA:-}" ]; then args+=(--last-pins-sha "$LAST_SHA"); fi
+          node kit/abp/kit-v2/ci-check.mjs repo "${args[@]}"
