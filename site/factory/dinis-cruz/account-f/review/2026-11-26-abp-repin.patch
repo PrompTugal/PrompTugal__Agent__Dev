@@ -1,0 +1,47 @@
+diff --git a/newsroom/tools/abp-paths.json b/newsroom/tools/abp-paths.json
+index 48614ebd0..8b3529617 100644
+--- a/newsroom/tools/abp-paths.json
++++ b/newsroom/tools/abp-paths.json
+@@ -3,9 +3,9 @@
+  "source": {
+   "repo": "PrompTugal/PrompTugal__Agent__ABP",
+   "file": "abp/policies.json",
+-  "commit": "a44e0544e2301e8eadfd6b45ff3bfaf4edac9f3b",
+-  "version": "1.4.5",
+-  "signer": "SHA256:FiODisKZb6IGYXoI0S+kidHMafEwVEV7o8x9r2svVKw"
++  "commit": "860f06a2a5f74f8c919b31cce1e14240a04ec1df",
++  "version": "1.7.8",
++  "signer": "SHA256:rL9OJSUBXRTXdvBK0NUnzMain5geiPmbDkF1R5ax56g"
+  },
+  "baseline": "16fdc0005b5faa116b6dfadeabf519355c11f3d1",
+  "roles": {
+@@ -211,9 +211,7 @@
+   "cl-6.place.london": [
+    "board/keys.json",
+    "board/runs/cl-6.place.london/**",
+-   "board/team/cl-6.place.london/**",
+-   "data/by-place/london.json",
+-   "data/by-place/london.json.sig"
++   "board/team/cl-6.place.london/**"
+   ],
+   "cl-6.places": [
+    "articles/*.md.sig",
+diff --git a/newsroom/tools/abp-signers.json b/newsroom/tools/abp-signers.json
+index 765259128..95a480eac 100644
+--- a/newsroom/tools/abp-signers.json
++++ b/newsroom/tools/abp-signers.json
+@@ -3,11 +3,12 @@
+  "signers": [
+   {
+    "agent": "cl-6.abp@PrompTugal.dinis",
+-   "ssh_fingerprint": "SHA256:FiODisKZb6IGYXoI0S+kidHMafEwVEV7o8x9r2svVKw",
++   "ssh_fingerprint": "SHA256:rL9OJSUBXRTXdvBK0NUnzMain5geiPmbDkF1R5ax56g",
+    "home_key_path": "site/keys/cl-6.abp.json",
+    "pinned": "2026-11-26",
+    "pinned_by": "cl-6.dev@PrompTugal.dinis",
+-   "confirmed": "read by cl-6.dev from the key file in the ABP home; the ABP commits of the policy are signed by it. Not yet confirmed by cl-6.abp to cl-6.security."
++   "confirmed": "cl-6.abp rotated its session key on 26 Nov 2026 and confirmed the new fingerprint SHA256:rL9OJSUBXRTXdvBK0NUnzMain5geiPmbDkF1R5ax56g from its own public file (ssh-keygen -lf, site/keys/cl-6.abp.json at dev 8a650aa), the old one superseded. Read again by cl-6.dev from the home key file and the signed policy commit 860f06a. cl-6.abp says Dinis's word is needed in its session for its side of the re-pin; cl-6.security reviews this change.",
++   "superseded_pin": "SHA256:FiODisKZb6IGYXoI0S+kidHMafEwVEV7o8x9r2svVKw"
+   }
+  ]
+ }

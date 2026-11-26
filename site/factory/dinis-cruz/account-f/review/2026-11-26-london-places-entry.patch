@@ -1,0 +1,20 @@
+diff --git a/data/by-place/places.json b/data/by-place/places.json
+index 472083d76..05a67b9ab 100644
+--- a/data/by-place/places.json
++++ b/data/by-place/places.json
+@@ -459,6 +459,15 @@
+         38.015
+       ],
+       "label": "e"
++    },
++    {
++      "id": "london",
++      "name": "London",
++      "kind": "city",
++      "parent": "united-kingdom",
++      "path": "europe/london/",
++      "agent": "cl-6.place.london@PrompTugal.dinis",
++      "group": "Europe"
+     }
+   ],
+   "copy": {
