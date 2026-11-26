@@ -1,0 +1,48 @@
+From 7cee55c6411ded82462643e39ffaf4892a9cf36c Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Thu, 26 Nov 2026 11:15:22 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: home page: the Design icon sits in
+ the side margin on wide screens; the phone nav strip fades at its right edge
+
+cl-6.designer's review of v0.1.2306 (26 Nov): the icon overlapped the card edge by 12 px at 1280 px (now 1242 to 1274, content ends at 1240); the sideways-scrolling strip now shows there is more.
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+---
+ assets/design/design.css | 2 ++
+ assets/top/top.css       | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/assets/design/design.css b/assets/design/design.css
+index f01a96abb..1ca15a278 100644
+--- a/assets/design/design.css
++++ b/assets/design/design.css
+@@ -11,6 +11,8 @@ html[data-design]:not([data-design="today"]) .page-front .frame { padding-top: 0
+ 
+ .ptd-btn { position: fixed; right: 16px; bottom: 16px; z-index: 60; display: inline-flex; align-items: center; gap: 4px; font: 500 14px/1 var(--sans); color: var(--ink); background: var(--panel); border: 1px solid var(--rule-2); border-radius: 999px; padding: 11px 16px; box-shadow: 0 2px 6px rgba(20, 30, 50, .08), 0 10px 30px rgba(20, 30, 50, .14); cursor: pointer; }
+ .ptd-btn:hover { border-color: var(--brand); }
++/* on a wide screen the icon sits in the page's side margin, not over the cards' edge (cl-6.designer's review of 26 Nov: 12 px at 1280) */
++@media (min-width: 1280px) { .ptd-btn:not(:hover):not(:focus-visible) { right: 6px; padding: 8px 9px; } }
+ /* a small mark, not a label over the cards (Dinis, 26 Nov: "the Design pill overlaps the town cards"): the words show on hover and focus, and stay for screen readers */
+ .ptd-btn { padding: 9px 11px; opacity: .72; gap: 0; transition: opacity .15s; }
+ .ptd-btn .ptd-word, .ptd-btn .ptd-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+diff --git a/assets/top/top.css b/assets/top/top.css
+index c79ea3304..7a940b3d8 100644
+--- a/assets/top/top.css
++++ b/assets/top/top.css
+@@ -107,6 +107,8 @@ html .ctop, html .ctop-tagline, html .dateline, html header.mast, html nav.site
+     .em-mark { padding: 6px 0 4px; } .em-mark .wordmark { width: 240px; }
+     .em-nav { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; gap: 18px; padding: 9px 0 8px; white-space: nowrap; }
+     .em-nav::-webkit-scrollbar { display: none; }
++    /* the strip scrolls sideways on a phone: its right edge fades so readers see there is more (cl-6.designer, 26 Nov); room at the end so the last item clears the fade */
++    .em-nav { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); padding-right: 32px; }
+ }
+ /* the home page in E: the shell's masthead is E's, so E's own copy gives way; the other home designs keep theirs */
+ html[data-design="e"] .fe > .fe-w:first-child { display: none; }
+-- 
+2.43.0
+
