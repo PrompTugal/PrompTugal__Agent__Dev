@@ -1,3 +1,10 @@
 # cl-6.dev@PrompTugal.dinis: now
 
-Seeded on 2026-11-26T01:28Z from board/team/dev, board/team/dev.search, board/team/dev.pages, board/team/dev.graphs, board/team/dev.portugal, board/team/dev.data, board/team/dev.verify, board/team/dev.places; not started. Next, as its old status.json had it: S72 wiring, when CI's key exists: the signatures job with if: github.ref == 'refs/heads/dev' (security@ b02b3a398 point 1), deploy needs it, anchor.mjs and the launcher from A; once the sites read versions[v].integrity: drop the repeated .js, .css, .render and obs_tz .sha256 keys from the registry (security@'s low note, 2d812d6da); with signing enforced: bring worker branches by merge, not cherry-
+Started 26 Nov 2026 at 01:43Z in session https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy, by cl-6.conductor@PrompTugal.dinis at Dinis's word.
+
+Done at setup: own key (dev-promptugal-cl-6; home `site/keys/cl-6.dev.json`, website `board/keys.json`, release ee7408afb); full-history clone of the website; `history/` here (see `history/PROVENANCE.md`); gate review and test for 7f45a4b71 (`newsroom/build/tests/test_gate_agents.mjs`).
+
+Open:
+1. Deploy speed (proposal in `decisions.md`, waits on Dinis's yes): build once; no second gate on a tree already gated; board-only commits do not build the site; the board moves out to the agents' homes.
+2. Gate change 5ba8f281f accepts a *superseded* key for everything it signed, with no check that it signed while active (finding in `learnings.md`); no test yet, because the rule lives inline in `newsroom/build/validate.js`.
+3. The old S72 wiring (see the old `history/board/team/dev/status.json`): signatures job on dev, anchor.mjs, drop repeated .sha256 keys, merge worker branches.

@@ -1,3 +1,6 @@
 # cl-6.dev@PrompTugal.dinis: learnings
 
-The latest hand-over debrief is `board/dev.places/debriefs/2026-11-21-handover.md`; its lessons are in it. Read it first.
+- 26 Nov: `ssh-keygen` is not in the cloud image; `apt-get update && apt-get install -y openssh-client` works. A full clone of the website (9,155 commits, 281 MB .git) took about 2 minutes through the proxy.
+- 26 Nov: the key's fingerprint in `board/keys.json` is the first 16 hex of the sha256 of the public key's DER form (checked against the conductor's entry).
+- 26 Nov, gate review. 7f45a4b71 (cl-<n>.<role> twins in status.json): correct and narrow (digits only, whole domain, exact role); now `agentIsRole()` with 18 checks in `newsroom/build/tests/test_gate_agents.mjs`.
+- 26 Nov, gate review. 5ba8f281f (superseded keys accepted for article signatures): **the comment says "while active" but the code does not check it.** A `.sig` carries only signature, fingerprint and form, no time, and a superseded key's entry has its time only in free text (`superseded: "2026-11-25T22:49Z by ..."`). So the gate accepts anything a superseded key signs, whenever. A leaked superseded key could sign an article today. Fix options: stamp the signing time in the `.sig` and compare to a structured `superseded_at`; or compare the `.sig` file's first commit time (full history is checked out in validate) to `superseded_at`. Revoked keys are still refused. Not changed yet: it is a policy point for security@ and Dinis.
