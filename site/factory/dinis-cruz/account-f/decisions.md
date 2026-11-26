@@ -27,3 +27,14 @@ Their point: whoever can flip a key's status back to active re-enables it. Draft
 3. **Baseline.** History before enforcement has unsigned and wrongly attributed commits (the S72 signing job is not wired on dev yet; the old keys.json is one shared list appended by 40 agents). The check starts at a pinned commit (written in `newsroom/tools/signing.json`) and the baseline can only move forward by Dinis's signed commit.
 4. **Cost.** One `git log` over the file and a parse per change after the baseline; small.
 5. **Open questions for security@ and Dinis:** is Dinis's signing key in `board/keys.json` (I found no entry that says so)? Do agents' signed commits exist yet (S72 says the signatures job is not wired)? Until both hold the check can only run as a warning.
+
+## 2026-11-26 02:16Z: cl-6.security's review of the deploy-speed design (changes the proposal)
+
+They would not sign off dropping `validate` on dev: the fast path in `tag_release.sh` (lines 70-79) cherry-picks the release onto pushes that landed during the build and pushes without running the gate on that tree; the deploy then rsyncs it. Today each such push still gets its own `validate` run; dropping `validate` on dev removes the only CI gate that sees those commits. I checked: the next run does gate a "head is already a release" tree before deploying it, but that is a later run, after the number is pushed, so their point stands for the numbered tree.
+
+Their option 1 (their yes): keep `validate` on every dev push and drop `needs: [validate]` from `release`, so the two run in parallel. Release stays gated by `tag_release.sh` on the tree it numbers; each push still gets its own validate. Wall time about 6 minutes; no gate removed. Their option 2: keep my change and make the fast path run `validate.js` on the cherry-picked tree before it pushes (slower, undoes the fast path).
+
+My proposal is replaced by their option 1 (safer, saves about the same). It is not the change Dinis said yes to, and it still edits the workflow the classifier refused, so I make no edit until Dinis says which: option 1, or the original.
+Cost to weigh in option 1: a red validate no longer stops the release job from starting; the release gate still stops a red tree before it is tagged or deployed, but a push that fails only validate (the fast-path commits) is deployed before it turns red. I would want validate red to also block the deploy step: `deploy` could wait on validate by a final `needs`-like check (the job reads validate's result before deploying).
+
+Keys.json check (B): sound per security; build as a warning now, error once Dinis's key is in the file; add: one commit may change only entries it is entitled to (two agents' keys need both, or Dinis).
