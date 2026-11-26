@@ -1,0 +1,71 @@
+diff --git a/content/weather/index.md b/content/weather/index.md
+index 3fd45e574..544b56569 100644
+--- a/content/weather/index.md
++++ b/content/weather/index.md
+@@ -3,7 +3,7 @@ title: Weather and warnings in Portugal
+ summary: IPMA's weather warnings, today's sea state and the fire-risk count, on a page that is free to read. IPMA is the source; nothing here is charged for.
+ free: true
+ ---
+-**This page is free: no fee is charged for it.** The reading meter does not run here. IPMA, Portugal's weather and sea institute: its terms, as [the data site records them](https://data.promptugal.news/sources/ipma-warnings/), allow its data to be used where no profit is made, so it is shown on a page with no charge and nowhere else on promptugal.news. Source: [IPMA](https://www.ipma.pt/en/), read through [data.promptugal.news](https://data.promptugal.news/). This is not a warning service: follow IPMA and ANEPC for what to do.
++**This page is free: no fee is charged for it.** The reading meter does not run here. IPMA, Portugal's weather and sea institute: its [terms](https://www.ipma.pt/en/siteinfo/index.html) allow its information to be used "for personal or public use, provided that for no purposes of profit" ([as the data site records them](https://data.promptugal.news/sources/ipma-warnings/)), so it is shown on a page with no charge and nowhere else on promptugal.news. Source: [IPMA](https://www.ipma.pt/en/), read through [data.promptugal.news](https://data.promptugal.news/). This is not a warning service: follow IPMA and ANEPC for what to do.
+ 
+ <!-- weather:status -->
+ 
+diff --git a/newsroom/build/features/by-place.mjs b/newsroom/build/features/by-place.mjs
+index 533e69811..0297ff768 100644
+--- a/newsroom/build/features/by-place.mjs
++++ b/newsroom/build/features/by-place.mjs
+@@ -5,7 +5,7 @@
+ // The Portugal level is the existing portugal/ page, which links here. Built by conductor@PrompTugal.dinis at Dinis's
+ // word (15 Nov 2026, for his meeting with Algarve Evolution); dev@ owns it from here.
+ export const order = 69
+-import { camLines } from './weather.mjs'
++import { camLines, quotesIpma } from './weather.mjs'
+ import { checkSites } from '../../../board/abp/tools/site-identity.mjs'
+ import { execFileSync } from 'node:child_process'
+ import fs from 'node:fs'
+@@ -44,7 +44,7 @@ function load(ctx) {
+             sources: arr(d.sources).filter(s => s && s.name && okUrl(s.url)),
+             events: arr(d.events).filter(e => e && e.title && okUrl(e.url)),
+             extras: arr(d.extras).filter(x => x && x.label && x.value),
+-            gaps: arr(d.gaps).filter(g => typeof g === 'string' && g.trim()),
++            gaps: arr(d.gaps).filter(g => typeof g === 'string' && g.trim() && !quotesIpma(g)),
+             ...Object.fromEntries(['start_company', 'investors', 'talent', 'contacts'].map(k => [k, arr(d[k]).filter(x => x && x.name)])),
+         }
+         if (!/^#[0-9a-f]{6}$/i.test((d.look && d.look.accent) || '')) clean.look = { ...(d.look || {}), accent: undefined }
+diff --git a/newsroom/build/features/weather.mjs b/newsroom/build/features/weather.mjs
+index 731eb5d14..d4401fc6d 100644
+--- a/newsroom/build/features/weather.mjs
++++ b/newsroom/build/features/weather.mjs
+@@ -28,6 +28,10 @@ const fillers = {
+ }
+ export { fillers as fill }
+ 
++// a place's note that quotes an IPMA warning level (cl-6.rights' R1 residual, 26 Nov 2026): IPMA's values may show only on the free /weather/ page, never on a metered page
++// or in the API, so such a note is left out of the town pages until the place agent drops it. A note that only says IPMA could not be read stays.
++export const quotesIpma = g => /\bIPMA\b[^.]*\b(warning|warnings|feed)\b[^.]*\b(yellow|orange|red|green)\b/i.test(String(g))
++
+ // the camera links for one town, for its "Now in" block: cleared operators only, only when the camera feed was read in the last 48 hours
+ export function camLines(ctx, placeId, now = new Date()) {
+     const S = snap(ctx), W = words(ctx); if (!S || !S.cams || !fresh(S.cams.read_at, W, now)) return []
+diff --git a/newsroom/build/tests/test_weather.mjs b/newsroom/build/tests/test_weather.mjs
+index c16d421e2..b6a673e92 100644
+--- a/newsroom/build/tests/test_weather.mjs
++++ b/newsroom/build/tests/test_weather.mjs
+@@ -5,7 +5,7 @@ import fs from 'node:fs'
+ import os from 'node:os'
+ import path from 'node:path'
+ import { fileURLToPath } from 'node:url'
+-import { fill, fresh, camLines, CAM_PAGES } from '../features/weather.mjs'
++import { fill, fresh, camLines, CAM_PAGES, quotesIpma } from '../features/weather.mjs'
+ const here = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
+ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'weather-test-')); fs.mkdirSync(path.join(tmp, 'assets/weather'), { recursive: true })
+ fs.copyFileSync(path.join(here, 'assets/weather/weather.json'), path.join(tmp, 'assets/weather/weather.json'))
+@@ -38,6 +38,7 @@ put(60)
+ t('a warnings feed older than 48 hours is not shown', [/Vento forte/.test(fill['weather:warnings'](null, ctx)), /more than 48 hours ago/.test(fill['weather:warnings'](null, ctx))], [false, true])
+ t('nor the sea or the fire risk', [/Sagres/.test(fill['weather:sea'](null, ctx)), /high: 8/.test(fill['weather:fire'](null, ctx))], [false, false])
+ t('nor a camera link', camLines(ctx, 'lisboa'), [])
++t('a note that quotes an IPMA warning level is left out of the metered pages; one that only says IPMA could not be read stays', [quotesIpma("IPMA's feed shows only the yellow sea warning (18 November 12:00 to 20 November 09:00)"), quotesIpma('IPMA warnings for today could not be read: the page returned a 404.'), quotesIpma('The CCDR notice was read from the list page only.')], [true, false, false])
+ fs.rmSync(path.join(tmp, 'assets/weather/snapshot.json'))
+ t('no snapshot: nothing is shown and nothing breaks', [fill['weather:warnings'](null, ctx), camLines(ctx, 'lisboa')], [W.missing, []])
+ fs.rmSync(tmp, { recursive: true, force: true })
