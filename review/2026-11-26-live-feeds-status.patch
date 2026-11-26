@@ -1,0 +1,62 @@
+From 3a3117e96b67511f024b08f9fd1c39362b60ff3b Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Thu, 26 Nov 2026 11:17:27 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: live feeds: agenda.json says
+ whether the summit is on or over, the day it was built and how many events
+ are withheld; videos.json says when it was built
+
+cl-6.conductor's decision of 26 Nov (option 1, from cl-6.checker's iOS feeds survey): a short list is not a stopped feed. withheld_count is the bare number from data/websummit-only.json.
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+---
+ newsroom/build/features/interviews.mjs | 2 +-
+ newsroom/build/features/live.mjs       | 8 +++++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/newsroom/build/features/interviews.mjs b/newsroom/build/features/interviews.mjs
+index bf4531af8..eda5eaebc 100644
+--- a/newsroom/build/features/interviews.mjs
++++ b/newsroom/build/features/interviews.mjs
+@@ -95,7 +95,7 @@ export function api(ctx) {
+         date: meta.date, recorded: meta.recorded || '', summary: meta.home || meta.summary, page: meta.rel,
+         vault: { endpoint: meta.vault_endpoint, id: meta.vault_id, read_key: meta.vault_read_key, path: meta.vault_path },
+     }))
+-    return [{ path: 'api/v1/live/videos.json', schema: null, data: { version: ctx.VERSION, about: 'Interview videos for the apps, newest first.', count: items.length, items } }]
++    return [{ path: 'api/v1/live/videos.json', schema: null, data: { version: ctx.VERSION, about: 'Interview videos for the apps, newest first; as_of is the day this was built. The list is the interviews recorded so far, not a feed that has stopped.', as_of: ctx.TODAY, count: items.length, items } }]
+ }
+ 
+ export const llms = ctx => `## Interview videos\n- [api/v1/live/videos.json](${ctx.BASE}api/v1/live/videos.json): interview videos for the apps.\n\n`
+diff --git a/newsroom/build/features/live.mjs b/newsroom/build/features/live.mjs
+index ea4f75741..102649aeb 100644
+--- a/newsroom/build/features/live.mjs
++++ b/newsroom/build/features/live.mjs
+@@ -3,6 +3,8 @@
+ // file, and assets/live/live.js fills the shell's <div id="nr-live"> from it in the reader's browser, only from 9 to 12
+ // November (the shell gives the window as data-start and data-end). Outside those days it fetches nothing.
+ // Add ?now=2026-11-10T11:52 to any page to see the strip as it would be at that moment.
++import fs from 'node:fs'
++import path from 'node:path'
+ import { cancelledDays } from './agenda.mjs'
+ export const order = 70
+ export const assets = { js: ['assets/live/live.js'] }
+@@ -15,7 +17,11 @@ export function api(ctx) {
+     const items = ctx.store.events.filter(e => DAYS.includes(e.date) && !off[e.date] && e.time && e.part_of)
+         .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+         .map(e => ({ date: e.date, time: e.time, title: e.title, place: e.place ? (g.node.get(e.place) || {}).label || '' : e.where || '', kind: e.kind, official: e.organiser === 'web-summit', centre: /centre-stage/.test(e.place || ''), page: `events/${e.id}/index.html` }))
+-    return [{ path: 'api/v1/live/agenda.json', schema: null, data: { version: ctx.VERSION, about: 'The summit days\' events (9 to 12 November 2026, Lisbon time, which is UTC), for the live strip (assets/live/live.js). Each event\'s page has its source and the date it was read.', count: items.length, items } }]
++    // what the app needs to say honestly when the list is short (cl-6.conductor's decision of 26 Nov): is the summit on, how many events the
++    // only-websummit-sourced switch holds back (data/websummit-only.json; a bare number), and the day this was built
++    let held = 0; try { held = JSON.parse(fs.readFileSync(path.join(ctx.ROOT, 'data/websummit-only.json'), 'utf8')).counts.events.websummit_only || 0 } catch { }
++    const status = { summit: ctx.TODAY > DAYS[DAYS.length - 1] ? 'over' : ctx.TODAY >= DAYS[0] ? 'on' : 'upcoming', summit_days: [DAYS[0], DAYS[DAYS.length - 1]], as_of: ctx.TODAY, withheld_count: held }
++    return [{ path: 'api/v1/live/agenda.json', schema: null, data: { version: ctx.VERSION, about: 'The summit days\' events (9 to 12 November 2026, Lisbon time, which is UTC), for the live strip (assets/live/live.js). Each event\'s page has its source and the date it was read. `status` says whether the summit is on or over; withheld_count is how many events rest only on websummit.com and are held back, so a short list is not an empty summit.', status, count: items.length, items } }]
+ }
+ 
+ export const llms = ctx => `## The live strip\n- [api/v1/live/agenda.json](${ctx.BASE}api/v1/live/agenda.json): the summit days' events, compact, for the live strip on every page (filled in the reader's browser from 9 to 12 November).\n\n`
+-- 
+2.43.0
+
