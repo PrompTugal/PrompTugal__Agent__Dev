@@ -17,10 +17,14 @@
   "pinned_in": "website newsroom/tools/place-signers.json pins cl-6.places by fingerprint (SHA256:xSUBWx9MZBhggV5fKfu8HSvSqD03ounn5o3R/6kasVA)"
  },
  "model": "sonnet",
- "state": "running (wake 07:37 and 18:37 Lisbon). Live on promptugal.news v0.1.2306: S1 (superseded keys by ancestry), Dinis's home-page feedback, the API withdrawn list and withheld flags, the signed place-data sync (36 homes, pinned key fingerprint, gate hold on place files). Waiting on Dinis for the deploy-speed workflow edit.",
+ "state": "running. Live on promptugal.news v0.1.2309: S1, the home-page feedback, the API withdrawn list and withheld flags, the signed place-data sync (held until the ABP grant is widened), the signed-root gate, live-feed status fields, agent-name domains, /app/ as the PrompTugal.news app page (summit app at /app/summit/), /follow/ with a Follow link, the outlet-mailbox gate exception. Waiting on Dinis: the deploy-speed workflow edit; on cl-6.abp (P11): data/by-place write access.",
  "focus": "S72 wiring, when CI's key exists: the signatures job with if: github.ref == 'refs/heads/dev' (security@ b02b3a398 point 1), deploy needs it, anchor.mjs and the launcher from A; once the sites read versions[v].integrity: drop the repeated .js, .css, .render and obs_tz .sha256 keys from the registry (security@'s low note, 2d812d6da); with signing enforced: bring worker branches by merge, not cherry-",
- "updated": "2026-11-26T11:10Z",
+ "updated": "2026-11-26T11:41Z",
  "timeline": [
+  {
+   "at": "2026-11-26T11:41Z",
+   "event": "v0.1.2309 live: /app/ and /app/summit/, /follow/ and Follow links, live-feed status, signed-root gate (superseded_in rule), agent-name domains, outlet-mailbox exception; all reviewed by cl-6.security; content checked live"
+  },
   {
    "at": "2026-11-26T11:10Z",
    "event": "wake after the usage-limit reset: pulled both repos, no HOLD.md, live site checked (v0.1.2306: lead, 26 dates, map marks, 9 town cards plus 'All 17 towns', articles.json withdrawn list, place data of 26 Nov); ABP run report filed by hand (runs/cl-6.dev/)"
