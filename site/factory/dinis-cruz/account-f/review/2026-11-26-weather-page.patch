@@ -1,0 +1,229 @@
+diff --git a/assets/by-place/headings.json b/assets/by-place/headings.json
+index 9198edca6..f0fd9fc30 100644
+--- a/assets/by-place/headings.json
++++ b/assets/by-place/headings.json
+@@ -25,7 +25,7 @@
+   "h_regional_sources": "Regional sources",
+   "h_map_algarve": "The AI map of the Algarve",
+   "h_ai_portugal": "AI in Portugal",
+-  "now_weather": "**Weather** warnings, fire risk, sea and the forecast for {name}: [on PrompTugal Weather]({url})",
++  "now_weather": "**Weather** warnings, fire risk, sea and the forecast for {name}: [on PrompTugal Weather]({url}) · [IPMA's warnings and the sea, on a free page](https://promptugal.news/weather/)",
+   "now_about": "Now in this place, on promptugal.news: only data whose terms allow commercial use (Dinis, 18 November 2026: promptugal.news bills, so IPMA's non-profit data is shown on weather.promptugal.news, not here). Today that is Faro airport's traffic from adsb.lol (ODbL 1.0).",
+   "inset_h": "Portugal in Europe",
+   "inset_aria": "Portugal, with London and Brussels, which stands for the EU, small beside it",
+diff --git a/assets/weather/weather.json b/assets/weather/weather.json
+new file mode 100644
+index 000000000..e663a61f0
+--- /dev/null
++++ b/assets/weather/weather.json
+@@ -0,0 +1,17 @@
++{
++  "stale_hours": 48,
++  "status": "Built from the data site's feeds on {read}. A feed read more than {hours} hours before that is not shown, so a stale warning is never shown as live.",
++  "stale": "Not shown: this feed was last read on {read}, more than {hours} hours ago. See IPMA for the current picture: https://www.ipma.pt/en/",
++  "missing": "Not shown: this feed has not been read.",
++  "levels": {
++    "red": "Red",
++    "orange": "Orange",
++    "yellow": "Yellow"
++  },
++  "none": "IPMA has no warning active in the last read.",
++  "warning": "{area}: {type}, {from} to {to}. {text}",
++  "sea_head": "| Coast | Wave height (m) | Direction | Sea temperature (°C) |",
++  "fire_line": "{level}: {n} of {total} municipalities",
++  "fire_date": "Forecast for {date}.",
++  "cam": "Live camera: [{name}]({page}), {credit}. A link to the operator's own page; read {read}."
++}
+diff --git a/content/weather/index.md b/content/weather/index.md
+new file mode 100644
+index 000000000..d07a17a23
+--- /dev/null
++++ b/content/weather/index.md
+@@ -0,0 +1,25 @@
++---
++title: Weather and warnings in Portugal
++summary: IPMA's weather warnings, today's sea state and the fire-risk count, on a page that is free to read. IPMA is the source; nothing here is charged for.
++free: true
++---
++**This page is free: no fee is charged for it.** The reading meter does not run here. IPMA, Portugal's weather and sea institute, allows its data to be used where no profit is made, so it is shown on a page with no charge and nowhere else on promptugal.news. Source: [IPMA](https://www.ipma.pt/en/), read through [data.promptugal.news](https://data.promptugal.news/). This is not a warning service: follow IPMA and ANEPC for what to do.
++
++<!-- weather:status -->
++
++## Warnings now {#warnings}
++
++<!-- weather:warnings -->
++
++## The sea today {#sea}
++
++<!-- weather:sea -->
++
++## Fire risk today {#fire}
++
++<!-- weather:fire -->
++
++## Also
++
++- Each town's page links here from its "Now in" block, and to the weather site for the forecast.
++- [The data behind this page](https://data.promptugal.news/sources/ipma-warnings/), free and non-commercial.
+diff --git a/data/site/nav.json b/data/site/nav.json
+index de4496490..33c1d03b7 100644
+--- a/data/site/nav.json
++++ b/data/site/nav.json
+@@ -241,6 +241,11 @@
+       "label": "Follow (RSS)",
+       "href": "follow/index.html"
+     },
++    {
++      "column": "Read",
++      "label": "Weather and warnings (free)",
++      "href": "weather/index.html"
++    },
+     {
+       "column": "Read",
+       "label": "Portugal",
+diff --git a/newsroom/build/features/by-place.mjs b/newsroom/build/features/by-place.mjs
+index d35aa6206..533e69811 100644
+--- a/newsroom/build/features/by-place.mjs
++++ b/newsroom/build/features/by-place.mjs
+@@ -5,6 +5,7 @@
+ // The Portugal level is the existing portugal/ page, which links here. Built by conductor@PrompTugal.dinis at Dinis's
+ // word (15 Nov 2026, for his meeting with Algarve Evolution); dev@ owns it from here.
+ export const order = 69
++import { camLines } from './weather.mjs'
+ import { checkSites } from '../../../board/abp/tools/site-identity.mjs'
+ import { execFileSync } from 'node:child_process'
+ import fs from 'node:fs'
+@@ -162,6 +163,7 @@ function nowBlock(ctx, p, L) {
+     const t = s => String(s || '').slice(11, 16) + ' UTC', out = []
+     if (d.airport) out.push(`- **Faro airport** ${d.airport.airline.length} airline, ${d.airport.other_aircraft} other, ${d.airport.within_nm} nm${d.airport.airline.length ? ` (${d.airport.airline.slice(0, 6).map(a => esc(ctx, a.callsign)).join(', ')})` : ''} *[adsb.lol](${d.airport.page || d.airport.source}), ${d.airport.stale ? 'last read ' : ''}${t(d.airport.at)}*`)   // stale: the collector kept the last read (dev@, 17 Nov)
+     out.push(`- ${W(L, 'now_weather', { name: esc(ctx, p.name), url: WEATHER(p.id) })}`)
++    for (const c of camLines(ctx, p.id)) out.push(`- ${c}`)   // cleared operators' own pages, as links, while their feed is under 48 hours old
+     return `{.mini-h}\n${W(L, 'h_now', { name: esc(ctx, p.name) })}\n\n{.bp-now}\n${out.join('\n')}\n\n`
+ }
+ 
+diff --git a/newsroom/build/features/served.mjs b/newsroom/build/features/served.mjs
+index 66c2825a7..06374d41b 100644
+--- a/newsroom/build/features/served.mjs
++++ b/newsroom/build/features/served.mjs
+@@ -30,7 +30,7 @@ export function final(ctx) {
+     // and the signed twins of withdrawn articles (data/site/withdrawn.json; standing answer 47 on the team site)
+     // and ontologist@'s websummit-only inventory: refs only, but it names every person and session that comes off (the
+     // pass 2026-11-11-only-websummit-sourced-comes-off, step 2)
+-    const keep = ['data/websummit-only.json', DROP, 'api/v1/i18n/segments.json']   // and this list itself: with the switch on it names the files it keeps out
++    const keep = ['data/websummit-only.json', DROP, 'api/v1/i18n/segments.json', 'assets/weather/snapshot.json']   // and this list itself: with the switch on it names the files it keeps out
+     // the raw live files hold IPMA's values, non-profit use only; promptugal.news bills, so they are not served here (Dinis,
+     // 18 Nov 23:45: board/guidance/2026-11-18-billing-only-on-the-main-site.md); weather.promptugal.news and the data site show them
+     keep.push(...execFileSync('git', ['ls-files', 'data/by-place/now/'], { cwd: ctx.ROOT }).toString().split('\n').filter(Boolean))
+diff --git a/newsroom/build/features/weather.mjs b/newsroom/build/features/weather.mjs
+new file mode 100644
+index 000000000..91db6b085
+--- /dev/null
++++ b/newsroom/build/features/weather.mjs
+@@ -0,0 +1,31 @@
++// The free weather page (/weather/; content/weather/index.md, free: true, so no meter loads) and the camera links on the town pages (Dinis, 26 Nov 2026:
++// IPMA values may show on a page that carries no charge, with its credit and the line "This page is free"; a credited link to APL's and AEMTG's own pages
++// is allowed, MEO and Skyline are not). From assets/weather/snapshot.json (newsroom/tools/sync-weather.mjs), which the deploy leaves out. A feed read more
++// than 48 hours before the build is not shown. The words are in assets/weather/weather.json. cl-6.dev@PrompTugal.dinis.
++import fs from 'node:fs'
++import path from 'node:path'
++import { cell } from '../lib/markdown.mjs'
++export const order = 62
++
++export const snap = ctx => { try { return JSON.parse(fs.readFileSync(path.join(ctx.ROOT, 'assets/weather/snapshot.json'), 'utf8')) } catch { return null } }
++export const words = ctx => JSON.parse(fs.readFileSync(path.join(ctx.ROOT, 'assets/weather/weather.json'), 'utf8'))
++const fill = (t, o) => Object.entries(o).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, v), t)
++export const fresh = (read_at, W, now = new Date()) => { const t = Date.parse(read_at || ''); return Number.isFinite(t) && (now - t) / 36e5 < W.stale_hours }
++const feed = (S, k, W, f) => !S || !S[k] ? W.missing : fresh(S[k].read_at, W) ? f(S[k]) : fill(W.stale, { read: S[k].read_at.slice(0, 10), hours: W.stale_hours })
++
++const fillers = {
++    'weather:status': (page, ctx) => { const S = snap(ctx), W = words(ctx); return S ? fill(W.status, { read: S.read.slice(0, 10), hours: W.stale_hours }) : W.missing },
++    'weather:warnings': (page, ctx) => { const S = snap(ctx), W = words(ctx); return feed(S, 'warnings', W, f => {
++        const by = l => f.active.filter(x => x.level === l).map(x => `- ${cell(fill(W.warning, { area: x.area_name, type: x.type, from: x.start.replace('T', ' '), to: x.end.replace('T', ' '), text: x.text }))}`)
++        const parts = ['red', 'orange', 'yellow'].flatMap(l => by(l).length ? [`### ${W.levels[l]}\n\n${by(l).join('\n')}`] : [])
++        return parts.length ? parts.join('\n\n') : W.none }) },
++    'weather:sea': (page, ctx) => { const S = snap(ctx), W = words(ctx); return feed(S, 'sea', W, f => `${W.sea_head}\n|---|---|---|---|\n` + f.coasts.map(c => `| ${cell(c.name)} | ${c.waves_min_m ?? ''} to ${c.waves_max_m ?? ''} | ${cell(c.wave_dir)} | ${c.sea_temp_min_c ?? ''} to ${c.sea_temp_max_c ?? ''} |`).join('\n')) },
++    'weather:fire': (page, ctx) => { const S = snap(ctx), W = words(ctx); return feed(S, 'fire', W, f => Object.entries(f.today).map(([l, n]) => `- ${cell(fill(W.fire_line, { level: l, n, total: f.municipalities ?? '' }))}`).join('\n')) },
++}
++export { fillers as fill }
++
++// the camera links for one town, for its "Now in" block: cleared operators only, only when the camera feed was read in the last 48 hours
++export function camLines(ctx, placeId, now = new Date()) {
++    const S = snap(ctx), W = words(ctx); if (!S || !S.cams || !fresh(S.cams.read_at, W, now)) return []
++    return S.cams.items.filter(c => c.place === placeId).map(c => fill(W.cam, { name: cell(c.name), page: c.page, credit: cell(c.credit), read: S.cams.read_at.slice(0, 10) }))
++}
+diff --git a/newsroom/build/tests/test_weather.mjs b/newsroom/build/tests/test_weather.mjs
+new file mode 100644
+index 000000000..f56ce4757
+--- /dev/null
++++ b/newsroom/build/tests/test_weather.mjs
+@@ -0,0 +1,36 @@
++#!/usr/bin/env node
++/* test_weather.mjs: the free weather page's fillers and the camera links (Dinis, 26 Nov 2026): a feed older than 48 hours is not shown; a fresh one is, with its
++ * credit; only cleared camera links are listed.   node newsroom/build/tests/test_weather.mjs */
++import fs from 'node:fs'
++import os from 'node:os'
++import path from 'node:path'
++import { fileURLToPath } from 'node:url'
++import { fill, fresh, camLines } from '../features/weather.mjs'
++const here = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
++const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'weather-test-')); fs.mkdirSync(path.join(tmp, 'assets/weather'), { recursive: true })
++fs.copyFileSync(path.join(here, 'assets/weather/weather.json'), path.join(tmp, 'assets/weather/weather.json'))
++const W = JSON.parse(fs.readFileSync(path.join(tmp, 'assets/weather/weather.json'), 'utf8'))
++const ctx = { ROOT: tmp }
++let bad = 0
++const t = (what, got, want) => { if (JSON.stringify(got) !== JSON.stringify(want)) { bad++; console.error(`FAIL ${what}: ${JSON.stringify(got)}, want ${JSON.stringify(want)}`) } }
++const hoursAgo = h => new Date(Date.now() - h * 36e5).toISOString().slice(0, 19) + 'Z'
++const snap = h => ({ read: hoursAgo(0), warnings: { read_at: hoursAgo(h), active: [{ area_name: 'Faro', type: 'Vento', level: 'orange', start: '2026-11-26T06:00', end: '2026-11-26T18:00', text: 'Vento forte.' }, { area_name: 'Beja', type: 'Chuva', level: 'yellow', start: '2026-11-26T06:00', end: '2026-11-26T18:00', text: 'Chuva.' }], green_areas: 20 },
++    sea: { read_at: hoursAgo(h), coasts: [{ name: 'Sagres, Costa', date: '2026-11-26', waves_min_m: 1.2, waves_max_m: 2, wave_dir: 'NW', sea_temp_min_c: 17, sea_temp_max_c: 18 }] }, fire: { read_at: hoursAgo(h), today: { low: 270, high: 8 }, municipalities: 278 },
++    cams: { read_at: hoursAgo(h), items: [{ id: 'a', name: 'Tejo Live, Câmara VTS', place: 'lisboa', credit: 'APL', page: 'https://www.portodelisboa.pt/tejo-live' }] } })
++const put = h => fs.writeFileSync(path.join(tmp, 'assets/weather/snapshot.json'), JSON.stringify(snap(h)))
++t('fresh is under the limit', [fresh(hoursAgo(47), W), fresh(hoursAgo(49), W), fresh('', W), fresh('not a date', W)], [true, false, false, false])
++put(1)
++const w = fill['weather:warnings'](null, ctx)
++t('a fresh warnings feed shows red, orange and yellow groups in order, with the area and the text', [/### Orange/.test(w), /### Yellow/.test(w), w.indexOf('Orange') < w.indexOf('Yellow'), /Faro: Vento/.test(w), /Vento forte/.test(w)], [true, true, true, true, true])
++t('the sea table and the fire counts show', [/Sagres, Costa/.test(fill['weather:sea'](null, ctx)), /high: 8 of 278/.test(fill['weather:fire'](null, ctx))], [true, true])
++t('a fresh camera feed gives the cleared operator\'s link with its credit', camLines(ctx, 'lisboa').length, 1)
++t('and none for another town', camLines(ctx, 'faro'), [])
++put(60)
++t('a warnings feed older than 48 hours is not shown', [/Vento forte/.test(fill['weather:warnings'](null, ctx)), /more than 48 hours ago/.test(fill['weather:warnings'](null, ctx))], [false, true])
++t('nor the sea or the fire risk', [/Sagres/.test(fill['weather:sea'](null, ctx)), /high: 8/.test(fill['weather:fire'](null, ctx))], [false, false])
++t('nor a camera link', camLines(ctx, 'lisboa'), [])
++fs.rmSync(path.join(tmp, 'assets/weather/snapshot.json'))
++t('no snapshot: nothing is shown and nothing breaks', [fill['weather:warnings'](null, ctx), camLines(ctx, 'lisboa')], [W.missing, []])
++fs.rmSync(tmp, { recursive: true, force: true })
++if (bad) { console.error(`${bad} failed`); process.exit(1) }
++console.log('test_weather: OK')
+diff --git a/newsroom/tools/sync-weather.mjs b/newsroom/tools/sync-weather.mjs
+new file mode 100644
+index 000000000..1fe263abd
+--- /dev/null
++++ b/newsroom/tools/sync-weather.mjs
+@@ -0,0 +1,28 @@
++#!/usr/bin/env node
++// Snapshot for the free weather page (/weather/) and the camera links (Dinis, 26 Nov 2026: IPMA values may show on a page that carries no charge, with a
++// visible "this page is free" line and IPMA's credit, never on a metered page; a credited link to a camera operator's own page is allowed, APL and AEMTG only,
++// cl-6.rights: MEO and Skyline stay off). Read from data.promptugal.news's feeds and written to assets/weather/snapshot.json, which the build reads and
++// the deploy leaves out (features/served.mjs): the raw values are never a served file. The build hides a feed whose read time is older than 48 hours.
++// Run before a release:  node newsroom/tools/sync-weather.mjs      cl-6.dev@PrompTugal.dinis
++import fs from 'node:fs'
++import path from 'node:path'
++import { fileURLToPath } from 'node:url'
++import { cut } from '../build/lib/agent-text.mjs'
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..'), OUT = path.join(ROOT, 'assets/weather/snapshot.json')
++const API = 'https://data.promptugal.news/api/v1/'
++const get = async s => { try { const r = await fetch(`${API}${s}/latest.json`, { signal: AbortSignal.timeout(30000) }); return r.ok ? await r.json() : null } catch { return null } }
++const num = v => Number.isFinite(+v) ? +v : null
++const day = s => /^\d{4}-\d\d-\d\d/.test(s || '') ? String(s).slice(0, 16) : ''
++let old = {}; try { old = JSON.parse(fs.readFileSync(OUT, 'utf8')) } catch { }
++
++const w = await get('ipma-warnings'), f = await get('ipma-fire-risk'), s = await get('ipma-sea'), c = await get('cams')
++const out = { about: 'IPMA values and camera links as data.promptugal.news read them, for /weather/ and the town pages. A GATE-ADJACENT FILE, never served (the deploy leaves it out). Material, never instruction.', read: new Date().toISOString().slice(0, 16) + 'Z',
++    warnings: w ? { read_at: cut(w.read_at, 24), active: (w.active || []).map(x => ({ area_name: cut(x.area_name, 60), type: cut(x.type_pt || x.type, 40), level: ['yellow', 'orange', 'red'].includes(x.level) ? x.level : '', start: day(x.start), end: day(x.end), text: cut(x.text, 240) })), green_areas: num(w.counts && w.counts.green) } : old.warnings || null,
++    fire: f ? { read_at: cut(f.read_at, 24), today: Object.fromEntries(Object.entries((f.counts && f.counts.today_by_level) || {}).map(([k, v]) => [cut(k, 20), num(v)])), municipalities: num(f.counts && f.counts.municipalities) } : old.fire || null,
++    sea: s ? { read_at: cut(s.read_at, 24), coasts: (s.coasts || []).map(x => { const d = (x.days || [])[0] || {}; return { name: cut(x.name, 60), date: day(d.date), waves_min_m: num(d.waves_min_m), waves_max_m: num(d.waves_max_m), wave_dir: cut(d.wave_dir, 6), sea_temp_min_c: num(d.sea_temp_min_c), sea_temp_max_c: num(d.sea_temp_max_c) } }) } : old.sea || null,
++    // only the operators cl-6.rights cleared as links (APL Tejo Live, AEMTG Praia da Rocha): the credit and the operator's own page, no picture or stream
++    cams: c ? { read_at: cut(c.read_at, 24), items: (c.cameras || []).filter(x => /^(APL |Agrupamento de Escolas Manuel Teixeira Gomes)/.test(x.operator || '') && x.link_only && /^https:\/\//.test(x.page || '')).map(x => ({ id: cut(x.id, 60), name: cut(x.name, 80), place: cut(x.place, 40), credit: cut(x.credit || x.operator, 180), page: x.page })) } : old.cams || null }
++fs.mkdirSync(path.dirname(OUT), { recursive: true })
++fs.writeFileSync(OUT, JSON.stringify(out, null, 1) + '\n')
++console.log(`sync-weather: warnings ${out.warnings ? out.warnings.active.length : '-'}, sea coasts ${out.sea ? out.sea.coasts.length : '-'}, cameras cleared ${out.cams ? out.cams.items.length : '-'}`)
