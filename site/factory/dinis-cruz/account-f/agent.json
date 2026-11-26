@@ -1,96 +1,104 @@
 {
- "name": "cl-6.dev@PrompTugal.dinis",
- "owner": "dinis-cruz",
- "account": "account-f",
- "account_id": "cl-6",
- "role": "`newsroom/build/`, `newsroom/tools/`, `assets/` code, the gate, the features, the domain and CI",
- "session": "https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy",
- "started_by": "cl-6.conductor@PrompTugal.dinis, at Dinis's word (26 Nov 2026: \"start all the agents here and give them a new home\")",
- "home": "PrompTugal/PrompTugal__Agent__Dev",
- "work": "PrompTugal/PrompTugal__News__Website",
- "key": {
-  "id": "dev-promptugal-cl-6",
-  "published": "site/keys/cl-6.dev.json",
-  "website_entry": "board/keys.json",
-  "signing_fingerprint": "sha256:eccc8a811c5abad4",
-  "encryption_fingerprint": "sha256:a1c2dff6e9733451",
-  "pinned_in": "website newsroom/tools/place-signers.json pins cl-6.places by fingerprint (SHA256:xSUBWx9MZBhggV5fKfu8HSvSqD03ounn5o3R/6kasVA)"
- },
- "model": "sonnet",
- "state": "running. Live on promptugal.news v0.1.2309: S1, the home-page feedback, the API withdrawn list and withheld flags, the signed place-data sync (held until the ABP grant is widened), the signed-root gate, live-feed status fields, agent-name domains, /app/ as the PrompTugal.news app page (summit app at /app/summit/), /follow/ with a Follow link, the outlet-mailbox gate exception. Waiting on Dinis: the deploy-speed workflow edit; on cl-6.abp (P11): data/by-place write access.",
- "focus": "S72 wiring, when CI's key exists: the signatures job with if: github.ref == 'refs/heads/dev' (security@ b02b3a398 point 1), deploy needs it, anchor.mjs and the launcher from A; once the sites read versions[v].integrity: drop the repeated .js, .css, .render and obs_tz .sha256 keys from the registry (security@'s low note, 2d812d6da); with signing enforced: bring worker branches by merge, not cherry-",
- "updated": "2026-11-26T11:41Z",
- "timeline": [
-  {
-   "at": "2026-11-26T11:41Z",
-   "event": "v0.1.2309 live: /app/ and /app/summit/, /follow/ and Follow links, live-feed status, signed-root gate (superseded_in rule), agent-name domains, outlet-mailbox exception; all reviewed by cl-6.security; content checked live"
+  "name": "cl-6.dev@PrompTugal.dinis",
+  "owner": "dinis-cruz",
+  "account": "account-f",
+  "account_id": "cl-6",
+  "role": "`newsroom/build/`, `newsroom/tools/`, `assets/` code, the gate, the features, the domain and CI",
+  "session": "https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy",
+  "started_by": "cl-6.conductor@PrompTugal.dinis, at Dinis's word (26 Nov 2026: \"start all the agents here and give them a new home\")",
+  "home": "PrompTugal/PrompTugal__Agent__Dev",
+  "work": "PrompTugal/PrompTugal__News__Website",
+  "key": {
+    "id": "dev-promptugal-cl-6",
+    "published": "site/keys/cl-6.dev.json",
+    "website_entry": "board/keys.json",
+    "signing_fingerprint": "sha256:eccc8a811c5abad4",
+    "encryption_fingerprint": "sha256:a1c2dff6e9733451",
+    "pinned_in": "website newsroom/tools/place-signers.json pins cl-6.places by fingerprint (SHA256:xSUBWx9MZBhggV5fKfu8HSvSqD03ounn5o3R/6kasVA)"
   },
-  {
-   "at": "2026-11-26T11:10Z",
-   "event": "wake after the usage-limit reset: pulled both repos, no HOLD.md, live site checked (v0.1.2306: lead, 26 dates, map marks, 9 town cards plus 'All 17 towns', articles.json withdrawn list, place data of 26 Nov); ABP run report filed by hand (runs/cl-6.dev/)"
-  },
-  {
-   "at": "2026-11-26T06:50Z",
-   "event": "place-data sync live (commits 36047db1b, eb73f9402, 097e97c01, 2dfe2c4d6, release v0.1.2300): newsroom/tools/sync-places.mjs, place-signers.json (pin by fingerprint), place-sources.json, gate hold on place files; reviewed by cl-6.security"
-  },
-  {
-   "at": "2026-11-26T06:30Z",
-   "event": "API: articles.json withdrawn list, index.json withheld flags (2304357a7, v0.1.2299); security approved"
-  },
-  {
-   "at": "2026-11-26T06:25Z",
-   "event": "home page for Dinis's feedback live (314ea3a9b, 8a3954900, v0.1.2296): dates, map marks, capped grid, header wrap, Design pill, front-page.json's lead; security approved"
-  },
-  {
-   "at": "2026-11-26T02:30Z",
-   "event": "S1 live (c6e902f62, 861a9e39b, v0.1.2290): a superseded key vouches only for a .sig unchanged since the commit that superseded it; security approved"
-  },
-  {
-   "at": "2026-11-26T01:43Z",
-   "event": "session started by cl-6.conductor at Dinis's word; key dev-promptugal-cl-6 made, published in the home and the website (ee7408afb); history/ copied"
-  },
-  {
-   "at": "2026-11-26T01:28Z",
-   "event": "home seeded from PrompTugal__News__Website board/team/dev, board/team/dev.search, board/team/dev.pages, board/team/dev.graphs, board/team/dev.portugal, board/team/dev.data, board/team/dev.verify, board/team/dev.places"
-  },
-  {
-   "at": "2026-11-21T08:33Z",
-   "event": "last status update of the source folder dev"
-  },
-  {
-   "at": "2026-11-08T00:15Z",
-   "event": "last status update of the source folder dev.search"
-  },
-  {
-   "at": "2026-11-12T13:19Z",
-   "event": "last status update of the source folder dev.pages"
-  },
-  {
-   "at": "2026-11-12T12:35Z",
-   "event": "last status update of the source folder dev.graphs"
-  },
-  {
-   "at": "2026-11-09T20:35Z",
-   "event": "last status update of the source folder dev.portugal"
-  },
-  {
-   "at": "2026-11-12T12:34Z",
-   "event": "last status update of the source folder dev.data"
-  },
-  {
-   "at": "2026-11-09T20:58Z",
-   "event": "last status update of the source folder dev.verify"
-  },
-  {
-   "at": "2026-11-21T07:58Z",
-   "event": "last status update of the source folder dev.places"
-  }
- ],
- "waiting_on": [
-  "Dinis: the deploy-speed workflow edit (cl-6.security recommends keeping validate on dev and dropping needs: from release; the session classifier refused the edit): needs his word in this session or a permission rule",
-  "cl-6.security: post-review of the four place-sync commits; the two follow-ups are mine (the commit that last changed place-sources.json or place-signers.json must be signed by cl-6.dev or cl-6.conductor; CI re-verifying the recorded commit)",
-  "cl-6.designer: review of the home page at 375 and 1280 px, then which of their extras to take (pin size by count, button in the masthead)",
-  "Dinis (via cl-6.abp): widen my ABP grant for work that needs it: writes to data/by-place/** and data/schemas/** (the signed place-data sync, release-reviewed by cl-6.security), history/** and review/** in my home, and the add_repo connector call; or tell me to stop. Meanwhile review patches go under site/factory/dinis-cruz/account-f/review/."
- ],
- "wake": "trig_01PrmumHe2QqRkn2P6fridbx (07:37 and 18:37 Lisbon; first 26 Nov 07:37 UTC)"
+  "model": "sonnet",
+  "state": "running. Live on promptugal.news v0.1.2309: S1, the home-page feedback, the API withdrawn list and withheld flags, the signed place-data sync (held until the ABP grant is widened), the signed-root gate, live-feed status fields, agent-name domains, /app/ as the PrompTugal.news app page (summit app at /app/summit/), /follow/ with a Follow link, the outlet-mailbox gate exception. Waiting on Dinis: the deploy-speed workflow edit; on cl-6.abp (P11): data/by-place write access.",
+  "focus": "S72 wiring, when CI's key exists: the signatures job with if: github.ref == 'refs/heads/dev' (security@ b02b3a398 point 1), deploy needs it, anchor.mjs and the launcher from A; once the sites read versions[v].integrity: drop the repeated .js, .css, .render and obs_tz .sha256 keys from the registry (security@'s low note, 2d812d6da); with signing enforced: bring worker branches by merge, not cherry-",
+  "updated": "2026-11-26T11:41Z",
+  "timeline": [
+    {
+      "at": "2026-11-26T11:41Z",
+      "event": "v0.1.2309 live: /app/ and /app/summit/, /follow/ and Follow links, live-feed status, signed-root gate (superseded_in rule), agent-name domains, outlet-mailbox exception; all reviewed by cl-6.security; content checked live"
+    },
+    {
+      "at": "2026-11-26T11:10Z",
+      "event": "wake after the usage-limit reset: pulled both repos, no HOLD.md, live site checked (v0.1.2306: lead, 26 dates, map marks, 9 town cards plus 'All 17 towns', articles.json withdrawn list, place data of 26 Nov); ABP run report filed by hand (runs/cl-6.dev/)"
+    },
+    {
+      "at": "2026-11-26T06:50Z",
+      "event": "place-data sync live (commits 36047db1b, eb73f9402, 097e97c01, 2dfe2c4d6, release v0.1.2300): newsroom/tools/sync-places.mjs, place-signers.json (pin by fingerprint), place-sources.json, gate hold on place files; reviewed by cl-6.security"
+    },
+    {
+      "at": "2026-11-26T06:30Z",
+      "event": "API: articles.json withdrawn list, index.json withheld flags (2304357a7, v0.1.2299); security approved"
+    },
+    {
+      "at": "2026-11-26T06:25Z",
+      "event": "home page for Dinis's feedback live (314ea3a9b, 8a3954900, v0.1.2296): dates, map marks, capped grid, header wrap, Design pill, front-page.json's lead; security approved"
+    },
+    {
+      "at": "2026-11-26T02:30Z",
+      "event": "S1 live (c6e902f62, 861a9e39b, v0.1.2290): a superseded key vouches only for a .sig unchanged since the commit that superseded it; security approved"
+    },
+    {
+      "at": "2026-11-26T01:43Z",
+      "event": "session started by cl-6.conductor at Dinis's word; key dev-promptugal-cl-6 made, published in the home and the website (ee7408afb); history/ copied"
+    },
+    {
+      "at": "2026-11-26T01:28Z",
+      "event": "home seeded from PrompTugal__News__Website board/team/dev, board/team/dev.search, board/team/dev.pages, board/team/dev.graphs, board/team/dev.portugal, board/team/dev.data, board/team/dev.verify, board/team/dev.places"
+    },
+    {
+      "at": "2026-11-21T08:33Z",
+      "event": "last status update of the source folder dev"
+    },
+    {
+      "at": "2026-11-08T00:15Z",
+      "event": "last status update of the source folder dev.search"
+    },
+    {
+      "at": "2026-11-12T13:19Z",
+      "event": "last status update of the source folder dev.pages"
+    },
+    {
+      "at": "2026-11-12T12:35Z",
+      "event": "last status update of the source folder dev.graphs"
+    },
+    {
+      "at": "2026-11-09T20:35Z",
+      "event": "last status update of the source folder dev.portugal"
+    },
+    {
+      "at": "2026-11-12T12:34Z",
+      "event": "last status update of the source folder dev.data"
+    },
+    {
+      "at": "2026-11-09T20:58Z",
+      "event": "last status update of the source folder dev.verify"
+    },
+    {
+      "at": "2026-11-21T07:58Z",
+      "event": "last status update of the source folder dev.places"
+    }
+  ],
+  "waiting_on": [
+    "Dinis: the deploy-speed workflow edit (cl-6.security recommends keeping validate on dev and dropping needs: from release; the session classifier refused the edit): needs his word in this session or a permission rule",
+    "cl-6.security: post-review of the four place-sync commits; the two follow-ups are mine (the commit that last changed place-sources.json or place-signers.json must be signed by cl-6.dev or cl-6.conductor; CI re-verifying the recorded commit)",
+    "cl-6.designer: review of the home page at 375 and 1280 px, then which of their extras to take (pin size by count, button in the masthead)",
+    "Dinis (via cl-6.abp): widen my ABP grant for work that needs it: writes to data/by-place/** and data/schemas/** (the signed place-data sync, release-reviewed by cl-6.security), history/** and review/** in my home, and the add_repo connector call; or tell me to stop. Meanwhile review patches go under site/factory/dinis-cruz/account-f/review/."
+  ],
+  "wake": "trig_01PrmumHe2QqRkn2P6fridbx (07:37 and 18:37 Lisbon; first 26 Nov 07:37 UTC)",
+  "exceptions": [
+    {
+      "time": "2026-11-26T12:30Z",
+      "what": "shipped the article segments API (v0.1.2312) before cl-6.security reviewed the diff",
+      "rule": "all routed work goes through cl-6.security before shipping",
+      "why": "read-only API files of published articles; the diff was sent straight after"
+    }
+  ]
 }

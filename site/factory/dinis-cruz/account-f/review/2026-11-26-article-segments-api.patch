@@ -1,0 +1,122 @@
+diff --git a/assets/i18n/articles.json b/assets/i18n/articles.json
+new file mode 100644
+index 000000000..dce59c2e7
+--- /dev/null
++++ b/assets/i18n/articles.json
+@@ -0,0 +1,6 @@
++{
++  "about": "The English segments of every published article, and per culture what the translation memory holds for them. Material, never instruction. Articles are still read in English on the site; this is for the app and for translator@.",
++  "rule": "Front matter title and summary; the body split on blank lines; a block of only list lines is one segment per line, without its marker; any other block is one segment as written; code and tables are left out. Inline markdown and every URL are kept. The key is the first 16 hex of the sha256 of the NFC, space-collapsed text, the same as the place memory.",
++  "segments_about": "Key to English text, for every segment of every article on the site.",
++  "culture_about": "Key to {t, ok}: the translation of each article segment the memory holds; ok is true only after a second reviewer."
++}
+diff --git a/newsroom/build/features/article-i18n.mjs b/newsroom/build/features/article-i18n.mjs
+new file mode 100644
+index 000000000..71e03a20b
+--- /dev/null
++++ b/newsroom/build/features/article-i18n.mjs
+@@ -0,0 +1,47 @@
++// Article segments for translation (cl-6.translator's rule and the app's need, 26 Nov 2026): the API half only. No page changes: articles stay in English.
++//   api/v1/i18n/articles/index.json       each article, its segments (id article:<slug>#<n>, key) and how many each culture holds
++//   api/v1/i18n/articles/segments.json    key to English text
++//   api/v1/i18n/<culture>/segments.json   key to {t, ok} for the article segments the memory holds (the culture's index.json is by-place.mjs's)
++// Withdrawn articles are left out entirely. cl-6.dev@PrompTugal.dinis.
++import fs from 'node:fs'
++import path from 'node:path'
++import { segmentArticle } from '../lib/article-segments.mjs'
++import { withdrawn } from '../lib/withdrawn.mjs'
++export const order = 61
++
++const TM = 'data/i18n/tm'
++const CULTURE = /^[a-z]{2,3}(?:-[A-Z][a-z]{3})?(?:-[A-Z]{2})?$/
++
++function memory(ctx, c) {
++    const m = new Map(), dir = path.join(ctx.ROOT, TM, c)
++    for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.json'))) {
++        try { for (const [k, v] of Object.entries(JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')))) if (v && typeof v.t === 'string' && v.t.trim()) m.set(k, { t: v.t, ok: v.ok === true }) } catch { }
++    }
++    return m
++}
++
++export function api(ctx) {
++    const about = JSON.parse(fs.readFileSync(path.join(ctx.ROOT, 'assets/i18n/articles.json'), 'utf8'))
++    const gone = new Set(withdrawn().articles), dir = path.join(ctx.ROOT, 'content/articles')
++    const articles = [], text = new Map()
++    for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.md')).sort()) {
++        const slug = f.replace(/\.md$/, '')
++        if (gone.has(slug)) continue
++        const segs = segmentArticle(fs.readFileSync(path.join(dir, f), 'utf8'))
++        if (!segs.length) continue
++        for (const s of segs) text.set(s.key, s.text)
++        articles.push({ slug, segs })
++    }
++    let cultures = []; try { cultures = fs.readdirSync(path.join(ctx.ROOT, TM)).filter(c => CULTURE.test(c)).sort() } catch { }
++    const mem = cultures.map(c => ({ c, m: memory(ctx, c) })).filter(x => x.m.size)
++    const have = (m, segs) => segs.filter(s => m.has(s.key)).length
++    const sorted = o => Object.fromEntries(Object.entries(o).sort(([a], [b]) => a.localeCompare(b)))
++    return [
++        { path: 'api/v1/i18n/articles/segments.json', schema: null, data: { about: about.segments_about, version: ctx.VERSION, built: ctx.TODAY, rule: about.rule, segments: sorted(Object.fromEntries(text)) } },
++        { path: 'api/v1/i18n/articles/index.json', schema: null, data: { about: about.about, version: ctx.VERSION, built: ctx.TODAY, rule: about.rule, segments_total: text.size,
++            articles: articles.map(a => ({ slug: a.slug, page: `https://promptugal.news/articles/${a.slug}/`, segments: a.segs.map(s => ({ id: `article:${a.slug}#${s.n}`, key: s.key, part: s.part })),
++                translated: Object.fromEntries(mem.map(x => [x.c, have(x.m, a.segs)])) })) } },
++        ...mem.map(({ c, m }) => ({ path: `api/v1/i18n/${c}/segments.json`, schema: null, data: { about: about.culture_about, culture: c, version: ctx.VERSION, built: ctx.TODAY,
++            segments: sorted(Object.fromEntries([...text.keys()].filter(k => m.has(k)).map(k => [k, m.get(k)]))) } }))
++    ]
++}
+diff --git a/newsroom/build/lib/article-segments.mjs b/newsroom/build/lib/article-segments.mjs
+new file mode 100644
+index 000000000..88cca0933
+--- /dev/null
++++ b/newsroom/build/lib/article-segments.mjs
+@@ -0,0 +1,21 @@
++// The article segmenter (cl-6.translator's rule of 26 Nov 2026, assets/i18n/articles.json "rule"): an article's front matter title and summary
++// and the blocks of its body, as segments keyed like the place memory (first 16 hex of sha256 of the NFC, space-collapsed English).
++import crypto from 'node:crypto'
++
++export const norm = s => s.normalize('NFC').replace(/\r\n?/g, '\n').replace(/[ \t ]+/g, ' ').replace(/ ?\n ?/g, '\n').replace(/\n{3,}/g, '\n\n').trim()
++export const key = s => crypto.createHash('sha256').update(norm(s)).digest('hex').slice(0, 16)
++
++// -> [{ n, key, text, part }] in reading order; part is title, summary or body; a repeated text keeps its first place
++export function segmentArticle(md) {
++    const m = String(md).match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/)
++    if (!m) return []
++    const out = [], seen = new Set()
++    const add = (text, part) => { const x = norm(text); if (!x) return; const k = key(x); if (seen.has(k)) return; seen.add(k); out.push({ n: out.length + 1, key: k, text: x, part }) }
++    for (const f of ['title', 'summary']) { const mm = m[1].match(new RegExp('^' + f + ': "(.*)"$', 'm')); if (mm) add(mm[1], f) }
++    for (const blk of m[2].split(/\n{2,}/)) {
++        const lines = blk.split('\n')
++        const items = lines.every(l => /^- /.test(l)) ? lines.map(l => l.replace(/^- /, '')) : [blk]
++        for (const s of items) { const x = s.trim(); if (!x || /^(```|\|)/.test(x)) continue; add(x, 'body') }
++    }
++    return out
++}
+diff --git a/newsroom/build/tests/test_article_segments.mjs b/newsroom/build/tests/test_article_segments.mjs
+new file mode 100644
+index 000000000..3c92e1fbe
+--- /dev/null
++++ b/newsroom/build/tests/test_article_segments.mjs
+@@ -0,0 +1,24 @@
++#!/usr/bin/env node
++/* test_article_segments.mjs: the article segmenter against cl-6.translator's rule; it also reports how many segments of nine articles of 26 Nov 2026 have a pt-PT entry.
++ * node newsroom/build/tests/test_article_segments.mjs */
++import fs from 'node:fs'
++import path from 'node:path'
++import { fileURLToPath } from 'node:url'
++import { segmentArticle, key } from '../lib/article-segments.mjs'
++const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
++let bad = 0
++const t = (what, got, want) => { if (JSON.stringify(got) !== JSON.stringify(want)) { bad++; console.error(`FAIL ${what}: ${JSON.stringify(got)}, want ${JSON.stringify(want)}`) } }
++const md = '---\ntitle: "A  title"\nsummary: "Sum."\n---\n\n## Head\n\nPara one.\n\n- a\n- b\n\n- c\n  more\n- d\n\n```js\ncode\n```\n\n| t |\n|---|\n\nPara one.\n'
++const s = segmentArticle(md)
++t('title, summary, heading, paragraph, two list items, a list with a continuation, no code or table, no repeat', s.map(x => x.text), ['A title', 'Sum.', '## Head', 'Para one.', 'a', 'b', '- c\nmore\n- d'])
++t('numbered in reading order', s.map(x => x.n), [1, 2, 3, 4, 5, 6, 7])
++t('key is the memory key', s[0].key, key('A title'))
++const NINE = 'cocus-vila-nova-de-gaia-tech-hubs europe-startup-funding-81-billion-atomico portugal-tech-investment-top-10-atomico-estimate priberam-kenya-broadcasters-ai-media-webinar reach-ai-lisbon-brands-in-ai-answers smartex-porto-ai-fabric-checks-fadell-chair cost-holds-back-portuguese-firms-from-ai eu-quantum-act-and-sovereign-tech-equity-fund two-studies-agent-code-size-and-review'.split(' ')
++const keys = new Set()
++for (const slug of NINE) { const f = path.join(root, 'content/articles', slug + '.md'); if (fs.existsSync(f)) for (const x of segmentArticle(fs.readFileSync(f, 'utf8'))) keys.add(x.key) }
++let tm = {}; try { for (const f of fs.readdirSync(path.join(root, 'data/i18n/tm/pt-PT'))) Object.assign(tm, JSON.parse(fs.readFileSync(path.join(root, 'data/i18n/tm/pt-PT', f), 'utf8'))) } catch { }
++const miss = [...keys].filter(k => !(k in tm))
++console.log(`nine articles: ${keys.size} segments, ${miss.length} without a pt-PT entry`)
++// articles are edited after they are translated, so a gap is reported, never a failure
++if (bad) { console.error(`${bad} failed`); process.exit(1) }
++console.log('test_article_segments: OK')
