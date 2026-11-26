@@ -1,0 +1,220 @@
+diff --git a/assets/meter/meter.js b/assets/meter/meter.js
+index d79878b48..bbb4dc77f 100644
+--- a/assets/meter/meter.js
++++ b/assets/meter/meter.js
+@@ -129,7 +129,7 @@
+ 
+     // The masthead chip ("Pay for what you read · £4.99") is off until Dinis decides the wording of a price (cl-6.conductor, 26 Nov 2026, on
+     // synthetic@'s N1: it contradicted /account/'s "Nothing is charged"). One switch, reversible: true draws it again.
+-    var SHOW_CHIP = false
++    var SHOW_CHIP = true
+     function chip(m) {
+         var t = tools()
+         var a = document.getElementById('nr-meter-chip') || t.querySelector('.meter')      // the shell's own chip, if it draws one
+@@ -143,9 +143,9 @@
+         var b = m.state.balance
+         a.classList.toggle('is-low', b < 100)
+         a.classList.toggle('is-neg', b < 0)
+-        a.replaceChildren(h('span', { class: 'meter-label' }, 'Pay for what you read · '), m.money(b))   // the balance, going down as you read (Dinis, 17 November 2026: "I need to see the value of my budget, always")
++        a.replaceChildren(h('span', { class: 'meter-label' }, b > 0 ? 'Pay for what you read · ' : 'Credit used · keep reading · '), b > 0 ? m.money(b) : 'top-up coming soon')   // the balance, going down as you read (Dinis, 17 November 2026: "I need to see the value of my budget, always")
+         a.setAttribute('aria-label', 'Reading credit ' + m.money(b) + ', kept in this browser: your account')
+-        a.title = b < 0 ? 'You have read ' + m.money(-b) + ' more than your credit. Nothing is blocked; top up whenever it feels fair. Kept in this browser only.' : 'Pay for what you read. Credit left: ' + m.money(b) + ', kept in this browser only: your reading account'
++        a.title = b < 0 ? 'You have read ' + m.money(-b) + ' more than your credit. Nothing is blocked; top-ups are coming soon. Kept in this browser only.' : 'Pay for what you read. Credit left: ' + m.money(b) + ', kept in this browser only: your reading account'
+     }
+ 
+     var REASONS = [['clickbait', 'The headline promised more than the page gave'], ['not-relevant', 'Not relevant to me'], ['did-not-read', 'I did not really read it'], ['other', 'Another reason']]
+@@ -223,7 +223,7 @@
+                     h('p', { class: 'sub' }, (s.reads || 0) + ' page' + (s.reads === 1 ? '' : 's') + ' opened in this browser · ' + m.money(s.spent || 0) + ' spent' + (s.declined ? ' · ' + m.money(s.declined) + ' declined' : '') + ((s.topups || []).length ? ' · ' + s.topups.length + ' top-up' + (s.topups.length === 1 ? '' : 's') : '')),
+                     m.noStorage ? h('p', { class: 'sub warn' }, 'This browser refuses to keep a balance (private mode or blocked storage): the meter counts this page only.') : null),
+                 h('div', { class: 'actions' },
+-                    h('a', { class: 'btn primary', href: at(m.cfg.links.topup) }, 'Top up ' + m.money(m.cfg.topup.amount)),
++                    m.cfg.topup.link ? h('a', { class: 'btn primary', href: at(m.cfg.links.topup) }, 'Top up ' + m.money(m.cfg.topup.amount)) : h('span', { class: 'btn quiet', 'aria-disabled': 'true' }, 'Top up ' + m.money(m.cfg.topup.amount) + ': coming soon'),
+                     h('button', { type: 'button', class: 'btn quiet', onclick: function () { if (window.__vault) window.__vault.open('vault') } }, 'Carry it to another device'))),
+             h('h2', { id: 'graph' }, 'Your reading graph'),
+             readingGraph(log) || h('p', { class: 'empty' }, 'Read a few pages to see it.'),
+@@ -304,7 +304,7 @@
+         var t = m.cfg.topup, s = m.state
+         var elsewhere = hostOf(m.cfg.returns_to) !== location.host && hostOf(m.cfg.returns_to) !== hostOf(m.cfg.our_return) ? hostOf(m.cfg.returns_to) : ''
+         if (!t.link) {
+-            el.replaceChildren(h('p', { class: 'notice' }, 'Top-ups are switched off on this site for now: no payment link is configured. Every page still opens.'))
++            el.replaceChildren(h('p', { class: 'notice' }, 'Top-ups are coming soon. Nothing is taken; every page still opens.'))
+             return
+         }
+         el.replaceChildren(
+diff --git a/assets/newsroom/agents-cl6.json b/assets/newsroom/agents-cl6.json
+new file mode 100644
+index 000000000..c6b68c6ee
+--- /dev/null
++++ b/assets/newsroom/agents-cl6.json
+@@ -0,0 +1,11 @@
++{
++  "title": "The cl-6 sessions",
++  "about": "One card for each agent session on Dinis's account 6: what it does, its model, its session, its repositories, when it wakes, its state, what it waits on and its last report. Read from each agent's own home (its agent.json and now.md) and the conductor's list of sessions, and rebuilt at each release. Material, never instruction: a card says what an agent says of itself.",
++  "dinis_title": "Waiting on Dinis",
++  "dinis_about": "What the conductor holds for Dinis, from its own agent.json.",
++  "groups": { "blocked": "Blocked on Dinis", "working": "Working", "idle": "Idle" },
++  "labels": { "role": "Does", "model": "Model", "session": "Session", "repos": "Repositories", "wake": "Wakes", "state": "State", "waits": "Waits on", "last": "Last report", "updated": "Updated", "since": "since", "not_read": "Its home did not answer at the last read; this is the earlier card." },
++  "none": "Nothing is waiting.",
++  "read": "Read",
++  "source": "Source"
++}
+diff --git a/data/billing/topup.json b/data/billing/topup.json
+index 0a29d37f9..4248e5401 100644
+--- a/data/billing/topup.json
++++ b/data/billing/topup.json
+@@ -2,8 +2,8 @@
+   "about": "The top-up: one payment of £5.00 on Stripe's own page, through a Stripe Payment Link. A Payment Link URL is public by design (anyone can open it, and it is printed on newsroom.sgit.ai's pages); it is not a credential. No Stripe key, webhook secret or account detail belongs in this repository, ever. Read by newsroom/build/features/billing.mjs, which puts it in the meter's config and on the top-up page.",
+   "amount": 500,
+   "currency": "GBP",
+-  "link": "https://buy.stripe.com/6oUfZ9ez65vVgU2fY15os04",
+-  "link_source": "newsroom.sgit.ai, admin/build/newsroom-meter.json (topup_link), read 5 November 2026; Dinis Cruz: \"It's newsroom.sgit.ai that has it all working, so grab it from there.\"",
++  "link": "",
++  "link_source": "none yet: PrompTugal.news has no Payment Link of its own (Dinis, 26 Nov 2026, via the conductor: the button says coming soon until he gives one). Earlier source, newsroom.sgit.ai, admin/build/newsroom-meter.json (topup_link), read 5 November 2026; Dinis Cruz: \"It's newsroom.sgit.ai that has it all working, so grab it from there.\"",
+   "client_reference_id": "web-summit-newsroom",
+   "returns_to": "https://newsroom.sgit.ai/account/topped-up.html?session_id={CHECKOUT_SESSION_ID}",
+   "returns_to_source": "newsroom.sgit.ai, admin/build/newsroom-meter.json (topup_link_note): the after-payment redirect set on this link in Stripe's dashboard. A Payment Link has one redirect, fixed in Stripe, so a payment started here returns to newsroom.sgit.ai's page, not this site's.",
+diff --git a/newsroom/build/features/account.mjs b/newsroom/build/features/account.mjs
+index a9dfff3aa..5aae37ead 100644
+--- a/newsroom/build/features/account.mjs
++++ b/newsroom/build/features/account.mjs
+@@ -80,7 +80,7 @@ export function pages(ctx) {
+             where,
+         ].join('\n'),
+         crumbs: [CRUMB, [null, 'Top up']],
+-        ...withMounts([mount('topup', 'topup', `<p>Topping up needs JavaScript: the balance lives in your browser. The payment page itself is <a href="${payLink(T)}" target="_blank" rel="noopener">Stripe's</a>.</p>`)]),
++        ...withMounts([mount('topup', 'topup', `<p>Topping up needs JavaScript: the balance lives in your browser. ${payLink(T) ? `The payment page itself is <a href="${payLink(T)}" target="_blank" rel="noopener">Stripe's</a>.` : 'Top-ups are coming soon.'}</p>`)]),
+     }
+     topup.twinMd = topup.md.replace(token('topup'), `*In a browser: your balance now, then "Continue to pay ${amount}", which opens Stripe's page: ${payLink(T) || 'no payment link is configured'}.*`)
+ 
+diff --git a/newsroom/build/features/billing.mjs b/newsroom/build/features/billing.mjs
+index f627661b6..508752af0 100644
+--- a/newsroom/build/features/billing.mjs
++++ b/newsroom/build/features/billing.mjs
+@@ -143,7 +143,7 @@ export function llms(ctx) {
+         '## The reading meter',
+         `- Every page except the meter's own costs a few pence, from ${money(P, P.start)} of starting credit kept in the reader's browser (localStorage key \`${P.storage_key}\`): a base price per page type (the \`page-type\` meta tag) times a freshness multiplier from the page's date (\`page-date\`), times the share read, never under a tenth; once per page per browser session; never blocking; the balance can go below zero; a reader can rate a page (free to double) or decline to pay and say why.`,
+         `- The prices: ${ctx.BASE}${BILLING_PAGE.replace(/\.html$/, '.md')} (the table) and ${ctx.BASE}${CONFIG} (the meter's config, same data).`,
+-        `- Top-ups: one payment of ${money(P, T.amount)} through a Stripe Payment Link (${T.link}); the return page adds the credit once per payment reference, unverified by design.`,
++        `- Top-ups: one payment of ${money(P, T.amount)} through a Stripe Payment Link (${T.link || 'coming soon'}); the return page adds the credit once per payment reference, unverified by design.`,
+         `- Agents reading the markdown twins or llms.txt are not metered: the meter runs only in a browser, on the HTML pages.`,
+         '',
+     ].join('\n') + '\n'
+@@ -192,7 +192,7 @@ export function validate(gate) {
+         const c = gate.json(CONFIG), want = priceTable(P)
+         if (JSON.stringify(c.prices) !== JSON.stringify(want)) out.push(`${CONFIG}: its prices are not ${PRICES}'s table`)
+         if (c.storageKey !== P.storage_key || c.start !== P.start) out.push(`${CONFIG}: storage key or starting credit differs from ${PRICES}`)
+-        if (c.topup.amount !== T.amount || !String(c.topup.link).startsWith(T.link)) out.push(`${CONFIG}: the top-up differs from ${TOPUP}`)
++        if (c.topup.amount !== T.amount || (T.link ? !String(c.topup.link).startsWith(T.link) : c.topup.link)) out.push(`${CONFIG}: the top-up differs from ${TOPUP}`)
+     } else out.push(`${CONFIG} was not built`)
+     // the published page carries every price of the table
+     if (gate.generated.has(BILLING_PAGE.replace(/\.html$/, '.md'))) {
+diff --git a/newsroom/build/features/newsroom.mjs b/newsroom/build/features/newsroom.mjs
+index 8de2ab6cb..dc7018618 100644
+--- a/newsroom/build/features/newsroom.mjs
++++ b/newsroom/build/features/newsroom.mjs
+@@ -13,6 +13,7 @@
+ import path from 'node:path'
+ import { esc, cell } from '../lib/markdown.mjs'
+ import { json } from '../lib/writers.mjs'
++import { cl6Section } from '../lib/newsroom-cl6.mjs'
+ import { loadSchemas, validate as checkSchema } from '../lib/schema.mjs'
+ import * as d from './newsroom-draw.mjs'
+ import { model, liveCounts, fillCounts, lanesFor, parallels, readLedger, STAGES, personName } from './newsroom-model.mjs'
+@@ -178,7 +179,7 @@ function agentsPage(ctx, m) {
+     const max = Math.max(1, ...withCommits.flatMap(a => areas.map(ar => sum(a, ar))))
+     const matrix = `<div class="table adm-table"><table class="adm-matrix"><thead><tr><th>Agent</th>${areas.map(a => `<th>${a}</th>`).join('')}</tr></thead><tbody>${withCommits.map(a => `<tr><th scope="row"><a href="${b.h(agentRel(a))}">${esc(d.short(a.name))}</a></th>${areas.map(ar => { const v = sum(a, ar); return `<td${v ? ` style="--v:${(0.12 + 0.88 * Math.sqrt(v / max)).toFixed(2)}"` : ''}>${v ? n(v) : ''}</td>` }).join('')}</tr>`).join('')}</tbody></table></div>`
+     const matrixMd = `| Agent | ${areas.join(' | ')} |\n|---|${areas.map(() => '---').join('|')}|\n` + withCommits.map(a => `| ${d.short(a.name)} | ${areas.map(ar => sum(a, ar) || '').join(' | ')} |`).join('\n')
+-    const md = tabs(b, ctx) +
++    const md = tabs(b, ctx) + cl6Section(ctx, ctx.readJSON('assets/newsroom/agents-cl6.json')) +
+         `Every agent working on this newsroom: the conductor, the builders it fired up, the desks, and the agents on the team's site whose work reaches this repository. Kept by hand in \`data/newsroom/agents.json\`; their runs come from the ledger and the desks' reports. Each agent has a page.\n\n` +
+         groups.map(([s, l]) => { const xs = m.agents.filter(a => a.status === s); return xs.length ? `## ${l} (${xs.length}) {#${s}}\n\n| Agent | Role | Kind | For | Runs | Last run | Key |\n|---|---|---|---|---|---|---|\n${xs.map(row).join('\n')}\n\n` : '' }).join('') +
+         `## Where their work lands {#areas}\n\nFiles changed by each agent's commits, by area of the repository (a darker cell, more files). A merge counts against the agent that merged.\n\n` + b.raw(matrix, matrixMd) +
+diff --git a/newsroom/build/lib/newsroom-cl6.mjs b/newsroom/build/lib/newsroom-cl6.mjs
+new file mode 100644
+index 000000000..54ef32ee8
+--- /dev/null
++++ b/newsroom/build/lib/newsroom-cl6.mjs
+@@ -0,0 +1,23 @@
++// The cl-6 sessions section of /newsroom/agents/ (the conductor's brief of 26 Nov 2026): cards from assets/newsroom/agents-snapshot.json (newsroom/tools/sync-agents.mjs),
++// Dinis's list on top, then the agents grouped by state. The words are in assets/newsroom/agents-cl6.json. Every value is escaped; none is trusted.
++// cl-6.dev@PrompTugal.dinis.
++import { esc, cell } from './markdown.mjs'
++
++const id = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-')
++const line = (k, v) => v ? `- **${k}:** ${v}` : ''
++
++export function cl6Section(ctx, T) {
++    let D; try { D = ctx.readJSON('assets/newsroom/agents-snapshot.json') } catch { return '' }
++    const L = T.labels, waits = a => (a.waiting_on || []).map(w => `  - ${cell(w.what)}${w.who && w.who !== 'Dinis' ? ` (${cell(w.who)})` : ''}${w.since ? ` ${L.since} ${cell(w.since)}` : ''}`).join('\n')
++    const card = a => [`### ${cell(a.id)} {#${id(a.id)}}`, '',
++        line(L.role, cell(a.role)), line(L.model, cell(a.model)),
++        line(L.session, a.session ? `[${cell(a.session.replace('https://claude.ai/code/', ''))}](${a.session})` : ''),
++        line(L.repos, (a.repos || []).map(r => `[${cell(r.replace('PrompTugal/', ''))}](https://github.com/${encodeURI(r)})`).join(', ')),
++        line(L.wake, cell(a.wake)), line(L.state, cell(a.state || a.focus)),
++        (a.waiting_on || []).length ? `- **${L.waits}:**\n${waits(a)}` : '',
++        a.last ? line(L.last, `${cell(a.last.title)}: ${cell(a.last.text)}`) : '', line(L.updated, cell(a.updated)),
++        a.read === false ? `*${L.not_read}*` : '', ''].filter((x, i, r) => x !== '' || r[i - 1] !== '').join('\n')
++    const groups = ['blocked', 'working', 'idle'].map(k => { const xs = D.agents.filter(a => a.status === k); return xs.length ? `## ${T.groups[k]} (${xs.length}) {#${k}}\n\n${xs.map(card).join('\n\n')}\n` : '' }).join('\n')
++    const dinis = (D.dinis || []).length ? (D.dinis).map(w => `- ${cell(w.what)}${w.since ? ` (${L.since} ${cell(w.since)})` : ''}`).join('\n') : T.none
++    return `## ${T.title} {#cl6}\n\n${T.about}\n\n${T.read}: ${cell(D.read)}. ${T.source}: ${cell(D.source)}.\n\n## ${T.dinis_title} {#dinis}\n\n${T.dinis_about}\n\n${dinis}\n\n${groups}\n`
++}
+diff --git a/newsroom/tools/sync-agents.mjs b/newsroom/tools/sync-agents.mjs
+new file mode 100644
+index 000000000..23c8f1b3c
+--- /dev/null
++++ b/newsroom/tools/sync-agents.mjs
+@@ -0,0 +1,54 @@
++#!/usr/bin/env node
++// Snapshot of the cl-6 agents for /newsroom/agents/ (the conductor's brief of 26 Nov 2026, Dinis's word): one card per session of the conductor's
++// board/proposals/2026-11-26-sessions.json, read raw from each agent's home (site/factory/dinis-cruz/account-f/agent.json and now.md) and written
++// to assets/newsroom/agents-snapshot.json, which the build reads. Run before a release:  node newsroom/tools/sync-agents.mjs
++// Public repositories, no token, no session token or key is read or kept; text is cut short and only ever printed escaped.
++// A home that does not answer keeps its previous card, marked "not read". cl-6.dev@PrompTugal.dinis.
++import fs from 'node:fs'
++import path from 'node:path'
++import { fileURLToPath } from 'node:url'
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
++const OUT = path.join(ROOT, 'assets/newsroom/agents-snapshot.json')
++const RAW = 'https://raw.githubusercontent.com/'
++const CONDUCTOR = 'PrompTugal/PrompTugal__Agent__Conductor'
++const BRANCH = 'dev', F = 'site/factory/dinis-cruz/account-f/'
++const noMail = s => s.replace(/[^\s@()<>"']*@([A-Za-z0-9.-]+\.[A-Za-z]{2,})/g, (m, d) => /\.dinis$/i.test(d) ? m : '[address]')   // an outlet's mailbox is never copied here (CLAUDE.md, Contacts)
++const cut = (s, n) => { s = noMail(String(s ?? '')).replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s }
++const get = async u => { try { const r = await fetch(u, { signal: AbortSignal.timeout(20000) }); return r.ok ? await r.text() : null } catch { return null } }
++const json = async u => { const t = await get(u); try { return t ? JSON.parse(t) : null } catch { return null } }
++
++// what an agent waits on: a string or {what, who, since}; Dinis's are the ones that name him
++const waits = a => (Array.isArray(a) ? a : []).map(x => typeof x === 'string' ? { what: cut(x, 400), who: /^Dinis\b/.test(x) ? 'Dinis' : '' } : { what: cut(x.what, 400), who: cut(x.who || '', 40), since: cut(x.since || '', 20) })
++const stateOf = (state, w) => w.some(x => x.who === 'Dinis') ? 'blocked' : /^(idle|archived|not started|nothing)/i.test(String(state || '').trim()) ? 'idle' : 'working'
++// the last report: the heading and first lines of the last "## " section of now.md
++function lastReport(md) {
++    if (!md) return null
++    const parts = md.split(/^## /m); const last = parts.length > 1 ? parts[parts.length - 1] : ''
++    if (!last) return null
++    const [head, ...rest] = last.split('\n')
++    return { title: cut(head, 120), text: cut(rest.join(' '), 420) }
++}
++
++let old = {}; try { old = Object.fromEntries(JSON.parse(fs.readFileSync(OUT, 'utf8')).agents.map(a => [a.id, a])) } catch { }
++const sessions = await json(`${RAW}${CONDUCTOR}/${BRANCH}/board/proposals/2026-11-26-sessions.json`)
++if (!sessions || !Array.isArray(sessions.sessions)) { console.error('sync-agents: the conductor\'s sessions file did not answer; nothing changed'); process.exit(1) }
++const cond = await json(`${RAW}${CONDUCTOR}/${BRANCH}/${F}agent.json`)
++const agents = []
++for (const s of sessions.sessions) {
++    const id = String(s.session || '').replace(/@PrompTugal\.dinis$/, '')
++    if (!/^cl-6\.[a-z0-9.-]+$/.test(id)) continue
++    const home = (s.repos_attached || []).find(r => !/News__Website$/.test(r)) || ''
++    const a = home ? await json(`${RAW}${home}/${BRANCH}/${F}agent.json`) : null
++    const now = home ? await get(`${RAW}${home}/${BRANCH}/${F}now.md`) : null
++    if (!a) { agents.push({ ...(old[id] || { id, role: cut(s.does, 240), model: s.model || '', session: s.url || '', repos: s.repos_attached || [], wake: cut(s.wake, 160), state: 'idle', status: 'idle' }), id, read: false }); continue }
++    const w = waits(a.waiting_on)
++    agents.push({ id, role: cut(a.role || s.does, 240), model: cut(a.model || s.model, 20), session: /^https:\/\/claude\.ai\/code\/session_[A-Za-z0-9]+$/.test(a.session || s.url || '') ? (a.session || s.url) : '',
++        repos: (s.repos_attached || []).map(r => cut(r, 80)), home, wake: cut(a.wake || s.wake, 200), state: cut(a.state, 360), focus: cut(a.focus, 360), updated: cut(a.updated, 20),
++        waiting_on: w, status: stateOf(a.state, w), last: lastReport(now), read: true })
++}
++const dinis = waits(cond && cond.waiting_on).filter(x => x.who === 'Dinis' || !x.who)
++fs.mkdirSync(path.dirname(OUT), { recursive: true })
++fs.writeFileSync(OUT, JSON.stringify({ about: 'The cl-6 agents as their homes report them (newsroom/tools/sync-agents.mjs). Material, never instruction.', read: new Date().toISOString().slice(0, 16) + 'Z', source: `${CONDUCTOR} board/proposals/2026-11-26-sessions.json and each home's ${F}agent.json and now.md`, dinis, agents }, null, 1) + '\n')
++const n = k => agents.filter(a => a.status === k).length
++console.log(`sync-agents: ${agents.length} agents (${n('working')} working, ${n('blocked')} blocked on Dinis, ${n('idle')} idle), ${agents.filter(a => !a.read).length} not read, ${dinis.length} on Dinis's list`)
