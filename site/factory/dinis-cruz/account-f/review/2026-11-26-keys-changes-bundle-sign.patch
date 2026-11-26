@@ -1,0 +1,55 @@
+diff --git a/newsroom/build/lib/keys-changes.mjs b/newsroom/build/lib/keys-changes.mjs
+index a861b3e36..0a708421e 100644
+--- a/newsroom/build/lib/keys-changes.mjs
++++ b/newsroom/build/lib/keys-changes.mjs
+@@ -5,7 +5,7 @@
+ //   a CHANGED or REMOVED existing entry: only by an active key of its agent in the parent, never by a key the commit adds: so a commit that adds
+ //     a new key for X, retires X's real one and is signed by the new key is reported as a hand-over (it needs an operator);
+ //   a RE-ACTIVATION (superseded or revoked back to active) is always reported, even when the agent signs: a retired key's private half outlives its session.
+-// An operator key (none is published yet, so the list is empty) vouches for any entry. The verifier is named on the command line. The result is
++// An entry whose ssh field holds no key counts by its bundle.sign key (the same key, in PEM). An operator key (none is published yet, so the list is empty) vouches for any entry. The verifier is named on the command line. The result is
+ // a list of problems; the gate shows them as warnings until Dinis's key is in board/keys.json, then as errors. Known gap: a first publication is
+ // self-signed. Pure of the gate: root, baseline and the operator list are parameters.
+ import { execFileSync } from 'node:child_process'
+@@ -40,7 +40,15 @@ export function checkKeyChanges({ root = ROOT, baseline = null, operators = [],
+     let n = 0
+     const verify = (c, lines) => { if (!lines.length) return false; const f = path.join(tmp, `allowed${n++}`); fs.writeFileSync(f, lines.join('\n') + '\n')
+         return tryGit(root, ['-c', 'gpg.format=ssh', '-c', 'gpg.ssh.program=ssh-keygen', '-c', `gpg.ssh.allowedSignersFile=${f}`, 'verify-commit', c]) !== null }
+-    const line = (k, who) => { const ssh = String(k.ssh || '').trim(); return SSH.test(ssh) ? [`${who} namespaces="git" ${ssh}`] : [] }
++    // the SSH key of an entry: its ssh field, or, when that holds no key (cl-6.devops's entry held only the type, 26 Nov 2026), the same key from
++    // the entry's own bundle.sign (a P-256 public key in PEM), converted by ssh-keygen; anything that does not convert is no key
++    const sshOf = k => {
++        const ssh = String(k.ssh || '').trim(); if (SSH.test(ssh)) return ssh
++        const pem = String((k.bundle && k.bundle.sign) || '').trim(); if (!/^-----BEGIN PUBLIC KEY-----[A-Za-z0-9+/=\s]+-----END PUBLIC KEY-----$/.test(pem)) return ''
++        const f = path.join(tmp, `pem${n++}`); fs.writeFileSync(f, pem + '\n')
++        try { const o = execFileSync('ssh-keygen', ['-i', '-m', 'PKCS8', '-f', f], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); return /^ecdsa-sha2-nistp256 AAAA/.test(o) && SSH.test(o) ? o : '' } catch { return '' }
++    }
++    const line = (k, who) => { const ssh = sshOf(k); return ssh ? [`${who} namespaces="git" ${ssh}`] : [] }
+     try {
+         const commits = (tryGit(root, ['rev-list', '--first-parent', '--reverse', `${baseline}..HEAD`, '--', 'board/keys.json']) || '').split('\n').filter(Boolean)
+         for (const c of commits) {
+diff --git a/newsroom/build/tests/test_keys_changes.mjs b/newsroom/build/tests/test_keys_changes.mjs
+index 8b07ff095..d14107924 100644
+--- a/newsroom/build/tests/test_keys_changes.mjs
++++ b/newsroom/build/tests/test_keys_changes.mjs
+@@ -55,6 +55,20 @@ t('another agent rewriting an entry\'s agent field to itself is reported', [r.le
+ t('changedEntries: a note-only change is not a change', changedEntries([{ ...A }], [{ ...A, note: 'x' }]).length, 0)
+ t('changedEntries: a status change is', changedEntries([{ ...A }], [{ ...A, status: 'superseded' }]).length, 1)
+ t('a missing baseline is reported, not passed', checkKeyChanges({ root: tmp, baseline: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' }).length, 1)
++// an entry whose ssh field holds only the key type is vouched for by its bundle.sign key (cl-6.devops, 26 Nov 2026)
++{
++    const KP = key('p'), KQ = key('q'), pem = k => execFileSync('ssh-keygen', ['-e', '-m', 'PKCS8', '-f', k.file + '.pub'], { encoding: 'utf8' }).trim()
++    const P = { id: 'p-1', agent: 'p@x', status: 'active', ssh: 'ecdsa-sha2-nistp256', bundle: { sign: pem(KP) } }
++    step([...keys, P], KP, 'P publishes with only the key type in ssh')
++    r = step([...keys, { ...P, superseded_in: 'zzz' }], KP, 'P changes its own entry, signed by its bundle.sign key')
++    t('an entry with no ssh key is vouched for by its bundle.sign key', r, [])
++    r = step([...keys, { ...P, superseded_in: 'yyy' }], KQ, 'a stranger signs a change of P')
++    t('a stranger is still reported for such an entry', [r.length > 0, /p-1/.test(r.join(' '))], [true, true])
++    const BAD = { ...P, id: 'p-3', agent: 'bad@x', bundle: { sign: '-----BEGIN PUBLIC KEY-----\nAAAA\n-----END PUBLIC KEY-----' } }
++    step([...keys, BAD], KQ, 'a bad PEM is published')
++    r = step([...keys, { ...BAD, status: 'superseded' }], KQ, 'the bad-PEM entry is changed')
++    t('a PEM that does not convert is no key', r.some(x => /p-3 changed/.test(x)), true)
++}
+ fs.rmSync(tmp, { recursive: true, force: true })
+ if (bad) { console.error(`${bad} failed`); process.exit(1) }
+ console.log('test_keys_changes: OK')
