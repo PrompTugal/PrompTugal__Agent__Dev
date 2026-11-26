@@ -1,0 +1,109 @@
+From 3fac939810353a38206895496d7aac9c8156e978 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Thu, 26 Nov 2026 11:30:30 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: Follow: a /follow/ page listing
+ the feeds (all articles, 36 places, 17 topics), a Follow link in the header
+ and the footer; no email sign-up
+
+PT decision of 26 Nov (cl-6.conductor, on cl-6.synthetic's F58 'no way to subscribe'). The feeds already existed (feed.xml, api/v1/by-place/<id>/feed.xml and .json, api/v1/topics/<id>/feed.xml and .json); nothing pointed to them. The lists are made from data (places.json, the topics), never typed; each feed carries its items' licences, as lib/feeds.mjs already does.
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+---
+ assets/top/top.tmpl                |  2 +-
+ content/follow/index.md            | 24 ++++++++++++++++++++++++
+ data/site/nav.json                 |  5 +++++
+ newsroom/build/features/follow.mjs | 17 +++++++++++++++++
+ 4 files changed, 47 insertions(+), 1 deletion(-)
+ create mode 100644 content/follow/index.md
+ create mode 100644 newsroom/build/features/follow.mjs
+
+diff --git a/assets/top/top.tmpl b/assets/top/top.tmpl
+index 52b7a16fc..fbd91dbb8 100644
+--- a/assets/top/top.tmpl
++++ b/assets/top/top.tmpl
+@@ -12,7 +12,7 @@
+ <p class="ctop-tagline">{{motto}}.</p>
+ <!-- part:emast -->
+ <header class="emast" aria-label="{{name}}">
+-<div class="em-w"><div class="em-dl"><time datetime="{{today}}"><span class="em-long">{{longdate}}</span><span class="em-short">{{shortdate}}</span></time><span class="em-where">Portugal · town by town · Independent</span><span class="em-tools"><a class="em-pill" href="{{up}}search/index.html"{{search_cur}} data-nav="search">Search</a><button type="button" class="em-pill em-lang" aria-haspopup="true" aria-expanded="false" aria-label="Language" hidden><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>EN</span></button><span class="ctop-tools"></span></span></div>
++<div class="em-w"><div class="em-dl"><time datetime="{{today}}"><span class="em-long">{{longdate}}</span><span class="em-short">{{shortdate}}</span></time><span class="em-where">Portugal · town by town · Independent</span><span class="em-tools"><a class="em-pill" href="{{up}}search/index.html"{{search_cur}} data-nav="search">Search</a><a class="em-pill" href="{{up}}follow/index.html" data-nav="follow">Follow</a><button type="button" class="em-pill em-lang" aria-haspopup="true" aria-expanded="false" aria-label="Language" hidden><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>EN</span></button><span class="ctop-tools"></span></span></div>
+ <a class="em-mark" href="{{up}}index.html" aria-label="{{name}}, the front page">{{wordmark}}</a>
+ <nav class="em-nav" aria-label="Sections">{{#nav}}</nav></div>
+ </header>
+diff --git a/content/follow/index.md b/content/follow/index.md
+new file mode 100644
+index 000000000..5315e66a1
+--- /dev/null
++++ b/content/follow/index.md
+@@ -0,0 +1,24 @@
++---
++title: Follow PrompTugal.news
++summary: Follow PrompTugal.news in a feed reader: all articles, one town, or one topic. No account and no email.
++---
++Follow PrompTugal.news in any feed reader (Feedly, NetNewsWire, Inoreader and the rest): copy a feed address into it. There is no account and no sign-up. Each feed lists up to 50 items, newest first; each item carries its own licence and where it came from.
++
++## All our articles {#all}
++
++- [Every article, as an RSS feed](../feed.xml).
++
++## One town or region {#places}
++
++Each place has its own feed: its articles and the local stories its agent found, with a link to the publisher's own page.
++
++<!-- follow:places -->
++
++## One topic {#topics}
++
++<!-- follow:topics -->
++
++## Also on the site
++
++- [The daily newsletter](../newsletter/index.html), to read here.
++- [The data, as JSON](../api/index.html), for apps and agents.
+diff --git a/data/site/nav.json b/data/site/nav.json
+index 4e75bbc5e..de4496490 100644
+--- a/data/site/nav.json
++++ b/data/site/nav.json
+@@ -236,6 +236,11 @@
+       "label": "The daily newsletter",
+       "href": "newsletter/index.html"
+     },
++    {
++      "column": "Read",
++      "label": "Follow (RSS)",
++      "href": "follow/index.html"
++    },
+     {
+       "column": "Read",
+       "label": "Portugal",
+diff --git a/newsroom/build/features/follow.mjs b/newsroom/build/features/follow.mjs
+new file mode 100644
+index 000000000..0a779b189
+--- /dev/null
++++ b/newsroom/build/features/follow.mjs
+@@ -0,0 +1,17 @@
++// Follow (the conductor's PT decision of 26 Nov 2026, on synthetic@'s F58, "no way to subscribe"): a page that lists the feeds the site already
++// makes (the articles, each place, each topic; lib/feeds.mjs), with a Follow link in the header and the footer. No email sign-up: what an email
++// may promise is Dinis's. The lists are made from data, never typed: the places from data/by-place/places.json, the topics from the store.
++import fs from 'node:fs'
++import path from 'node:path'
++export const order = 60
++
++const rd = (ctx, f) => { try { return JSON.parse(fs.readFileSync(path.join(ctx.ROOT, f), 'utf8')) } catch { return null } }
++
++export const fill = {
++    'follow:places': (page, ctx) => {
++        const places = (rd(ctx, 'data/by-place/places.json') || { places: [] }).places
++        return places.map(p => `- ${ctx.md.esc(p.name)}: [RSS](${ctx.link(page.rel, `api/v1/by-place/${p.id}/feed.xml`)}), [JSON Feed](${ctx.link(page.rel, `api/v1/by-place/${p.id}/feed.json`)})`).join('\n')
++    },
++    'follow:topics': (page, ctx) => ctx.store.topics
++        .map(t => `- ${ctx.md.esc(t.name)}: [RSS](${ctx.link(page.rel, `api/v1/topics/${t.id}/feed.xml`)}), [JSON Feed](${ctx.link(page.rel, `api/v1/topics/${t.id}/feed.json`)})`).join('\n'),
++}
+-- 
+2.43.0
+
