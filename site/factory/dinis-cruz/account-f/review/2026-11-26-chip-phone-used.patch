@@ -1,0 +1,24 @@
+diff --git a/assets/meter/meter.css b/assets/meter/meter.css
+index 992223c07..4d6075678 100644
+--- a/assets/meter/meter.css
++++ b/assets/meter/meter.css
+@@ -70,4 +70,5 @@
+ .nr-foot > summary::-webkit-details-marker { display: none; }
+ .nr-foot > summary a { color: var(--brand, #006600); }
+ .nr-foot-in { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin-top: 8px; }
+-@media (max-width: 767px) { .ctop-tools .tool.meter, .tool.meter { display: none !important; } }
++/* on a phone the figure stays and the label goes (designer@'s spec of 26 Nov 2026: a phone reader sees the balance; it was hidden outright) */
++@media (max-width: 767px) { .tool.meter .meter-label, .ctop-tools .tool.meter .meter-label, html[data-top="c"] .ctop-tools .tool.meter .meter-label { display: none !important; } }
+diff --git a/assets/meter/meter.js b/assets/meter/meter.js
+index 54c5f7fd6..cb4a86621 100644
+--- a/assets/meter/meter.js
++++ b/assets/meter/meter.js
+@@ -231,7 +231,7 @@
+             h('h2', { id: 'history' }, 'What you have read'),
+             rows.length
+                 ? h('div', { class: 'table' }, h('table', { class: 'ledger' },
+-                    h('thead', {}, h('tr', {}, h('th', {}, 'Page'), h('th', {}, 'Kind'), h('th', { class: 'num' }, 'Read'), h('th', { class: 'num' }, 'Rated'), h('th', { class: 'num' }, 'Charged'))),
++                    h('thead', {}, h('tr', {}, h('th', {}, 'Page'), h('th', {}, 'Kind'), h('th', { class: 'num' }, 'Read'), h('th', { class: 'num' }, 'Rated'), h('th', { class: 'num' }, 'Used'))),
+                     h('tbody', {}, rows)))
+                 : h('p', { class: 'empty' }, 'Nothing yet: the pages you read appear here, with what each cost.'),
+             log.length > 50 && !showAll ? h('p', {}, h('button', { type: 'button', class: 'btn quiet', onclick: function () { el.setAttribute('data-all', '1'); accountView(m, el) } }, 'Show all ' + log.length)) : null,
