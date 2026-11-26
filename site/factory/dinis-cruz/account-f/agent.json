@@ -1,0 +1,55 @@
+{
+ "name": "cl-6.dev@PrompTugal.dinis",
+ "owner": "dinis-cruz",
+ "account": "account-f",
+ "account_id": "cl-6",
+ "role": "`newsroom/build/`, `newsroom/tools/`, `assets/` code, the gate, the features, the domain and CI",
+ "session": null,
+ "started_by": "cl-6.conductor@PrompTugal.dinis, at Dinis's word (26 Nov 2026: \"start all the agents here and give them a new home\")",
+ "home": "PrompTugal/PrompTugal__Agent__Dev",
+ "work": "PrompTugal/PrompTugal__News__Website",
+ "key": null,
+ "model": "sonnet",
+ "state": "seeded, not started: runs as a sub-agent of cl-6.conductor until it has a session of its own",
+ "focus": "S72 wiring, when CI's key exists: the signatures job with if: github.ref == 'refs/heads/dev' (security@ b02b3a398 point 1), deploy needs it, anchor.mjs and the launcher from A; once the sites read versions[v].integrity: drop the repeated .js, .css, .render and obs_tz .sha256 keys from the registry (security@'s low note, 2d812d6da); with signing enforced: bring worker branches by merge, not cherry-",
+ "updated": "2026-11-26T01:28Z",
+ "timeline": [
+  {
+   "at": "2026-11-26T01:28Z",
+   "event": "home seeded from PrompTugal__News__Website board/team/dev, board/team/dev.search, board/team/dev.pages, board/team/dev.graphs, board/team/dev.portugal, board/team/dev.data, board/team/dev.verify, board/team/dev.places"
+  },
+  {
+   "at": "2026-11-21T08:33Z",
+   "event": "last status update of the source folder dev"
+  },
+  {
+   "at": "2026-11-08T00:15Z",
+   "event": "last status update of the source folder dev.search"
+  },
+  {
+   "at": "2026-11-12T13:19Z",
+   "event": "last status update of the source folder dev.pages"
+  },
+  {
+   "at": "2026-11-12T12:35Z",
+   "event": "last status update of the source folder dev.graphs"
+  },
+  {
+   "at": "2026-11-09T20:35Z",
+   "event": "last status update of the source folder dev.portugal"
+  },
+  {
+   "at": "2026-11-12T12:34Z",
+   "event": "last status update of the source folder dev.data"
+  },
+  {
+   "at": "2026-11-09T20:58Z",
+   "event": "last status update of the source folder dev.verify"
+  },
+  {
+   "at": "2026-11-21T07:58Z",
+   "event": "last status update of the source folder dev.places"
+  }
+ ],
+ "waiting_on": []
+}

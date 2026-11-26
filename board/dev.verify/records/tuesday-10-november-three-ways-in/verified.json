@@ -1,0 +1,336 @@
+{
+  "$schema": "none",
+  "article": "tuesday-10-november-three-ways-in",
+  "verified_on": "2026-11-06",
+  "by": "dev.verify@PrompTugal.dinis",
+  "models": [
+    "anthropic/claude-haiku-5.5",
+    "google/gemini-3.8-flash",
+    "deepseek/deepseek-v4.1-flash"
+  ],
+  "sources": [
+    {
+      "url": "https://digital-strategy.ec.europa.eu/en/news/digitaleu-web-summit-2026-supporting-businesses-and-startups-grow-and-innovate",
+      "status": 200,
+      "read": true,
+      "chars": 5147
+    },
+    {
+      "url": "https://websummit.com/schedule/",
+      "status": 200,
+      "read": true,
+      "chars": 2429
+    },
+    {
+      "url": "https://websummit.com/sessions/lis26/a0f9cc27-ad2c-43c5-b67e-bb417ac20e0e/first-timers-at-web-summit-meetup/",
+      "status": 200,
+      "read": true,
+      "chars": 1243
+    },
+    {
+      "url": "https://www.ulisboa.pt/en/noticia/ulisboas-innovation-and-entrepreneurship-ecosystem-web-summit-2026",
+      "status": 200,
+      "read": true,
+      "chars": 15939
+    },
+    {
+      "url": "https://tecnico.ulisboa.pt/pt/noticias/campus-e-comunidade/tecnico-leva-demonstracoes-tecnologicas-e-spin-offs-a-web-summit-2026/",
+      "status": 200,
+      "read": true,
+      "chars": 8479
+    }
+  ],
+  "spent_usd": 0.1151,
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "Web Summit Lisbon runs from 9 to 12 November.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "November 9-12, 2026",
+          "note": "The Web Summit 2026 schedule page gives the dates as 9-12 November, and the session URL in S3 (lis26) ties that edition to Lisbon; S1's 10-12 November refers only to the European Commission's presence at the event."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "Web Summit | November 9-12, 2026",
+          "note": "Source S2 confirms the 2026 Web Summit program runs from November 9 to 12, with Lisbon established as the event location across the sources."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "November 9-12, 2026",
+          "note": "S2 lists Web Summit 2026 as running November 9-12, matching the claim."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c2",
+      "claim": "Henna Virkkunen, Executive Vice-President, joins a fireside chat on Centre Stage on Tuesday 10 November from 11:05 to 11:25, according to the Commission.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "partly",
+          "source": "S1",
+          "quote": "10 November 11:05-11:25 – Fireside chat with EVP Virkkunen",
+          "note": "The Commission page gives the Centre Stage fireside chat with Virkkunen on 10 November from 11:05 to 11:25, but no source states that 10 November is a Tuesday."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "partly",
+          "source": "S1",
+          "quote": "taking part in a fireside chat on Europe’s technological sovereignty on Centre Stage on 10 November. ... 10 November 11:05-11:25 – Fireside chat with EVP Virkkunen",
+          "note": "The Commission source confirms that Executive Vice-President Henna Virkkunen participates in a fireside chat on Centre Stage on 10 November from 11:05 to 11:25, but it does not specify the day of the week as Tuesday."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "partly",
+          "source": "S1",
+          "quote": "on Centre Stage on 10 November",
+          "note": "S1 confirms EVP Virkkunen's fireside chat on Centre Stage and the 11:05-11:25 agenda slot on 10 November, but it does not state that 10 November is Tuesday."
+        }
+      ],
+      "consensus": "partly",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c3",
+      "claim": "A DG Connect masterclass, 'Data spaces for SMEs: Turning shared data into value', runs from 12:00 to 12:45 on 10 November.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "12:00-12:45 – DG CONNECT Masterclass Data spaces for SMEs: Turning shared data into value",
+          "note": "The S1 agenda lists this masterclass at 12:00-12:45 under the 10 November heading, before the 11 November entries begin."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "12:00-12:45 – DG CONNECT Masterclass Data spaces for SMEs: Turning shared data into value",
+          "note": "Source S1 lists the DG CONNECT masterclass 'Data spaces for SMEs: Turning shared data into value' scheduled from 12:00 to 12:45 under the 10 November agenda."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "12:00-12:45 – DG CONNECT Masterclass Data spaces for SMEs: Turning shared data into value",
+          "note": "S1 lists this DG CONNECT Masterclass under the 10 November agenda with exactly that time."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c4",
+      "claim": "A 'First timers at Web Summit' meetup runs from 11:00 to 11:55 in Meetup 4, per Web Summit's listing.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S3",
+          "quote": "November 10, 2026 • 11.00AM - 11.55AM Meetup 4",
+          "note": "Web Summit's session page for the 'First timers at Web Summit meetup' lists it at 11.00AM to 11.55AM in Meetup 4 on November 10, 2026, and the schedule page in S2 gives the same details."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "First timers at Web Summit meetup November 10 • 11.00AM - 11.55AM Meetup 4",
+          "note": "Web Summit's schedule confirms the 'First timers at Web Summit meetup' is listed from 11:00 AM to 11:55 AM in Meetup 4."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "First timers at Web Summit meetup November 10 • 11.00AM - 11.55AM Meetup 4",
+          "note": "Web Summit's schedule lists the First timers at Web Summit meetup at 11:00AM–11:55AM in Meetup 4."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c5",
+      "claim": "The Commission's DG Connect is at Web Summit from 10 to 12 November.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "DG Connect will be at Web Summit in Lisbon from 10 to 12 November",
+          "note": "The DigitalEU article states directly that DG Connect will attend Web Summit in Lisbon from 10 to 12 November."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "DG Connect will be at Web Summit in Lisbon from 10 to 12 November",
+          "note": "Source S1 explicitly confirms that DG Connect is at Web Summit from 10 to 12 November alongside other Commission services."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "DG Connect will be at Web Summit in Lisbon from 10 to 12 November",
+          "note": "Source S1 directly states that DG Connect will be at Web Summit in Lisbon from 10 to 12 November."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c6",
+      "claim": "The second UniVerse: Academia Empreendedora is hosted by the University of Lisbon on 10 November at the Portugal Pavilion Congress Centre.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S4",
+          "quote": "ULisboa will host the 2nd edition of UniVerse – Academia Empreendedora on 10 November at the Portugal Pavilion Congress Centre.",
+          "note": "The ULisboa article states that the University of Lisbon will host the 2nd edition on 10 November at the Portugal Pavilion Congress Centre, matching every element of the claim."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S4",
+          "quote": "ULisboa will host the 2nd edition of UniVerse – Academia Empreendedora on 10 November at the Portugal Pavilion Congress Centre",
+          "note": "Source 4 explicitly confirms that the University of Lisbon (ULisboa) will host the second edition of UniVerse – Academia Empreendedora on 10 November at the Portugal Pavilion Congress Centre."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S4",
+          "quote": "ULisboa will host the 2nd edition of UniVerse – Academia Empreendedora on 10 November at the Portugal Pavilion Congress Centre.",
+          "note": "Source S4 directly states the University of Lisbon hosts the second UniVerse event on 10 November at the Portugal Pavilion Congress Centre."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c7",
+      "claim": "Nine Portuguese higher education institutions take part in UniVerse.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S4",
+          "quote": "brings together nine Portuguese higher education institutions",
+          "note": "The ULisboa article states that UniVerse brings together nine Portuguese higher education institutions and lists nine names, which matches the claim."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S4",
+          "quote": "brings together nine Portuguese higher education institutions",
+          "note": "The source explicitly confirms that UniVerse brings together nine Portuguese higher education institutions."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S4",
+          "quote": "brings together nine Portuguese higher education institutions",
+          "note": "S4 states that UniVerse brings together nine Portuguese higher education institutions, matching the claim."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c8",
+      "claim": "The Commission lists DG GROW at stand E415 and HaDEA at stand E418, both in Pavilion 4, and EuroHPC at stand E405.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "You can find DG GROW at stand E415 and HaDEA at stand E418, both in Pavilion 4, and EuroHPC at stand E405.",
+          "note": "S1 states exactly the stand numbers and pavilion given in the claim for DG GROW, HaDEA and EuroHPC, attributing them to the Commission and EU bodies context of the article."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "You can find DG GROW at stand E415 and HaDEA at stand E418, both in Pavilion 4, and EuroHPC at stand E405.",
+          "note": "The European Commission article explicitly confirms the stand numbers and pavilion locations for DG GROW, HaDEA, and EuroHPC."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "DG GROW at stand E415 and HaDEA at stand E418, both in Pavilion 4, and EuroHPC at stand E405",
+          "note": "S1 directly states the same stand assignments and Pavilion 4 location."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c9",
+      "claim": "Técnico's stand is in Pavilion 2 (E272) and is open until 12 November.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S5",
+          "quote": "Pavilhão 2, número E272",
+          "note": "S5 gives the stand as Pavilion 2, number E272, and says visitors can visit the Técnico stand from 10 to 12 November (\"De 10 a 12 de novembro\"), which matches the claim's closing date."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S5",
+          "quote": "Pavilhão 2, número E272 – são estes os dados a memorizar para encontrar o Instituto Superior Técnico, Universidade de Lisboa, representado na edição de 2026 da Web Summit . De 10 a 12 de novembro, os visitantes que passarem pela banca da Escola",
+          "note": "The source confirms that Instituto Superior Técnico's stand is located in Pavilion 2 at number E272 and is open to visitors from 10 to 12 November."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S5",
+          "quote": "Pavilhão 2, número E272",
+          "note": "S5 states Técnico's stand is Pavilion 2, E272, and that visitors can visit from 10 to 12 November."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c10",
+      "claim": "Técnico brings six spin-offs to Web Summit: Acubic, Keel, Opsivision.ai, RTBEAMTECH, RipeNew and Testwaves.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S5",
+          "quote": "o Técnico traz também seis spin-offs",
+          "note": "The Técnico article says the school brings six spin-offs to Web Summit and names the same six start-ups (Acubic, Keel, Opsivision.ai, RTBEAMTECH, RipeNew and Testwaves)."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S5",
+          "quote": "o Técnico traz também seis spin-offs que tiveram origem no seio da instituição . As start-ups presentes serão Acubic, Keel, Opsivision.ai, RTBEAMTECH, RipeNew e Testwaves",
+          "note": "Source S5 directly confirms that Técnico is bringing these six spin-offs to Web Summit."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S5",
+          "quote": "Técnico traz também seis spin-offs que tiveram origem no seio da instituição . As start-ups presentes serão Acubic, Keel, Opsivision.ai, RTBEAMTECH, RipeNew e Testwaves.",
+          "note": "S5 states Técnico brings six spin-offs and lists exactly the named startups."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    }
+  ]
+}

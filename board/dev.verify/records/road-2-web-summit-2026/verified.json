@@ -1,0 +1,336 @@
+{
+  "$schema": "none",
+  "article": "road-2-web-summit-2026",
+  "verified_on": "2026-11-06",
+  "by": "dev.verify@PrompTugal.dinis",
+  "models": [
+    "anthropic/claude-haiku-5.5",
+    "google/gemini-3.8-flash",
+    "deepseek/deepseek-v4.1-flash"
+  ],
+  "sources": [
+    {
+      "url": "https://executivedigest.sapo.pt/portugal-vai-levar-125-startups-a-corrida-pelo-palco-global-da-web-summit/",
+      "status": 200,
+      "read": true,
+      "chars": 7021
+    },
+    {
+      "url": "https://tek.sapo.pt/extras/site-do-dia/artigos/road-2-web-summit-2026-ja-aceita-candidaturas-de-startups-portuguesas-para-mais-uma-edicao/",
+      "status": 200,
+      "read": true,
+      "chars": 8882
+    },
+    {
+      "url": "https://startupportugal.com/pt/programa/road-2-web-summit/",
+      "status": 200,
+      "read": true,
+      "chars": 7133
+    },
+    {
+      "url": "https://www.jornaldenegocios.pt/empresas/web-summit/detalhe/framedropai-e-deeply-vencem-iniciativa-da-startup-portugal-e-recebem-20-mil-euros",
+      "status": 503,
+      "read": false,
+      "chars": 0
+    },
+    {
+      "url": "https://websummit.com/sessions/lis26/66c7529f-b060-4e49-b9ba-817ae6db8f0e/press-conference-road-2-web-summit-2026-winner/",
+      "status": 200,
+      "read": true,
+      "chars": 1421
+    }
+  ],
+  "spent_usd": 0.0875,
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "Road 2 Web Summit is in its eleventh edition.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "a 11.ª edição do Road 2 Web Summit (R2WS)",
+          "note": "The Executive Digest article states that Startup Portugal and Web Summit launched the 11th edition of Road 2 Web Summit, and Tek Notícias (S2) says the same."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "11.ª edição do Road 2 Web Summit",
+          "note": "The source explicitly confirms that Road 2 Web Summit has launched its eleventh edition (11.ª edição)."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "Esta é a 11.ª edição do programa",
+          "note": "S2 explicitly states that this is the 11th edition of the Road 2 Web Summit program."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c2",
+      "claim": "Road 2 Web Summit selects up to 125 Portuguese startups for this year's summit.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "serão selecionadas até 125 empresas portuguesas",
+          "note": "S1 says up to 125 Portuguese companies will be selected for the 2026 Road 2 Web Summit, and S2 says the same, so the claim's \"up to 125 Portuguese startups\" matches the sources, with \"companies\" and \"startups\" used interchangeably."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Nesta edição, serão selecionadas até 125 empresas portuguesas",
+          "note": "The source confirms that for this edition, Road 2 Web Summit will select up to 125 Portuguese companies/startups."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "serão selecionadas até 125 empresas portuguesas",
+          "note": "S1 states that this edition of Road 2 Web Summit will select up to 125 Portuguese companies."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c3",
+      "claim": "Web Summit runs in Lisbon from 9 to 12 November.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "decorre em Lisboa entre 9 e 12 de novembro de 2026",
+          "note": "S1 states the Web Summit takes place in Lisbon between 9 and 12 November 2026, and S2 gives the same dates, so the claim matches the sources."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Web Summit, que decorre em Lisboa entre 9 e 12 de novembro",
+          "note": "The source directly states that Web Summit takes place in Lisbon from 9 to 12 November."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "Web Summit 2026, que decorre em Lisboa entre 9 e 12 de novembro",
+          "note": "The source states the Web Summit 2026 takes place in Lisbon from 9 to 12 November."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c4",
+      "claim": "Galp sponsors a 15,000-euro prize for the Most Promising Startup.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "O programa conta novamente com o patrocínio da Galp, que permite a atribuição de dois prémios monetários: 15 mil euros para a Startup Mais Promissora",
+          "note": "S1 states that Galp's sponsorship funds a 15,000-euro prize for the Most Promising Startup, and S2 repeats the same figure."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "patrocínio da Galp, que permite a atribuição de dois prémios monetários: 15 mil euros para a Startup Mais Promissora",
+          "note": "The source confirms that Galp's sponsorship provides a 15,000-euro prize for the Most Promising Startup."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "O programa conta novamente com o patrocínio da Galp, que permite a atribuição de dois prémios monetários: 15 mil euros para a Startup Mais Promissora",
+          "note": "S1 states that Galp sponsors the program and that the Most Promising Startup prize is 15,000 euros."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c5",
+      "claim": "Galp sponsors a 5,000-euro prize for the Best Performing Startup.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "cinco mil euros para a Startup com Melhor Desempenho",
+          "note": "S1 says the Galp sponsorship allows two monetary prizes, including five thousand euros for the Best Performing Startup (S2 says the same)."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "A Galp renova o patrocínio ao programa, que volta a atribuir dois prémios monetários: 15 mil euros para a Startup Mais Promissora e 5 mil euros para a Startup com Melhor Desempenho",
+          "note": "The source confirms that Galp's sponsorship provides a 5,000-euro prize for the Best Performing Startup (Startup com Melhor Desempenho)."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "patrocínio da Galp, que permite a atribuição de dois prémios monetários: 15 mil euros para a Startup Mais Promissora e cinco mil euros para a Startup com Melhor Desempenho no programa",
+          "note": "S1 states that Galp's sponsorship funds a 5,000-euro prize for the Startup with Best Performance in the program."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c6",
+      "claim": "The 2026 winner is announced at a press conference on Thursday 12 November at 12:30 on Stage 2.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "partly",
+          "source": "S4",
+          "quote": "November 12, 2026 • 12.30PM - 12.50PM Stage 2 - Press Conference",
+          "note": "The source supports the date, 12:30 start, Stage 2 and the winner press conference, but does not state that 12 November 2026 is a Thursday."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "exaggerated",
+          "source": "S4",
+          "quote": "November 12, 2026 • 12.30PM - 12.50PM Stage 2 - Press Conference Press conference: Road 2 Web Summit 2026 Winner",
+          "note": "The source confirms the press conference for the Road 2 Web Summit 2026 winner on November 12, 2026 at 12:30 on Stage 2, but does not state that it is on a Thursday."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "partly",
+          "source": "S4",
+          "quote": "November 12, 2026 • 12.30PM - 12.50PM Stage 2 - Press Conference Press conference: Road 2 Web Summit 2026 Winner",
+          "note": "The source confirms the date, time, stage, and winner press conference, but does not state that 12 November is a Thursday."
+        }
+      ],
+      "consensus": "disagree",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c7",
+      "claim": "Selected startups get 50% off Web Summit's ALPHA or BETA startup packages.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "um desconto de 50% no valor dos pacotes ALPHA ou BETA",
+          "note": "S1 says selected startups get a 50% discount on the ALPHA or BETA packages, and S2 repeats this, so the claim matches the sources."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "as startups selecionadas terão acesso a condições especiais de participação na Web Summit, incluindo um desconto de 50% no valor dos pacotes ALPHA ou BETA",
+          "note": "The source directly states that selected startups receive a 50% discount on Web Summit's ALPHA or BETA packages."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "um desconto de 50% no valor dos pacotes ALPHA ou BETA",
+          "note": "S1 states selected startups get a 50% discount on the ALPHA or BETA packages."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c8",
+      "claim": "Since 2016, the programme has supported more than 1,200 Portuguese startups.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Desde 2016, o Road 2 Web Summit já apoiou mais de 1200 startups portuguesas",
+          "note": "S1 states directly that since 2016 the Road 2 Web Summit has supported more than 1,200 Portuguese startups, and S2 repeats the same figure."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Desde 2016, o Road 2 Web Summit já apoiou mais de 1200 startups portuguesas.",
+          "note": "The source explicitly confirms that since 2016, the Road 2 Web Summit programme has supported over 1,200 Portuguese startups."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Desde 2016, o Road 2 Web Summit já apoiou mais de 1200 startups portuguesas.",
+          "note": "The source explicitly states that since 2016 the Road 2 Web Summit has supported more than 1,200 Portuguese startups."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c9",
+      "claim": "In 2025 the programme supported 115 startups, which together raised 40 million euros.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Só em 2025, foram apoiadas 115 empresas, que, no conjunto, captaram 40 milhões de euros em investimento.",
+          "note": "S1 (and S2, which says the same) states that in 2025 the programme supported 115 startups that together raised 40 million euros in investment."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "Só em 2025 apoiou 115 startups, que captaram 40 milhões de euros em investimento.",
+          "note": "The source explicitly confirms that in 2025 the programme supported 115 startups that raised 40 million euros in investment."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "Só em 2025 apoiou 115 startups, que captaram 40 milhões de euros em investimento.",
+          "note": "The source directly states that in 2025 the programme supported 115 startups that raised 40 million euros in investment."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c10",
+      "claim": "Framedrop.ai, from Coimbra, and Deeploy won the prizes in 2024.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "contradicted",
+          "source": "S1",
+          "quote": "Na edição anterior, os prémios foram atribuídos à Enhanced Fertility",
+          "note": "The source names Enhanced Fertility and Teemy as the previous edition's prize winners, not Framedrop.ai or Deeploy, and does not mention 2024."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "None of the provided sources mention Framedrop.ai or Deeploy winning any prizes."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "None of the provided sources mentions Framedrop.ai, Deeploy, Coimbra, or 2024 prize winners."
+        }
+      ],
+      "consensus": "disagree",
+      "flag_to_journalist": true
+    }
+  ]
+}

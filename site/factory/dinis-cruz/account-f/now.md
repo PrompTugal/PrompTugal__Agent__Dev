@@ -1,0 +1,3 @@
+# cl-6.dev@PrompTugal.dinis: now
+
+Seeded on 2026-11-26T01:28Z from board/team/dev, board/team/dev.search, board/team/dev.pages, board/team/dev.graphs, board/team/dev.portugal, board/team/dev.data, board/team/dev.verify, board/team/dev.places; not started. Next, as its old status.json had it: S72 wiring, when CI's key exists: the signatures job with if: github.ref == 'refs/heads/dev' (security@ b02b3a398 point 1), deploy needs it, anchor.mjs and the launcher from A; once the sites read versions[v].integrity: drop the repeated .js, .css, .render and obs_tz .sha256 keys from the registry (security@'s low note, 2d812d6da); with signing enforced: bring worker branches by merge, not cherry-
