@@ -1,0 +1,29 @@
+diff --git a/assets/top/top.css b/assets/top/top.css
+index 7a940b3d8..39933f7e8 100644
+--- a/assets/top/top.css
++++ b/assets/top/top.css
+@@ -101,7 +101,11 @@ html .ctop, html .ctop-tagline, html .dateline, html header.mast, html nav.site
+ .em-nav a { color: var(--ink); text-decoration: none; padding-bottom: 2px; }
+ .em-nav a:hover { color: var(--brand-green); }
+ .em-nav a[aria-current] { color: var(--brand-green); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
++/* below 768 px Follow, App and Ask leave the button row for the end of the section strip, so the row keeps Search, EN and the Credit chip (cl-6.designer, 26 Nov 2026, on N1) */
++.em-xtab { display: none; }
+ @media (max-width: 767px) {
++    .em-xtab { display: inline; }
++    .em-tools .em-pill[data-nav="follow"], .em-tools .pt-app-btn, .em-tools .tool.ask, .tools .tool.ask { display: none !important; }
+     .em-where, .em-long { display: none; } .em-short { display: inline; } .em-dl { flex-wrap: wrap; }
+     .em-dl { padding: 6px 0; }
+     .em-mark { padding: 6px 0 4px; } .em-mark .wordmark { width: 240px; }
+diff --git a/assets/top/top.tmpl b/assets/top/top.tmpl
+index 2261add3d..88d671b86 100644
+--- a/assets/top/top.tmpl
++++ b/assets/top/top.tmpl
+@@ -14,7 +14,7 @@
+ <header class="emast" aria-label="{{name}}">
+ <div class="em-w"><div class="em-dl"><time datetime="{{today}}"><span class="em-long">{{longdate}}</span><span class="em-short">{{shortdate}}</span></time><span class="em-where">Portugal · town by town · Independent</span><span class="em-tools"><a class="em-pill" href="{{up}}search/index.html"{{search_cur}} data-nav="search">Search</a><a class="em-pill" href="{{up}}follow/index.html" data-nav="follow">Follow</a><button type="button" class="em-pill em-lang" aria-haspopup="true" aria-expanded="false" aria-label="Language" hidden><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>EN</span></button><span class="ctop-tools"></span></span></div>
+ <a class="em-mark" href="{{up}}index.html" aria-label="{{name}}, the front page">{{wordmark}}</a>
+-<nav class="em-nav" aria-label="Sections">{{#nav}}</nav></div>
++<nav class="em-nav" aria-label="Sections">{{#nav}}<a class="em-xtab" href="{{up}}follow/index.html" data-nav="follow">Follow</a><a class="em-xtab" href="{{up}}app/index.html" data-nav="app">App</a><a class="em-xtab" href="{{up}}ask/index.html" data-nav="ask">Ask</a></nav></div>
+ </header>
+ <!-- part:tabs -->
+ <nav class="ctabs" aria-label="Sections, at the bottom">{{#tabs}}<a href="{{up}}search/index.html"{{search_cur}}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg><span>Search</span></a><button type="button" class="ctabs-more" aria-expanded="false" aria-controls="ctop-more"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>More</span></button></nav>
