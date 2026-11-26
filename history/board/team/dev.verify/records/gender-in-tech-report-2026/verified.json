@@ -1,0 +1,324 @@
+{
+  "$schema": "none",
+  "article": "gender-in-tech-report-2026",
+  "verified_on": "2026-11-06",
+  "by": "dev.verify@PrompTugal.dinis",
+  "models": [
+    "anthropic/claude-haiku-5.5",
+    "google/gemini-3.8-flash",
+    "deepseek/deepseek-v4.1-flash"
+  ],
+  "sources": [
+    {
+      "url": "https://websummit.com/blog/news/women-are-leading-in-tech-so-why-are-so-many-considering-leaving/",
+      "status": 200,
+      "read": true,
+      "chars": 1644
+    },
+    {
+      "url": "https://websummit.com/women-in-tech/",
+      "status": 200,
+      "read": true,
+      "chars": 4253
+    },
+    {
+      "url": "https://docsend.com/view/wsagdvb78uahhhst",
+      "status": 200,
+      "read": false,
+      "chars": 73
+    }
+  ],
+  "spent_usd": 0.0336,
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "Web Summit published its seventh annual Gender in Tech report on 27 October 2026.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "The sources don't mention a seventh annual Gender in Tech report or its publication date; the only 27 October 2026 date in S1 is the byline of a blog post, and S2 only says \"Read the report\" without naming a date or edition."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither source mentions the publication or existence of a 'seventh annual Gender in Tech report'."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "No source states that Web Summit published its seventh annual Gender in Tech report on 27 October 2026."
+        }
+      ],
+      "consensus": "unsupported",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c2",
+      "claim": "The Web Summit Lisbon summit is held 9 to 12 November.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "partly",
+          "source": "S2",
+          "quote": "November 9-12, 2026",
+          "note": "S2 gives the dates as November 9-12, 2026 on the general Web Summit page, but it never explicitly ties those dates to the Lisbon event; Lisbon appears only in a list of events."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "partly",
+          "source": "S2",
+          "quote": "Web Summit | November 9-12, 2026",
+          "note": "The source confirms the dates November 9–12 for Web Summit, but does not explicitly state that these dates are for the Lisbon event."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "partly",
+          "source": "S2",
+          "quote": "November 9-12, 2026",
+          "note": "S2 gives the dates for Web Summit, but no source explicitly ties those dates to Web Summit Lisbon."
+        }
+      ],
+      "consensus": "partly",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c3",
+      "claim": "Web Summit surveyed more than 1,000 women across its global tech community for the report.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither passage states a survey sample size or says it covered more than 1,000 women; S2 mentions survey percentages and \"Respondents\" but no count, and S1 gives no survey details."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "The provided sources do not mention the number of women surveyed for the report."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither source states that Web Summit surveyed more than 1,000 women across its global tech community for the report."
+        }
+      ],
+      "consensus": "unsupported",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c4",
+      "claim": "84% of survey respondents report women in leadership at their company.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "unsupported",
+          "source": "S2",
+          "quote": "75% Feel empowered to pursue and/or hold a leadership position.",
+          "note": "Neither source reports 84% or any figure on women in leadership at respondents' companies; the only related figure is 75% feeling empowered to pursue or hold a leadership position."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither of the provided sources mentions the statistic that 84% of survey respondents report women in leadership at their company."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither source reports the 84% figure or states that survey respondents report women in leadership at their company."
+        }
+      ],
+      "consensus": "unsupported",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c5",
+      "claim": "35% of respondents say women are represented at C-suite level.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither source contains a 35% figure or any statistic on respondents' views of women's representation at C-suite level; the only survey percentages in S2 are 55%, 68%, and 75%, covering other topics."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither of the provided sources mentions that 35% of respondents say women are represented at the C-suite level."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "The provided source passages do not mention 35% or C-suite representation."
+        }
+      ],
+      "consensus": "unsupported",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c6",
+      "claim": "Half of respondents still experience sexism.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither source reports how many respondents experience sexism; the closest figure, 55% saying the tech industry is not doing enough on gender inequality, measures a different thing."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither of the provided sources mentions respondents experiencing sexism."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "The provided passages do not mention sexism or any statistic about half of respondents experiencing sexism."
+        }
+      ],
+      "consensus": "unsupported",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c7",
+      "claim": "58% of respondents say they are not paid fairly compared with men.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither source contains a 58% figure or any statistic on respondents' pay fairness compared with men; S2's survey percentages (55%, 68%, 75%) cover other topics."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "The provided passages do not mention this statistic or any survey results regarding fair pay compared with men."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither source reports that 58% of respondents say they are not paid fairly compared with men."
+        }
+      ],
+      "consensus": "unsupported",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c8",
+      "claim": "42% of respondents have considered reducing their hours, stepping away from leadership, or leaving tech.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither source contains the 42% figure or any mention of respondents considering reducing hours, stepping away from leadership, or leaving tech; the passages give only other statistics (55%, 68%, 75%) and a headline asking why so many are considering leaving."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither of the provided sources mentions the 42% statistic or respondents considering reducing hours, stepping away from leadership, or leaving tech."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither source passage states that 42% of respondents considered reducing their hours, stepping away from leadership, or leaving tech."
+        }
+      ],
+      "consensus": "unsupported",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c9",
+      "claim": "52% of women aged 35 to 44 have considered reducing their hours, stepping away from leadership, or leaving tech.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither passage contains a 52% figure or any statistic about women aged 35 to 44; S1's headline mentions women considering leaving tech but gives no numbers, and S2's percentages (55%, 68%, 75%) are about different questions."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither of the provided sources mentions statistics about women aged 35 to 44 considering reducing their hours, stepping away from leadership, or leaving tech."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither source provides the 52% figure or the age group and actions described in the claim."
+        }
+      ],
+      "consensus": "unsupported",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c10",
+      "claim": "Last year 75% of women believed AI could help make tech more equal, and this year 31% say it has.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither source mentions a survey finding that 75% of women believed AI could help make tech more equal or that 31% say it has; the only 75% figure in S2 refers to feeling empowered to pursue or hold a leadership position, and S1 only links to an unexplained AI survey headline."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "Neither source mentions women's beliefs regarding AI's ability to make the tech industry more equal."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "The sources mention a 75% statistic but about feeling empowered to pursue/hold leadership, not AI making tech more equal, and no 31% figure appears."
+        }
+      ],
+      "consensus": "unsupported",
+      "flag_to_journalist": true
+    }
+  ]
+}

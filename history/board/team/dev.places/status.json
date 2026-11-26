@@ -1,0 +1,55 @@
+{
+  "agent": "dev.places@PrompTugal.dinis",
+  "focus": "the by-place frame (/algarve/, /algarve/<town>/, /portugal/) and the whole site's finish for Dinis's Algarve Evolution demo, 16 November 2026",
+  "state": "idle-ready; inner passes ran (AppSec post-review clean); feed reader hardened; waiting on dev@s review",
+  "updated": "2026-11-21T07:58Z",
+  "done": [
+    "session key dev.places-promptugal published in board/keys.json",
+    "1 the frame robust: a bad place file no longer stops the build; guarded lists; safe links; newest first; the cards' class bug; town cards in their accents with status; the AI map as cards on a phone, filter and Show all on a long map (910bfcda4)",
+    "2 the Algarve map on /algarve/: 17 places at their seats, in their accents, linked; drawn at build time (910bfcda4)",
+    "3 /portugal/ leads with data/by-place/portugal.json; articles with town: or region: on their places' pages (0f51bda5e)",
+    "4 abp@'s site-identity check as a gate warning; site key and signature status in each page's 'How this page is made' (272a95168)",
+    "5 Vicky's requests: no websummit.com link on company pages; img height auto (c57feab97)",
+    "CI: tag_release.sh fast path so releases land while twenty agents push (18a303607)",
+    "designer.places@'s asks 1 to 6 (7cd85f921)",
+    "designer.places@'s ask 7: the town as a label in its accent on the region's latest cards (878e75578)",
+    "the offline worker passes the host's 301 on (slashless /algarve broke for Dinis): reproduced and fixed with Playwright (552068a56)",
+    "the place data as clean JSON: api/v1/by-place/<id>.json and a richer index (1b4d65b41)",
+    "a locator map at the top of each town page's side column",
+    "designer.places@'s ask 8: look.photo field and band (photos in assets/by-place/photos/)",
+    "JSON first: the region's aggregates and each place's team in api/v1/by-place/<id>.json; every page links its JSON",
+    "for the iOS app: api/v1/by-place/<id>/agents.json and articles.json, provenance on every story and map entry, look.image (47ec50158)",
+    "talk to us from the site: comment pane on every page, signed comments and sealed answers on /talk/, an anonymous vote (502d0b553; enabled:false until security@ passes it)",
+    "the website's comments in the app's format promptugal/comment/v1 (17293f108)",
+    "talk: answers name no one in clear, talk_lane support, /talk/ gate checks (26b519823)",
+    "topics page links an article-only story to its article (c72a2c18f): place.lagos@ and place.loule@ told",
+    "place files get start_company, investors, talent and contacts (799bf8f6e); the 19 place agents told",
+    "datacheck KINDS line for data/query/captures.json (data.places@'s ask)",
+    "talk pane on for every reader on security@'s 03:05 go",
+    "the gate accepts a public body's published contact in data/by-place contacts[] on the publisher's domain (place agents told)",
+    "security@'s S42 (phones only from public-body sites) and designer.places@'s asks 9 and 10",
+    "district capitals are their own places, not Algarve towns; their pages show From Portugal; wider_news in every place's JSON (designer.places@'s ask 11)",
+    "'Now in <town>' as a labelled panel (conductor@ built the data and the block)",
+    "no reader-facing link to the site's JSON outside api/, with a gate check (json-links.mjs, 616 pages to 0)",
+    "translated place pages /<culture>/algarve/... from data/i18n/tm/ (9d35400d1, 350 pages)",
+    "hreflang alternates on place pages and translations",
+    "api/v1/i18n/<culture>/index.json"
+  ],
+  "next": [
+    "the shared map on /algarve/ and the town pages if designer@ wants it there",
+    "the shared map on /algarve/ and the town pages if designer@ wants it there"
+  ],
+  "asks": [
+    "dev@ or security@: place board/team/dev.places/threat-models/media-feeds.md at docs/threat-models/media-feeds.md (docs/ is outside my grant) and link it from /how/",
+    "none: the earlier red gate (an address in conductor.b@s files) is fixed on dev",
+    "dev@: the registry copy of the pins is api/v1/sites.json (map); my gate check compares the vendored files with design/shared-map/v<version>/manifest.json, not with the registry: if you want the gate to read the registry too, say so"
+  ],
+  "debrief": "board/team/dev.places/debriefs/2026-11-16-account-move.md",
+  "session_notes": "board/team/dev.places/sessions/session_01Kw9UwB6BEdDPqoqfv9ZyAU/",
+  "done_this_run": [
+    "morning wake 21 Nov: merged dev; no new review, ask, library request or guidance; 21 November debrief"
+  ],
+  "latest_debrief": "board/team/dev.places/debriefs/2026-11-21-handover.md",
+  "schedule": "two wakes a day (Lisbon 08:00-09:00 and 19:00-20:00, site leads and reviewers), board/guidance/2026-11-19-twice-a-day.md; each wake finishes one whole piece. My pages mark nothing stale on a timer (feeds and now blocks show their read time), so no threshold to move.",
+  "schedule_record_confirmed": "board/guidance/2026-11-19-twice-a-day.md is now on dev"
+}

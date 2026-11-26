@@ -1,0 +1,342 @@
+{
+  "$schema": "none",
+  "article": "following-robotics-at-web-summit",
+  "verified_on": "2026-11-06",
+  "by": "dev.verify@PrompTugal.dinis",
+  "models": [
+    "anthropic/claude-haiku-5.5",
+    "google/gemini-3.8-flash",
+    "deepseek/deepseek-v4.1-flash"
+  ],
+  "sources": [
+    {
+      "url": "https://websummit.com/speakers/",
+      "status": 200,
+      "read": true,
+      "chars": 2453
+    },
+    {
+      "url": "https://websummit.com/attendees/lis26/dfb44138-a865-48d1-8c1e-857dfa87cb2e/agibot-a3",
+      "status": 200,
+      "read": true,
+      "chars": 2305
+    },
+    {
+      "url": "https://websummit.com/attendees/lis26/23e2dc6e-fe0f-4594-a2e1-b3d56a638b78/galbot-g1",
+      "status": 200,
+      "read": true,
+      "chars": 2305
+    },
+    {
+      "url": "https://websummit.com/attendees/lis26/4dfde31c-9ab3-4585-8b31-6241fd2d918e/li-chen",
+      "status": 200,
+      "read": true,
+      "chars": 2300
+    },
+    {
+      "url": "https://websummit.com/schedule/",
+      "status": 200,
+      "read": true,
+      "chars": 2429
+    },
+    {
+      "url": "https://tecnico.ulisboa.pt/pt/noticias/campus-e-comunidade/tecnico-leva-demonstracoes-tecnologicas-e-spin-offs-a-web-summit-2026/",
+      "status": 200,
+      "read": true,
+      "chars": 8479
+    }
+  ],
+  "spent_usd": 0.067,
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "Web Summit says 800 speakers are coming to Lisbon.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "None of the provided sources gives a speaker count, and none mentions 800 speakers for Lisbon; the speakers page only lists a few names and a 'Load More' button."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "None of the provided sources mention that Web Summit stated 800 speakers are coming to Lisbon."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "No provided source states that Web Summit says 800 speakers are coming to Lisbon."
+        }
+      ],
+      "consensus": "unsupported",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c2",
+      "claim": "Técnico's stand is in Pavilion 2, number E272, at Web Summit.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S6",
+          "quote": "Pavilhão 2, número E272",
+          "note": "The Técnico article states the institute's Web Summit 2026 stand is at Pavilhão 2, número E272, which matches the claim."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S6",
+          "quote": "Pavilhão 2, número E272 – são estes os dados a memorizar para encontrar o Instituto Superior Técnico, Universidade de Lisboa, representado na edição de 2026 da Web Summit",
+          "note": "The source confirms that Instituto Superior Técnico's presence/stand at Web Summit is located in Pavilion 2, number E272."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S6",
+          "quote": "Pavilhão 2, número E272",
+          "note": "The source states Técnico's Web Summit stand is Pavilion 2, number E272."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c3",
+      "claim": "Técnico's stand is open from 10 to 12 November.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S6",
+          "quote": "De 10 a 12 de novembro",
+          "note": "The Técnico article says visitors to the School's stand (banca da Escola) can visit from 10 to 12 November, which matches the claim."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S6",
+          "quote": "De 10 a 12 de novembro, os visitantes que passarem pela banca da Escola",
+          "note": "The source confirms that visitors can visit the school's stand from 10 to 12 November."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S6",
+          "quote": "De 10 a 12 de novembro, os visitantes que passarem pela banca da Escola",
+          "note": "S6 states that visitors can visit Técnico's stand from 10 to 12 November."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c4",
+      "claim": "Li Chen is listed as a co-founder of Unitree.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S4",
+          "quote": "Co-founder Unitree",
+          "note": "Li Chen's Web Summit speaker page lists him as \"Co-founder Unitree China,\" which matches the claim; S1 shows the same listing."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Li Chen Co-founder Unitree",
+          "note": "Li Chen is directly listed with the title Co-founder of Unitree in the speaker profiles."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Li Chen Co-founder Unitree",
+          "note": "S1 lists Li Chen as Co-founder Unitree."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c5",
+      "claim": "Web Summit's speakers page lists Agibot A3 as a \"Humanoid robot\" from AGIBOT of China.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Humanoid robot AGIBOT China",
+          "note": "The speakers page lists Agibot A3 with the descriptor \"Humanoid robot\" and the company \"AGIBOT\" with the location \"China.\""
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Agibot A3 Agibot A3 Humanoid robot AGIBOT China",
+          "note": "Web Summit's speakers page explicitly lists Agibot A3 as a 'Humanoid robot' from AGIBOT of China."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Agibot A3 Humanoid robot AGIBOT China",
+          "note": "The Web Summit speakers page lists Agibot A3 as a Humanoid robot from AGIBOT in China."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c6",
+      "claim": "Web Summit's speakers page lists Galbot G1 as an \"Embodied Large-Model Robot\" from Galbot of China.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Embodied Large-Model Robot Galbot China",
+          "note": "The Web Summit speakers page lists \"Galbot G1\" as \"Embodied Large-Model Robot\" with \"Galbot China\" as the company and location."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Galbot G1 Galbot G1 Embodied Large-Model Robot Galbot China",
+          "note": "Web Summit's speakers page explicitly lists Galbot G1 as an 'Embodied Large-Model Robot' from Galbot, China."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Galbot G1 Embodied Large-Model Robot Galbot China",
+          "note": "The Web Summit speakers page lists Galbot G1 with that description and company/location."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c7",
+      "claim": "William Shi is listed as president of AgiBot Europe.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "William Shi President AgiBot Europe",
+          "note": "The Web Summit 2026 speakers page lists William Shi as President of AgiBot Europe, and S2 to S4 repeat the same listing."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "William Shi President AgiBot Europe",
+          "note": "The Web Summit speakers list includes William Shi as President of AgiBot Europe."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "William Shi President AgiBot Europe",
+          "note": "Web Summit's speaker listing identifies William Shi as President of AgiBot Europe."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c8",
+      "claim": "Yuli Zhao is listed as CSO of Galbot.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Yuli Zhao CSO Galbot",
+          "note": "The Web Summit 2026 speakers page lists Yuli Zhao as CSO of Galbot, and the same listing appears on the other Web Summit pages (S2, S3)."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Yuli Zhao CSO Galbot",
+          "note": "The speaker list explicitly identifies Yuli Zhao as the CSO of Galbot."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Yuli Zhao Yuli Zhao CSO Galbot China",
+          "note": "The Web Summit speakers page lists Yuli Zhao as CSO of Galbot."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c9",
+      "claim": "Técnico brings six spin-offs to its stand: Acubic, Keel, Opsivision.ai, RTBEAMTECH, RipeNew and Testwaves.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S6",
+          "quote": "As start-ups presentes serão Acubic, Keel, Opsivision.ai, RTBEAMTECH, RipeNew e Testwaves.",
+          "note": "The Técnico article says the school brings six spin-offs to its Web Summit stand and names the same six companies (the quote is in Portuguese, from the source)."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S6",
+          "quote": "o Técnico traz também seis spin-offs que tiveram origem no seio da instituição . As start-ups presentes serão Acubic, Keel, Opsivision.ai, RTBEAMTECH, RipeNew e Testwaves",
+          "note": "The source confirms that Técnico is presenting these six spin-offs originated within the institution at its stand."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S6",
+          "quote": "o Técnico traz também seis spin-offs que tiveram origem no seio da instituição . As start-ups presentes serão Acubic, Keel, Opsivision.ai, RTBEAMTECH, RipeNew e Testwaves.",
+          "note": "S6 explicitly states that Técnico brings six spin-offs and lists exactly those six startups."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c10",
+      "claim": "Técnico's participation at Web Summit is supported by Fundação Santander, according to the school.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S6",
+          "quote": "A participação do Técnico no Web Summit 2026 conta com o apoio da Fundação Santander.",
+          "note": "The Técnico article states that its Web Summit 2026 participation is supported by Fundação Santander, which matches the claim."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S6",
+          "quote": "A participação do Técnico no Web Summit 2026 conta com o apoio da Fundação Santander.",
+          "note": "The article published on Técnico's official website confirms that its participation in Web Summit 2026 is supported by Fundação Santander."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S6",
+          "quote": "A participação do Técnico no Web Summit 2026 conta com o apoio da Fundação Santander.",
+          "note": "The school's own news page states that Técnico's participation in Web Summit 2026 has support from Fundação Santander."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    }
+  ]
+}

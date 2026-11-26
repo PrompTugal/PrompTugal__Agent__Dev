@@ -1,0 +1,394 @@
+{
+  "$schema": "none",
+  "article": "rio-ten-startups-to-lisbon",
+  "verified_on": "2026-11-07",
+  "by": "dev.verify@PrompTugal.dinis",
+  "models": [
+    "anthropic/claude-haiku-5.5",
+    "google/gemini-3.8-flash",
+    "deepseek/deepseek-v4.1-flash"
+  ],
+  "sources": [
+    {
+      "url": "https://startups.com.br/eventos/web-summit/invest-rio-e-maravalley-vao-levar-10-startups-para-o-web-summit-lisboa/",
+      "status": 200,
+      "read": true,
+      "chars": 8313
+    },
+    {
+      "url": "https://startups.com.br/negocios/ecossistema/gol-vai-bancar-passagens-de-10-startups-cariocas-a-lisboa/",
+      "status": 200,
+      "read": true,
+      "chars": 8651
+    },
+    {
+      "url": "https://www.correiodamanha.com.br/rio-de-janeiro/2026/10/amp/329679-invest-rio-firma-parceria-para-levar-dez-startups-cariocas-ao-web-summit-lisboa.html",
+      "status": 200,
+      "read": true,
+      "chars": 4717
+    },
+    {
+      "url": "https://websummit.com/sessions/lis26/0c8b27a1-ab51-4bfb-bd44-bc6f9d8f0ab7/revolutionising-retail/",
+      "status": 200,
+      "read": true,
+      "chars": 2385
+    },
+    {
+      "url": "https://websummit.com/sessions/lis26/c8e00053-cf25-4c0a-9147-cb61936c3b64/medtech-revolution/",
+      "status": 200,
+      "read": true,
+      "chars": 2420
+    }
+  ],
+  "spent_usd": 0.1514,
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "Web Summit Lisbon runs 9 to 12 November (2026).",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "9 e 12 de novembro",
+          "note": "S1 and S2 both give 9 to 12 November for Web Summit Lisboa 2026, though S3 says 8 to 12 November, a discrepancy the claim does not resolve."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Web Summit Lisboa 2026 , que acontece entre os dias 9 e 12 de novembro",
+          "note": "Source 1 explicitly states that Web Summit Lisbon 2026 takes place between 9 and 12 November."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Web Summit Lisboa 2026 , que acontece entre os dias 9 e 12 de novembro",
+          "note": "S1 explicitly states the 2026 Lisbon Web Summit happens between 9 and 12 November."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c2",
+      "claim": "Invest.Rio and Maravalley opened the call for startups in September 2026, as Startups.com.br reported on 18 September 2026.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "lançaram, nesta quinta-feira (17), o edital para seleção das empresas",
+          "note": "S1 is a Startups.com.br article dated 18/09/2026 saying Invest.Rio and Maravalley launched the selection call on Thursday (17), which places the opening in September 2026 as the claim states."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "A Invest.Rio e o Maravalley lançaram, nesta quinta-feira (17), o edital para seleção das empresas",
+          "note": "Startups.com.br reported on 18 September 2026 that Invest.Rio and Maravalley launched the selection call for startups."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Invest.Rio e o Maravalley lançaram, nesta quinta-feira (17), o edital",
+          "note": "S1, dated 18/09/2026, reports that Invest.Rio and Maravalley launched the selection call on Thursday the 17th."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c3",
+      "claim": "Startups.com.br named the ten startups on 26 October 2026 and reported that Gol, as the mission's official airline, provides their tickets.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "a Gol vai disponibilizar passagens para as 10 startups selecionadas",
+          "note": "The S2 article is dated 26/10/2026, names the ten startups, and reports that Gol, as the official airline of the mission, will provide their tickets."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "Como companhia aérea oficial da Missão Web Summit Lisboa 2026, a Gol vai disponibilizar passagens para as 10 startups selecionadas para a viagem: Mobile Brain, sheerME, Paralelo.app, Predator Sports & Health, Embeddo, Lucca, Bizuu, Ray Pay, ATLANTICIT e AllPetSenior",
+          "note": "Startups.com.br published the article on 26 October 2026, listing the ten startups and stating that Gol, serving as the official airline, will provide their tickets."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "Como companhia aérea oficial da Missão Web Summit Lisboa 2026, a Gol vai disponibilizar passagens para as 10 startups selecionadas",
+          "note": "S2 is dated 26/10/2026, names the ten startups, and states Gol is the official airline providing their tickets."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c4",
+      "claim": "Correio da Manhã reported the same ten startups on 25 October 2026.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S3",
+          "quote": "Publicado em 25 de Outubro, 2026",
+          "note": "The Correio da Manhã article is dated 25 October 2026 and names the same ten startups as S2 (Mobile Brain, sheerME, Paralelo.app, Predator Sports & Health, Embeddo, Lucca, Bizuu, Ray Pay, ATLANTICIT, AllPetSenior)."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S3",
+          "quote": "Publicado em 25 de Outubro, 2026 às 16:34 ... As dez startups escolhidas para integrar a missão oficial são: Mobile Brain, sheerME, Paralelo.app, Predator Sports & Health, Embeddo, Lucca, Bizuu, Ray Pay, ATLANTICIT e AllPetSenior.",
+          "note": "Correio da Manhã published an article on 25 October 2026 listing the same ten startups."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S3",
+          "quote": "Mobile Brain, sheerME, Paralelo.app, Predator Sports & Health, Embeddo, Lucca, Bizuu, Ray Pay, ATLANTICIT e AllPetSenior",
+          "note": "S3, published 25 October 2026, lists the same ten startups as S2."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c5",
+      "claim": "Gol opened its Rio de Janeiro to Lisbon route from Galeão in September 2026.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "Gol estreou a rota Rio-Lisboa em setembro",
+          "note": "S2's photo caption says Gol debuted the Rio-Lisbon route in September, and its text says the first intercontinental flight departed from Galeão, so the claim matches."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "poucas semanas depois de a Gol inaugurar seu primeiro voo intercontinental entre o Rio de Janeiro e Lisboa, partindo do Galeão",
+          "note": "Source S2, published in October 2026, confirms that Gol inaugurated its Rio de Janeiro to Lisbon route from Galeão in September of that year."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "Gol estreou a rota Rio-Lisboa em setembro",
+          "note": "S2 states Gol debuted the Rio-Lisboa route in September and that its first intercontinental flight between Rio de Janeiro and Lisbon departed from Galeão."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c6",
+      "claim": "From 24 November 2026, Gol runs five flights a week on Rio to Lisbon, on Mondays, Tuesdays, Wednesdays, Fridays and Saturdays.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "A partir de 24 de novembro, a companhia também passa a oferecer cinco voos semanais nessa rota, às segundas, terças, quartas, sextas e sábados.",
+          "note": "S2 gives the same start date, five weekly flights, the same weekdays, and the Rio–Lisbon route, so the claim matches it."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "A partir de 24 de novembro, a companhia também passa a oferecer cinco voos semanais nessa rota, às segundas, terças, quartas, sextas e sábados",
+          "note": "The source, published in October 2026, confirms that starting 24 November of that year Gol offers five weekly flights on the Rio-Lisbon route on Mondays, Tuesdays, Wednesdays, Fridays, and Saturdays."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S2",
+          "quote": "A partir de 24 de novembro, a companhia também passa a oferecer cinco voos semanais nessa rota, às segundas, terças, quartas, sextas e sábados.",
+          "note": "S2 states Gol will offer five weekly flights on the Rio-Lisbon route from 24 November on those exact days."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c7",
+      "claim": "Maravalley ran a similar mission to VivaTech in Paris in June 2026, with Business France's delegation.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Em junho deste ano, o Maravalley também realizou uma missão para o VivaTech em Paris, integrando a delegação da Business France.",
+          "note": "S1 says Maravalley ran a mission to VivaTech in Paris in June of that year as part of the Business France delegation; it does not use the word \"similar\", but the claim's comparison to the Lisbon mission is a reasonable reading of the article."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Em junho deste ano, o Maravalley também realizou uma missão para o VivaTech em Paris, integrando a delegação da Business France",
+          "note": "The source, published in September 2026, confirms that Maravalley conducted a mission to VivaTech in Paris in June of that year as part of Business France's delegation."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Em junho deste ano, o Maravalley também realizou uma missão para o VivaTech em Paris, integrando a delegação da Business France.",
+          "note": "S1 states Maravalley held a mission to VivaTech in Paris in June of this year, integrating Business France's delegation."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c8",
+      "claim": "This is the mission's second year; last year it also took ten startups to Web Summit.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Esse é o segundo ano da missão, que no ano passado também havia levado 10 startups para o evento.",
+          "note": "S1 states this is the mission's second year and that last year it also took 10 startups to the event."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Esse é o segundo ano da missão, que no ano passado também havia levado 10 startups para o evento",
+          "note": "The source directly confirms that this is the mission's second year and that it had also taken 10 startups to the event the previous year."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S1",
+          "quote": "Esse é o segundo ano da missão, que no ano passado também havia levado 10 startups para o evento.",
+          "note": "S1 directly states the mission is in its second year and that last year it also took 10 startups to the event."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c9",
+      "claim": "Of the ten startups in Rio's mission, nine are from Brazil and sheerME is from Portugal.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "contradicted",
+          "source": "S2",
+          "quote": "10 startups cariocas",
+          "note": "The sources describe all ten selected startups, including sheerME, as Rio de Janeiro ('cariocas') companies, and none says sheerME is from Portugal."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "None of the provided sources state that sheerME is from Portugal or that nine of the ten startups are from Brazil; they refer to all ten simply as carioca or Brazilian startups."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "contradicted",
+          "source": "S2",
+          "quote": "10 startups cariocas",
+          "note": "S2 calls the ten startups cariocas and lists sheerME among them, contradicting the claim that sheerME is from Portugal."
+        }
+      ],
+      "consensus": "disagree",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c10",
+      "claim": "Bizuu and AllPetSenior speak in Web Summit's Startup Showcase.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "supported",
+          "source": "S4, S5",
+          "quote": "Antoine Marmelo CEO & Founder Bizuu; Roberta Novis Founder AllPetSenior",
+          "note": "Both companies appear as speakers in Web Summit Lisbon 2026 sessions listed under Startup Showcase stages: Bizuu in 'Revolutionising retail' (S4) and AllPetSenior in 'Medtech revolution' (S5)."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "supported",
+          "source": "S4, S5",
+          "quote": "Stage 12 - Startup Showcase ... Antoine Marmelo CEO & Founder Bizuu ... Stage 6 - Startup Showcase ... Roberta Novis Founder AllPetSenior",
+          "note": "S4 shows Bizuu's founder speaking at the Startup Showcase, and S5 shows AllPetSenior's founder speaking at the Startup Showcase."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "supported",
+          "source": "S4",
+          "quote": "Bizuu 21 Tecnologia e Sistemas S.A.",
+          "note": "S4 lists Bizuu as a speaker in a Web Summit Startup Showcase session, and S5 lists AllPetSenior in another Startup Showcase session."
+        }
+      ],
+      "consensus": "supported",
+      "flag_to_journalist": false
+    },
+    {
+      "id": "c11",
+      "claim": "Sebrae says 12 Brazilian states run their own missions to this year's Web Summit.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "None of the sources mention Sebrae or any count of Brazilian states running Web Summit missions; they cover only Rio de Janeiro's Invest.Rio and Maravalley delegation of 10 startups."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "None of the provided sources mention Sebrae or 12 Brazilian states running their own missions."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "None of the provided sources mentions Sebrae or 12 Brazilian states running their own Web Summit missions."
+        }
+      ],
+      "consensus": "unsupported",
+      "flag_to_journalist": true
+    },
+    {
+      "id": "c12",
+      "claim": "Eighteen Brazilian founders and team members are on the Startup Showcase stages at Web Summit.",
+      "verdicts": [
+        {
+          "model": "anthropic/claude-haiku-5.5",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "No source gives a count of 18 or describes the speakers as Brazilian; S4 and S5 list Startup Showcase speakers, some tied to Brazilian companies such as Bizuu and AllPetSenior, but nationality and total are never stated."
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "None of the provided sources mention that eighteen Brazilian founders and team members are on the Startup Showcase stages at Web Summit."
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "verdict": "unsupported",
+          "source": null,
+          "quote": "",
+          "note": "No source states that eighteen Brazilian founders or team members are on the Startup Showcase stages; the Web Summit pages list speakers but do not identify nationalities or give that count."
+        }
+      ],
+      "consensus": "unsupported",
+      "flag_to_journalist": true
+    }
+  ]
+}

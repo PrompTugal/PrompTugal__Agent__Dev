@@ -1,0 +1,52 @@
+{
+ "agent": "dev.portugal@PrompTugal.dinis",
+ "focus": "The Portugal section and its organisations' sections, Algarve Evolution first (Dinis's meeting, Saturday 7 November 2026).",
+ "state": "idle between reads: nothing new on the Portugal beat; researcher@ paused",
+ "updated": "2026-11-09T20:35Z",
+ "done": [
+  "Algarve Evolution page v1 brought onto dev by dev@ (06:09 wake)",
+  "round 2: researcher@'s findings folded in (Web Summit 2025 partner and jury, ADI launch, Tech Hub Summit, Grow Algarve Meetup, Venture Lab, partners)",
+  "graph of Algarve Evolution (programmes left, partners right) as assets/portugal/algarve-evolution-graph.svg, on the page",
+  "session key made (dev.portugal-promptugal, public half in board/keys.json); round 3 of the researcher folded in (two 2025 community events)",
+  "/portugal/organisations/: the Algarve ecosystem organisations, each with the role a source gives it, linked from /portugal/",
+  "events section corrected from researcher@'s round 5: organiser or partner on each line, only DevFest Lagos names Algarve Evolution a partner; Founder2Founder wording difference noted",
+  "the naming question as a decision page: /newsroom/decisions/naming-people-on-algarve-evolution/ (options A roles only, B after their yes, C from the press now; recommends B)",
+  "organisations page: University of Algarve and Algarve STP in more detail from researcher@'s partners round 1 (read sources only, no names; Wikipedia marked tertiary)",
+  "sprint round 1 pushed: Algarve page as a mini site (tiles, map, collapsing sections, timeline, cards); executive director named by role with sources",
+  "sprint: network graph drawn from the ontologist's network.json by newsroom/tools/algarve-graph.mjs (23 nodes, 30 edges) and on the page; 2019 presentation and members over time added",
+  "page links dev.graphs@'s interactive network, timeline and map (/graph/algarve-evolution/); the naming decision recorded as answered (executive director only, as relayed by conductor@)",
+  "after sherpa@, synthetic@, designer@: goals for 2032 apart from what is done (two tile rows); Informa D&B removed from partners; breadcrumb through Portugal; a route for corrections (the About page); AMAL, NERA, ANJE from their own sites",
+  "his paragraph on the goals, as Algarve Evolution's own words (António Pinto Guerreiro, 6 November 2026), under the 2032 tiles and in the mandate section, goals' sources kept; checked against board/guidance/2026-11-06-algarve-evolution-the-call-and-the-wish-list.md",
+  "the 16 municipalities named on the page (amal.pt, read 6 November 2026); read the comms protocol (no contact details, requests on lanes): nothing private on the page",
+  "a missing blank line fixed (the regional bodies paragraph was glued to the graph image); the masthead's Powered by line is off already (dev@, Q1)",
+  "the daily hand-over debrief (CLAUDE.md, 17:55 UTC rule)",
+  "account B: onboarded, new key dev.portugal-b-promptugal, old superseded; conductor.b@ and conductor@ told; gate green on dev v0.1.373",
+  "00:23 wake: .ae no longer caps at 1180px, so the page has the same frame as the home page (--page 1200px)",
+  "02:23 wake: merged dev (keys.json conflict resolved by id), gate green, 7 November debrief written",
+  "04:23 wake: merged dev clean, gate green, nothing new to fold in",
+  "06:23 wake: merged dev clean, gate green, nothing new on Algarve or Portuguese organisations (researcher@ is on the three clouds)",
+  "08:23 wake: folded researcher@'s round 7 (Algarve Tech Hub platform calendar empty on 7 November) into the Algarve page's open note; gate green",
+  "10:23 wake: dev@ brought my work onto dev; folded researcher@'s rounds 8 and 9 (summit organisers and 2027 at the summit's own site; 2025 agenda has Algarve Evolution's president on a fireside chat) into the Tech Hub Summit line",
+  "12:23 wake: dev@ brought 10:23 work onto dev; folded researcher@'s round 10 (Friday agenda: Algarve Evolution's director on a panel; a Web Summit principal on a panel; the summit ran the week before Web Summit 2025). Round 11 (logos, inferred from file names) left out on purpose",
+  "14:23 wake: dev@ brought 12:23 work onto dev; merged dev clean, gate green; nothing new on Algarve or Portuguese organisations (researcher@ is on Web Summit partners and the clouds)",
+  "16:23 wake: researcher@'s Portugal ecosystem round 1 folded into /portugal/organisations/ (Startup Portugal from its own pages and the Ecosystem Report 2025 headline numbers, as the organisation states them; Beta-i). Not read, so not published: AICEP, IAPMEI, ANI, Portugal Ventures, Banco Portugues de Fomento",
+  "18:23 wake: researcher@'s Portugal rounds folded into /portugal/organisations/: Startup Portugal's Web Summit 2026 programme and stand (Pavilion 1, Stand 145), AICEP (with the aicep.pt warning), Portugal Ventures, ANI. Addresses for the last two checked live (researcher@ gave names, not links). Not published: the AWS-tagged session (inferred tag), IAPMEI, BPF, AI2, Turismo de Portugal (unread)",
+  "20:23 wake: dev@ brought 18:23 work onto dev; IAPMEI (Web Summit 2026 presence, from its front page) and Turismo de Portugal (stand partner; its own front page says nothing on Web Summit) added to /portugal/organisations/. Not published: Microsoft's Sines note (secondhand, for correspondent@/journalist@), AI2 (unidentified), BPF (unread)",
+  "22:23 wake: dev@ brought 20:23 work onto dev; merged dev clean, gate green; nothing new on Algarve or Portuguese organisations (researcher@ is on Microsoft in Sines)",
+  "00:23 wake: Unicorn Factory Lisboa (own site) added to /portugal/organisations/; 8 November hand-over debrief written",
+  "9 Nov 03:08 wake: cadence now every four hours at :23 UTC (board/guidance/2026-11-09-the-summit-set.md, 'Added at about 02:50', checked); merged dev clean, gate green; no new research on the Portugal beat (researcher@ paused)",
+  "9 Nov 04:23 wake: merged dev clean; the Algarve page's 6 to 7 November events line marked as past; no new research on the Portugal beat",
+  "9 Nov 08:23 wake: dev@ brought 04:23 work onto dev; merged dev clean, gate green; nothing new on the Portugal beat (researcher@ paused)",
+  "9 Nov 12:23 wake: merged dev clean, gate green; nothing new on the Portugal beat; 9 November debrief written",
+  "9 Nov 16:23 wake: merged dev clean, gate green; nothing new on the Portugal beat (researcher@ paused)",
+  "9 Nov 20:23 wake: merged dev clean, gate green; nothing new on the Portugal beat (researcher@ paused)"
+ ],
+ "next": [
+  "fold in Portugal-beat research when researcher@ is back (BPF, AI2, DOCAPESCA, Algarve funding)"
+ ],
+ "asks": [
+  "Dinis: my inbox (board/inboxes/dev.portugal.json) is still sealed to my superseded key since 23:12 on 6 November, so I cannot drain it; conductor@ or conductor.b@ needs to run the reissue (asked twice). Nothing else blocks me."
+ ],
+ "debrief": "board/team/dev.portugal/debriefs/2026-11-09-handover.md",
+ "notes": "board/team/dev.portugal/sessions/bda7929f/notes.md"
+}
