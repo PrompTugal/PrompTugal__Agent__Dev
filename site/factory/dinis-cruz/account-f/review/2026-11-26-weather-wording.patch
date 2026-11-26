@@ -1,0 +1,37 @@
+diff --git a/assets/weather/weather.json b/assets/weather/weather.json
+index e663a61f0..2aa2cd836 100644
+--- a/assets/weather/weather.json
++++ b/assets/weather/weather.json
+@@ -13,5 +13,6 @@
+   "sea_head": "| Coast | Wave height (m) | Direction | Sea temperature (°C) |",
+   "fire_line": "{level}: {n} of {total} municipalities",
+   "fire_date": "Forecast for {date}.",
+-  "cam": "Live camera: [{name}]({page}), {credit}. A link to the operator's own page; read {read}."
++  "cam": "Camera: [{name}]({page}), {credit}. A link to the operator's own page; listed {read}.",
++  "source": "*Source: IPMA, [ipma.pt](https://www.ipma.pt/en/). Shown on a page with no charge.*"
+ }
+diff --git a/newsroom/build/features/weather.mjs b/newsroom/build/features/weather.mjs
+index 6ea59b55f..731eb5d14 100644
+--- a/newsroom/build/features/weather.mjs
++++ b/newsroom/build/features/weather.mjs
+@@ -15,7 +15,7 @@ export const snap = ctx => { try { return JSON.parse(fs.readFileSync(path.join(c
+ export const words = ctx => JSON.parse(fs.readFileSync(path.join(ctx.ROOT, 'assets/weather/weather.json'), 'utf8'))
+ const fill = (t, o) => Object.entries(o).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, v), t)
+ export const fresh = (read_at, W, now = new Date()) => { const t = Date.parse(read_at || ''); return Number.isFinite(t) && (now - t) / 36e5 < W.stale_hours }
+-const feed = (S, k, W, f) => !S || !S[k] ? W.missing : fresh(S[k].read_at, W) ? f(S[k]) : fill(W.stale, { read: S[k].read_at.slice(0, 10), hours: W.stale_hours })
++const feed = (S, k, W, f) => !S || !S[k] ? W.missing : fresh(S[k].read_at, W) ? `${f(S[k])}\n\n${W.source}` : fill(W.stale, { read: S[k].read_at.slice(0, 10), hours: W.stale_hours })
+ 
+ const fillers = {
+     'weather:status': (page, ctx) => { const S = snap(ctx), W = words(ctx); return S ? fill(W.status, { read: S.read.slice(0, 10), hours: W.stale_hours }) : W.missing },
+diff --git a/newsroom/build/tests/test_weather.mjs b/newsroom/build/tests/test_weather.mjs
+index 86ff93641..c16d421e2 100644
+--- a/newsroom/build/tests/test_weather.mjs
++++ b/newsroom/build/tests/test_weather.mjs
+@@ -26,6 +26,7 @@ const S1 = snap(1); S1.warnings.active[0].text = '[x](https://evil.example/a) ![
+ t('IPMA text with a link, an image and an autolink stays plain through plain() (W2)', [/\]\(https:\/\/evil/.test(fill['weather:warnings'](null, ctx)), /!\[/.test(fill['weather:warnings'](null, ctx)), /<https/.test(fill['weather:warnings'](null, ctx))], [false, false, false])
+ put(1)
+ t('the sea table and the fire counts show', [/Sagres, Costa/.test(fill['weather:sea'](null, ctx)), /high: 8 of 278/.test(fill['weather:fire'](null, ctx))], [true, true])
++t('every block of IPMA values names IPMA with a link beside it, and the camera line template does not say live (only an operator name may)', [/Source: IPMA, \[ipma\.pt\]/.test(fill['weather:warnings'](null, ctx)), /Source: IPMA/.test(fill['weather:sea'](null, ctx)), /Source: IPMA/.test(fill['weather:fire'](null, ctx)), /live/i.test(W.cam)], [true, true, true, false])
+ t('a fresh camera feed gives the cleared operator\'s link with its credit', camLines(ctx, 'lisboa').length, 1)
+ t('and none for another town', camLines(ctx, 'faro'), [])
+ const S0 = JSON.parse(fs.readFileSync(path.join(tmp, 'assets/weather/snapshot.json'), 'utf8')); S0.cams.items.push({ id: 'x', name: 'Third', place: 'lisboa', credit: 'APL', page: 'https://evil.example/login' }, { id: 'y', name: 'Fourth', place: 'lisboa', credit: 'APL', page: 'https://www.portodelisboa.pt/tejo-live)(x' })
