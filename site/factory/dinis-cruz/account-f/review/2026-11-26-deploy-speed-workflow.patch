@@ -1,0 +1,14 @@
+diff --git a/.github/workflows/deploy-pages.yml b/.github/workflows/deploy-pages.yml
+index 482f21629..9a1cf8ff9 100644
+--- a/.github/workflows/deploy-pages.yml
++++ b/.github/workflows/deploy-pages.yml
+@@ -74,7 +74,8 @@ jobs:
+     runs-on: ubuntu-latest
+     # tag and build about 30s, a deploy of at most 8 minutes (a second only after a fast refusal), 30 s asking the live site
+     timeout-minutes: 12
+-    needs: [validate]
++    # No `needs: [validate]` (Dinis, 26 Nov 2026, relayed by the conductor; cl-6.security's option 1): validate and release run side by side on dev.
++    # The release builds and runs the gate again on the tree it numbers (tag_release.sh) before it tags or deploys, so no check is dropped.
+     # Only dev is production: never from a PR, a worker's branch, main, or a manual run on any other branch
+     # (live.b@'s review a4c6fce, MEDIUM). One release at a time; a pending run may be dropped, which is harmless.
+     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/dev'

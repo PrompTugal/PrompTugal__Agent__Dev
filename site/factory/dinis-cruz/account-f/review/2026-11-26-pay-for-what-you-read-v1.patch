@@ -1,0 +1,93 @@
+diff --git a/assets/meter/meter.js b/assets/meter/meter.js
+index d79878b48..bbb4dc77f 100644
+--- a/assets/meter/meter.js
++++ b/assets/meter/meter.js
+@@ -129,7 +129,7 @@
+ 
+     // The masthead chip ("Pay for what you read · £4.99") is off until Dinis decides the wording of a price (cl-6.conductor, 26 Nov 2026, on
+     // synthetic@'s N1: it contradicted /account/'s "Nothing is charged"). One switch, reversible: true draws it again.
+-    var SHOW_CHIP = false
++    var SHOW_CHIP = true
+     function chip(m) {
+         var t = tools()
+         var a = document.getElementById('nr-meter-chip') || t.querySelector('.meter')      // the shell's own chip, if it draws one
+@@ -143,9 +143,9 @@
+         var b = m.state.balance
+         a.classList.toggle('is-low', b < 100)
+         a.classList.toggle('is-neg', b < 0)
+-        a.replaceChildren(h('span', { class: 'meter-label' }, 'Pay for what you read · '), m.money(b))   // the balance, going down as you read (Dinis, 17 November 2026: "I need to see the value of my budget, always")
++        a.replaceChildren(h('span', { class: 'meter-label' }, b > 0 ? 'Pay for what you read · ' : 'Credit used · keep reading · '), b > 0 ? m.money(b) : 'top-up coming soon')   // the balance, going down as you read (Dinis, 17 November 2026: "I need to see the value of my budget, always")
+         a.setAttribute('aria-label', 'Reading credit ' + m.money(b) + ', kept in this browser: your account')
+-        a.title = b < 0 ? 'You have read ' + m.money(-b) + ' more than your credit. Nothing is blocked; top up whenever it feels fair. Kept in this browser only.' : 'Pay for what you read. Credit left: ' + m.money(b) + ', kept in this browser only: your reading account'
++        a.title = b < 0 ? 'You have read ' + m.money(-b) + ' more than your credit. Nothing is blocked; top-ups are coming soon. Kept in this browser only.' : 'Pay for what you read. Credit left: ' + m.money(b) + ', kept in this browser only: your reading account'
+     }
+ 
+     var REASONS = [['clickbait', 'The headline promised more than the page gave'], ['not-relevant', 'Not relevant to me'], ['did-not-read', 'I did not really read it'], ['other', 'Another reason']]
+@@ -223,7 +223,7 @@
+                     h('p', { class: 'sub' }, (s.reads || 0) + ' page' + (s.reads === 1 ? '' : 's') + ' opened in this browser · ' + m.money(s.spent || 0) + ' spent' + (s.declined ? ' · ' + m.money(s.declined) + ' declined' : '') + ((s.topups || []).length ? ' · ' + s.topups.length + ' top-up' + (s.topups.length === 1 ? '' : 's') : '')),
+                     m.noStorage ? h('p', { class: 'sub warn' }, 'This browser refuses to keep a balance (private mode or blocked storage): the meter counts this page only.') : null),
+                 h('div', { class: 'actions' },
+-                    h('a', { class: 'btn primary', href: at(m.cfg.links.topup) }, 'Top up ' + m.money(m.cfg.topup.amount)),
++                    m.cfg.topup.link ? h('a', { class: 'btn primary', href: at(m.cfg.links.topup) }, 'Top up ' + m.money(m.cfg.topup.amount)) : h('span', { class: 'btn quiet', 'aria-disabled': 'true' }, 'Top up ' + m.money(m.cfg.topup.amount) + ': coming soon'),
+                     h('button', { type: 'button', class: 'btn quiet', onclick: function () { if (window.__vault) window.__vault.open('vault') } }, 'Carry it to another device'))),
+             h('h2', { id: 'graph' }, 'Your reading graph'),
+             readingGraph(log) || h('p', { class: 'empty' }, 'Read a few pages to see it.'),
+@@ -304,7 +304,7 @@
+         var t = m.cfg.topup, s = m.state
+         var elsewhere = hostOf(m.cfg.returns_to) !== location.host && hostOf(m.cfg.returns_to) !== hostOf(m.cfg.our_return) ? hostOf(m.cfg.returns_to) : ''
+         if (!t.link) {
+-            el.replaceChildren(h('p', { class: 'notice' }, 'Top-ups are switched off on this site for now: no payment link is configured. Every page still opens.'))
++            el.replaceChildren(h('p', { class: 'notice' }, 'Top-ups are coming soon. Nothing is taken; every page still opens.'))
+             return
+         }
+         el.replaceChildren(
+diff --git a/data/billing/topup.json b/data/billing/topup.json
+index 0a29d37f9..4248e5401 100644
+--- a/data/billing/topup.json
++++ b/data/billing/topup.json
+@@ -2,8 +2,8 @@
+   "about": "The top-up: one payment of £5.00 on Stripe's own page, through a Stripe Payment Link. A Payment Link URL is public by design (anyone can open it, and it is printed on newsroom.sgit.ai's pages); it is not a credential. No Stripe key, webhook secret or account detail belongs in this repository, ever. Read by newsroom/build/features/billing.mjs, which puts it in the meter's config and on the top-up page.",
+   "amount": 500,
+   "currency": "GBP",
+-  "link": "https://buy.stripe.com/6oUfZ9ez65vVgU2fY15os04",
+-  "link_source": "newsroom.sgit.ai, admin/build/newsroom-meter.json (topup_link), read 5 November 2026; Dinis Cruz: \"It's newsroom.sgit.ai that has it all working, so grab it from there.\"",
++  "link": "",
++  "link_source": "none yet: PrompTugal.news has no Payment Link of its own (Dinis, 26 Nov 2026, via the conductor: the button says coming soon until he gives one). Earlier source, newsroom.sgit.ai, admin/build/newsroom-meter.json (topup_link), read 5 November 2026; Dinis Cruz: \"It's newsroom.sgit.ai that has it all working, so grab it from there.\"",
+   "client_reference_id": "web-summit-newsroom",
+   "returns_to": "https://newsroom.sgit.ai/account/topped-up.html?session_id={CHECKOUT_SESSION_ID}",
+   "returns_to_source": "newsroom.sgit.ai, admin/build/newsroom-meter.json (topup_link_note): the after-payment redirect set on this link in Stripe's dashboard. A Payment Link has one redirect, fixed in Stripe, so a payment started here returns to newsroom.sgit.ai's page, not this site's.",
+diff --git a/newsroom/build/features/account.mjs b/newsroom/build/features/account.mjs
+index a9dfff3aa..5aae37ead 100644
+--- a/newsroom/build/features/account.mjs
++++ b/newsroom/build/features/account.mjs
+@@ -80,7 +80,7 @@ export function pages(ctx) {
+             where,
+         ].join('\n'),
+         crumbs: [CRUMB, [null, 'Top up']],
+-        ...withMounts([mount('topup', 'topup', `<p>Topping up needs JavaScript: the balance lives in your browser. The payment page itself is <a href="${payLink(T)}" target="_blank" rel="noopener">Stripe's</a>.</p>`)]),
++        ...withMounts([mount('topup', 'topup', `<p>Topping up needs JavaScript: the balance lives in your browser. ${payLink(T) ? `The payment page itself is <a href="${payLink(T)}" target="_blank" rel="noopener">Stripe's</a>.` : 'Top-ups are coming soon.'}</p>`)]),
+     }
+     topup.twinMd = topup.md.replace(token('topup'), `*In a browser: your balance now, then "Continue to pay ${amount}", which opens Stripe's page: ${payLink(T) || 'no payment link is configured'}.*`)
+ 
+diff --git a/newsroom/build/features/billing.mjs b/newsroom/build/features/billing.mjs
+index f627661b6..508752af0 100644
+--- a/newsroom/build/features/billing.mjs
++++ b/newsroom/build/features/billing.mjs
+@@ -143,7 +143,7 @@ export function llms(ctx) {
+         '## The reading meter',
+         `- Every page except the meter's own costs a few pence, from ${money(P, P.start)} of starting credit kept in the reader's browser (localStorage key \`${P.storage_key}\`): a base price per page type (the \`page-type\` meta tag) times a freshness multiplier from the page's date (\`page-date\`), times the share read, never under a tenth; once per page per browser session; never blocking; the balance can go below zero; a reader can rate a page (free to double) or decline to pay and say why.`,
+         `- The prices: ${ctx.BASE}${BILLING_PAGE.replace(/\.html$/, '.md')} (the table) and ${ctx.BASE}${CONFIG} (the meter's config, same data).`,
+-        `- Top-ups: one payment of ${money(P, T.amount)} through a Stripe Payment Link (${T.link}); the return page adds the credit once per payment reference, unverified by design.`,
++        `- Top-ups: one payment of ${money(P, T.amount)} through a Stripe Payment Link (${T.link || 'coming soon'}); the return page adds the credit once per payment reference, unverified by design.`,
+         `- Agents reading the markdown twins or llms.txt are not metered: the meter runs only in a browser, on the HTML pages.`,
+         '',
+     ].join('\n') + '\n'
+@@ -192,7 +192,7 @@ export function validate(gate) {
+         const c = gate.json(CONFIG), want = priceTable(P)
+         if (JSON.stringify(c.prices) !== JSON.stringify(want)) out.push(`${CONFIG}: its prices are not ${PRICES}'s table`)
+         if (c.storageKey !== P.storage_key || c.start !== P.start) out.push(`${CONFIG}: storage key or starting credit differs from ${PRICES}`)
+-        if (c.topup.amount !== T.amount || !String(c.topup.link).startsWith(T.link)) out.push(`${CONFIG}: the top-up differs from ${TOPUP}`)
++        if (c.topup.amount !== T.amount || (T.link ? !String(c.topup.link).startsWith(T.link) : c.topup.link)) out.push(`${CONFIG}: the top-up differs from ${TOPUP}`)
+     } else out.push(`${CONFIG} was not built`)
+     // the published page carries every price of the table
+     if (gate.generated.has(BILLING_PAGE.replace(/\.html$/, '.md'))) {
