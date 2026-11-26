@@ -1,0 +1,34 @@
+From e8a0bd2a610362882ee23872c860a2823b40e2a3 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Thu, 26 Nov 2026 11:18:05 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: gate: agent names at account-a to
+ account-f.dinis are names, not email addresses
+
+Eight of the nine red runs of 21 to 24 Nov (cl-6.devops's pass) were the contact check firing on @account-c.dinis and @account-d.dinis in board/ files. The exact list of agent-name domains had only account-b; it is now account-a to account-f (security@'s S31 rule stays: exact domains only; .dinis is not a routable domain).
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+---
+ newsroom/build/validate.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/newsroom/build/validate.js b/newsroom/build/validate.js
+index 72e32b7d6..c92f860b1 100644
+--- a/newsroom/build/validate.js
++++ b/newsroom/build/validate.js
+@@ -134,7 +134,7 @@ for (const f of files) {
+ // 7. public forever: no contact details in what we author
+ const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.[A-Za-z0-9.-]*[A-Za-z]{2,}/g
+ const PHONE = /(?<![\w/])(?:\+|00)\d[\d ()-]{8,}\d/g   // not from inside a word or a hash (outreach@, 7 November: a sha256 matched), nor a URL's path segment (ontologist@, 12 November: an SEC filing's /000110465916150147/); tel:+... is still caught
+-const AGENT_NAME = /@(web-summit|PrompTugal)\.(dinis|vicky|indi|silvio|jose|angelo|zed|stranger|person)$|@AgentiCCells\.dinis$|@account-b\.dinis$/i   // AgentiCCells: Dinis's cells agents (board/guidance/2026-11-18-cells-b-on-account-b.md); account-b: the maestro, maestro.b@account-b.dinis (board/guidance/2026-11-19-the-maestro.md); his operator name only
++const AGENT_NAME = /@(web-summit|PrompTugal)\.(dinis|vicky|indi|silvio|jose|angelo|zed|stranger|person)$|@AgentiCCells\.dinis$|@account-[a-f]\.dinis$/i   // AgentiCCells: Dinis's cells agents (board/guidance/2026-11-18-cells-b-on-account-b.md); account-b: the maestro, maestro.b@account-b.dinis (board/guidance/2026-11-19-the-maestro.md); his operator name only
+ //   // the operators' names only, and three made-up ones the team's tests use (zed, stranger, person) (security@'s S31: web-summit.com passed)   // agent names (newsroom@web-summit.dinis, ontologist@PrompTugal.dinis) are names, not mail
+ // one published address, one file: Dinis's own investor contact (his words, 7 November 2026, about 01:00 UTC: "link to
+ // dinis.agent@promptugal.news, because that already exists"; board/team/investors/dinis-2026-11-07-my-feeds.md). Nowhere else.
+-- 
+2.43.0
+
