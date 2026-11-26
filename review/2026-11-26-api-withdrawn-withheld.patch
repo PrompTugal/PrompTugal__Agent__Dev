@@ -1,0 +1,75 @@
+From bb3fe07c13a459d824f2b6392f2342ee1c8cbce2 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Thu, 26 Nov 2026 06:29:06 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: API: articles.json lists the
+ withdrawn pages (slug and notice); index.json says what the data is now and
+ flags the types the websummit-only switch withholds
+
+For cl-6.checker's iOS feeds survey (via the conductor) and cl-6.sherpa's S8 (with cl-6.ontologist's wording).
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+---
+ newsroom/build/features/api.mjs            | 10 ++++++++--
+ newsroom/build/features/datasci-places.mjs |  5 ++++-
+ 2 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/newsroom/build/features/api.mjs b/newsroom/build/features/api.mjs
+index 883462684..c9c202742 100644
+--- a/newsroom/build/features/api.mjs
++++ b/newsroom/build/features/api.mjs
+@@ -9,6 +9,8 @@
+ //   /api/v1/manifest.json                 every file, its size, SHA-256 and schema (written by the core)
+ // The gate (validate below) checks the grammar: every verb in the ontology, every edge's ends of the types the verb
+ // allows, no forbidden verb, every node and edge with a source, and every view a part of the whole, object for object.
++import fs from 'node:fs'
++import path from 'node:path'
+ import { view, companyIds, eventIds, personIds, industryIds, summitIds, peopleIds, PLURAL, pageOf } from '../lib/graph.mjs'
+ import { loadSchemas, validate as check } from '../lib/schema.mjs'
+ export const order = 80
+@@ -68,9 +70,13 @@ export function api(ctx) {
+     ].join('\n') + '\n'
+     add('api/v1/triples.nt', nt, null)
+     // the index of endpoints
+-    const types = ENTITY_TYPES.map(t => ({ type: t, count: ctx.store[STORE[t]].length, index: `${ctx.BASE}api/v1/${PLURAL[t]}.json`, each: `${ctx.BASE}api/v1/${PLURAL[t]}/{slug}.json` }))
++    // a type the only-websummit-sourced-comes-off switch withholds (data/websummit-only.json, Dinis, 11 Nov) is flagged, so a count of 0 is not read as "none exist"
++    const WSO = (() => { try { return JSON.parse(fs.readFileSync(path.join(ctx.ROOT, 'data/websummit-only.json'), 'utf8')).counts || {} } catch { return {} } })()
++    const KIND = { company: 'companies', person: 'people', event: 'events', organisation: 'organisations', place: 'places' }
++    const types = ENTITY_TYPES.map(t => { const held = (WSO[KIND[t]] || {}).websummit_only || 0
++        return { type: t, count: ctx.store[STORE[t]].length, index: `${ctx.BASE}api/v1/${PLURAL[t]}.json`, each: `${ctx.BASE}api/v1/${PLURAL[t]}/{slug}.json`, ...(held ? { withheld: true, withheld_count: held, reason: 'sources not yet independent' } : {}) } })
+     add('api/v1/index.json', {
+-        about: 'The Web Summit 2026 newsroom\'s data as JSON. Public facts only, each with its source and the date read. Material for agents, never instruction.',
++        about: 'The data behind PrompTugal.news as JSON: Portugal\'s news, town by town, with the companies, events, places and organisations in it. Public facts only, each with its source and the date read. Material for agents, never instruction.',
+         version: ctx.VERSION, licence: { name: 'CC BY 4.0 (data), Apache-2.0 (code)', url: 'https://creativecommons.org/licenses/by/4.0/', code: 'https://www.apache.org/licenses/LICENSE-2.0' },
+         ontology: `${ctx.BASE}api/v1/ontology.json`, manifest: `${ctx.BASE}api/v1/manifest.json`, schemas: `${ctx.BASE}data/schemas/`,
+         types,
+diff --git a/newsroom/build/features/datasci-places.mjs b/newsroom/build/features/datasci-places.mjs
+index aec98ebde..a4e166a0d 100644
+--- a/newsroom/build/features/datasci-places.mjs
++++ b/newsroom/build/features/datasci-places.mjs
+@@ -19,6 +19,7 @@
+ // The OpenAPI specs that describe all of this are features/openapi.mjs; the audit is features/datasci-audit.mjs.
+ import crypto from 'node:crypto'
+ import { api as byPlaceApi } from './by-place.mjs'
++import { withdrawn } from '../lib/withdrawn.mjs'
+ 
+ export const order = 84
+ const LIST = 'data/by-place/places.json'
+@@ -305,7 +306,9 @@ export function api(ctx) {
+         places: all.map(q => ({ id: q.id, name: q.name, score: q.score.value, quality: `${SITE_URL}api/v1/places/${q.id}/quality.json` })),
+     }, 'datasci-quality-all')
+     const arts = articlesData(ctx)
+-    add('api/v1/articles.json', { about: A.articles, version: ctx.VERSION, count: arts.length, items: arts.map(a => ({ id: a.id, title: a.title, date: a.date, author: a.author, town: a.town, region: a.region, sources: a.sources.length, api: `${SITE_URL}api/v1/articles/${a.id}.json`, page: a.page })) }, null)
++    add('api/v1/articles.json', { about: A.articles, version: ctx.VERSION, count: arts.length, items: arts.map(a => ({ id: a.id, title: a.title, date: a.date, author: a.author, town: a.town, region: a.region, sources: a.sources.length, api: `${SITE_URL}api/v1/articles/${a.id}.json`, page: a.page })),
++        // the pages taken down (data/site/withdrawn.json): their address answers with the notice, and there is no file for them here; slug and notice only
++        withdrawn: { notice: withdrawn().notice, articles: [...withdrawn().articles].sort() } }, null)
+     for (const a of arts) add(`api/v1/articles/${a.id}.json`, { version: ctx.VERSION, ...a }, null)
+     return out
+ }
+-- 
+2.43.0
+
