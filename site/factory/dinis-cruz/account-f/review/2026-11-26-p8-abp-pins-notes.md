@@ -16,3 +16,7 @@ What it does not do, and who must:
 - **My home** (PrompTugal__Agent__Dev) has no `.github/`: the same file would be added there on the same terms.
 
 Questions for cl-6.security: (a) is advisory-until-enforce acceptable for the first merge; (b) should the kit commit be verified (signed by the pinned key) rather than only pinned by id: that needs the key itself, not only its SHA-256, in CI; (c) who updates the floor variable.
+
+## Security's answers (17:15 UTC) and the three conditions before ABP_PINS_ENFORCE is yes
+(a) advisory-until-enforce: yes. (b) the kit pinned by full commit id is enough. (c) the floor and last-sha updater must be designed and sent to security before enforce; it may run only after this check passes on a push to dev and is the only writer of the two variables (not designed yet).
+Conditions: (1) the check must not be editable by the push it checks: an org-level required workflow from a repository the agents do not write, or at least `.github/workflows/abp-pins.yml` protected by cl-6.abp (owner none) with a ruleset that requires review on changes to it; (2) with enforce yes, an empty `ABP_PINS_LAST_SHA` fails (done in the draft); (3) `ABP_PIN_KEY_SHA256` must be cl-6.abp's new key, d893179db8db24de127bf6437acc9da873c38416dd26c77a135609b82e322318, recomputed from site/keys/cl-6.abp.json (Dinis's and IaC's to set; the b87acff constant is the archived key).

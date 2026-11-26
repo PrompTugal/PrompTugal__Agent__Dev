@@ -41,9 +41,12 @@ jobs:
           FLOOR: ${{ vars.ABP_PINS_FLOOR }}
           LAST_SHA: ${{ vars.ABP_PINS_LAST_SHA }}
           REPO: ${{ github.repository }}
+          ENFORCE: ${{ vars.ABP_PINS_ENFORCE }}
         run: |
           set -euo pipefail
           test -n "$ABP_PIN_KEY_SHA256" || { echo "ABP_PIN_KEY_SHA256 is not set: the key must come from outside the repository"; exit 1; }
+          # when enforcing, an empty last-pins SHA must FAIL: with the floor alone, changed pins at an equal sequence would pass (cl-6.security, condition 2)
+          if [ "${ENFORCE:-}" = yes ] && [ -z "${LAST_SHA:-}" ]; then echo "ABP_PINS_LAST_SHA is empty while enforcing"; exit 1; fi
           args=(--repo "$REPO" --floor "${FLOOR:-0}")
           if [ -n "${LAST_SHA:-}" ]; then args+=(--last-pins-sha "$LAST_SHA"); fi
           node kit/abp/kit-v2/ci-check.mjs repo "${args[@]}"

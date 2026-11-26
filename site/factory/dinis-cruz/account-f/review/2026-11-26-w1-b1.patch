@@ -1,0 +1,22 @@
+diff --git a/newsroom/build/lib/agent-text.mjs b/newsroom/build/lib/agent-text.mjs
+index c1e2fed8d..f729e1584 100644
+--- a/newsroom/build/lib/agent-text.mjs
++++ b/newsroom/build/lib/agent-text.mjs
+@@ -16,4 +16,4 @@ export const noMoney = list => list.filter(x => !MONEY.test(typeof x === 'string
+ // an image or an autolink are replaced by look-alikes, never passed through; the result is one line. A URL built from agent text is cleaned the same way.
+ export const plain = s => String(s ?? '').replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\|/g, '/').replace(/\s+/g, ' ').trim()
+     .replace(/\[/g, '\uFF3B').replace(/\]/g, '\uFF3D').replace(/</g, '\u2039').replace(/>/g, '\u203A')
+-export const safeUrl = u => { const s = String(u ?? ''); return /^https:\/\/[^\s<>"'`\\]+$/.test(s) ? encodeURI(decodeURI(s)).replace(/\(/g, '%28').replace(/\)/g, '%29') : '' }
++export const safeUrl = u => { const s = String(u ?? ''); if (!/^https:\/\/[^\s<>"'`\\]+$/.test(s)) return ''; try { return encodeURI(decodeURI(s)).replace(/\(/g, '%28').replace(/\)/g, '%29') } catch { return '' } }   // a malformed escape (https://x/%) is no URL, never a thrown build
+diff --git a/newsroom/build/tests/test_agent_markdown.mjs b/newsroom/build/tests/test_agent_markdown.mjs
+index 8df5619ba..277ca85f7 100644
+--- a/newsroom/build/tests/test_agent_markdown.mjs
++++ b/newsroom/build/tests/test_agent_markdown.mjs
+@@ -13,6 +13,7 @@ for (const [what, s] of [['a javascript: link', '[x](javascript:alert(1))'], ['a
+ t('the words stay readable', plain('Run [a] (1 file) <b>'), 'Run ［a］ (1 file) ‹b›')
+ t('safeUrl keeps a clean https URL', safeUrl('https://data.promptugal.news/sources/cams/'), 'https://data.promptugal.news/sources/cams/')
+ t('safeUrl refuses other schemes and odd characters', [safeUrl('javascript:alert(1)'), safeUrl('http://x.example'), safeUrl('https://x.example/a b'), safeUrl('https://x.example/a"b')], ['', '', '', ''])
++t('safeUrl never throws on a malformed escape: no URL', [safeUrl('https://a.example/%'), safeUrl('https://a.example/%E0%A4%A')], ['', ''])
+ t('safeUrl cleans parentheses', safeUrl('https://x.example/a(b)'), 'https://x.example/a%28b%29')
+ if (bad) { console.error(`${bad} failed`); process.exit(1) }
+ console.log('test_agent_markdown: OK')
