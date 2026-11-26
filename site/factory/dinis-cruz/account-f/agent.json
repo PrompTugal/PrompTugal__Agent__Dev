@@ -117,6 +117,12 @@
       "what": "the A7 check, run over the last 60 commits, finds that cl-6.dev wrote content/app/index.md and content/follow/index.md, outside its ABP writes (src, tests, scripts, newsroom/build, newsroom/tools, assets, workflows, data/site, own board folders)",
       "rule": "ABP writes for cl-6.dev",
       "why": "the /app/ and /follow/ pages were routed to me by the conductor; content/** is the journalist's or the designer's; I should have asked for a content grant or handed the page text to them"
+    },
+    {
+      "time": "2026-11-26T17:05Z",
+      "what": "wrote content/weather/index.md (the free weather page) and a footer entry in data/site/nav.json; content/** is outside cl-6.dev's ABP writes",
+      "rule": "ABP writes for cl-6.dev",
+      "why": "the conductor routed the page to me; the page text is short and tied to the build's fill markers; cl-6.security sees it in the patch; a content owner (journalist or designer) should take the wording, or the grant should name content/weather/**"
     }
   ]
 }
