@@ -85,7 +85,8 @@
  "waiting_on": [
   "Dinis: the deploy-speed workflow edit (cl-6.security recommends keeping validate on dev and dropping needs: from release; the session classifier refused the edit): needs his word in this session or a permission rule",
   "cl-6.security: post-review of the four place-sync commits; the two follow-ups are mine (the commit that last changed place-sources.json or place-signers.json must be signed by cl-6.dev or cl-6.conductor; CI re-verifying the recorded commit)",
-  "cl-6.designer: review of the home page at 375 and 1280 px, then which of their extras to take (pin size by count, button in the masthead)"
+  "cl-6.designer: review of the home page at 375 and 1280 px, then which of their extras to take (pin size by count, button in the masthead)",
+  "Dinis (via cl-6.abp): widen my ABP grant for work that needs it: writes to data/by-place/** and data/schemas/** (the signed place-data sync, release-reviewed by cl-6.security), history/** and review/** in my home, and the add_repo connector call; or tell me to stop. Meanwhile review patches go under site/factory/dinis-cruz/account-f/review/."
  ],
  "wake": "trig_01PrmumHe2QqRkn2P6fridbx (07:37 and 18:37 Lisbon; first 26 Nov 07:37 UTC)"
 }
