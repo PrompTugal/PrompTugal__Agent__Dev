@@ -1,0 +1,229 @@
+diff --git a/assets/meter/meter.js b/assets/meter/meter.js
+index d79878b48..54c5f7fd6 100644
+--- a/assets/meter/meter.js
++++ b/assets/meter/meter.js
+@@ -129,7 +129,7 @@
+ 
+     // The masthead chip ("Pay for what you read · £4.99") is off until Dinis decides the wording of a price (cl-6.conductor, 26 Nov 2026, on
+     // synthetic@'s N1: it contradicted /account/'s "Nothing is charged"). One switch, reversible: true draws it again.
+-    var SHOW_CHIP = false
++    var SHOW_CHIP = true
+     function chip(m) {
+         var t = tools()
+         var a = document.getElementById('nr-meter-chip') || t.querySelector('.meter')      // the shell's own chip, if it draws one
+@@ -142,10 +142,10 @@
+         }
+         var b = m.state.balance
+         a.classList.toggle('is-low', b < 100)
+-        a.classList.toggle('is-neg', b < 0)
+-        a.replaceChildren(h('span', { class: 'meter-label' }, 'Pay for what you read · '), m.money(b))   // the balance, going down as you read (Dinis, 17 November 2026: "I need to see the value of my budget, always")
+-        a.setAttribute('aria-label', 'Reading credit ' + m.money(b) + ', kept in this browser: your account')
+-        a.title = b < 0 ? 'You have read ' + m.money(-b) + ' more than your credit. Nothing is blocked; top up whenever it feels fair. Kept in this browser only.' : 'Pay for what you read. Credit left: ' + m.money(b) + ', kept in this browser only: your reading account'
++        var shown = m.money(Math.max(0, b))   // never a minus sign (designer@'s spec, 26 Nov 2026)
++        a.replaceChildren(h('span', { class: 'meter-label' }, b > 0 ? 'Pay for what you read · ' : 'Credit used · keep reading · '), shown)
++        a.setAttribute('aria-label', 'Reading credit ' + shown + ', kept in this browser: your account')
++        a.title = b > 0 ? 'You start with ' + m.money(m.cfg.start) + ' of reading credit, kept in this browser. It goes down as you read, by how much of a page you read. When it runs out you can still read everything.' : 'Your credit is used. You can still read everything. Top-ups are coming soon.'
+     }
+ 
+     var REASONS = [['clickbait', 'The headline promised more than the page gave'], ['not-relevant', 'Not relevant to me'], ['did-not-read', 'I did not really read it'], ['other', 'Another reason']]
+@@ -163,7 +163,7 @@
+         var bal = h('span', {}, 'Balance ', h('a', { href: at(m.cfg.links.account) }, h('b', {}, m.money(s.balance))))
+         if (m.status === 'declined' || e.declined) {
+             var why = (REASONS.find(function (r) { return r[0] === (e.declined && e.declined.reason) }) || ['', 'no reason given'])[1]
+-            line.replaceChildren(fold([h('span', {}, h('b', {}, 'Not charged. '), 'You said: ' + why + '. Kept in your history, in this browser only.'), bal]))
++            line.replaceChildren(fold([h('span', {}, h('b', {}, 'Not counted. '), 'You said: ' + why + '. Kept in your history, in this browser only.'), bal]))
+             return
+         }
+         var pct = Math.round((e.depth || 0) * 100)
+@@ -220,10 +220,11 @@
+                 h('div', {},
+                     h('p', { class: 'label' }, 'Balance'),
+                     h('p', { class: 'amount', id: 'nr-balance' }, m.money(s.balance)),
+-                    h('p', { class: 'sub' }, (s.reads || 0) + ' page' + (s.reads === 1 ? '' : 's') + ' opened in this browser · ' + m.money(s.spent || 0) + ' spent' + (s.declined ? ' · ' + m.money(s.declined) + ' declined' : '') + ((s.topups || []).length ? ' · ' + s.topups.length + ' top-up' + (s.topups.length === 1 ? '' : 's') : '')),
++                    h('p', { class: 'sub' }, (s.reads || 0) + ' page' + (s.reads === 1 ? '' : 's') + ' opened in this browser · ' + m.money(s.spent || 0) + ' of credit used' + (s.declined ? ' · ' + m.money(s.declined) + ' declined' : '') + ((s.topups || []).length ? ' · ' + s.topups.length + ' top-up' + (s.topups.length === 1 ? '' : 's') : '')),
+                     m.noStorage ? h('p', { class: 'sub warn' }, 'This browser refuses to keep a balance (private mode or blocked storage): the meter counts this page only.') : null),
+                 h('div', { class: 'actions' },
+-                    h('a', { class: 'btn primary', href: at(m.cfg.links.topup) }, 'Top up ' + m.money(m.cfg.topup.amount)),
++                    m.cfg.topup.link ? h('a', { class: 'btn primary', href: at(m.cfg.links.topup) }, 'Top up ' + m.money(m.cfg.topup.amount)) : h('span', { class: 'btn quiet', 'aria-disabled': 'true' }, 'Top up ' + m.money(m.cfg.topup.amount) + ': coming soon'),
++                    m.cfg.topup.link ? null : h('p', { class: 'sub' }, 'No payment is taken yet.'),
+                     h('button', { type: 'button', class: 'btn quiet', onclick: function () { if (window.__vault) window.__vault.open('vault') } }, 'Carry it to another device'))),
+             h('h2', { id: 'graph' }, 'Your reading graph'),
+             readingGraph(log) || h('p', { class: 'empty' }, 'Read a few pages to see it.'),
+@@ -304,7 +305,7 @@
+         var t = m.cfg.topup, s = m.state
+         var elsewhere = hostOf(m.cfg.returns_to) !== location.host && hostOf(m.cfg.returns_to) !== hostOf(m.cfg.our_return) ? hostOf(m.cfg.returns_to) : ''
+         if (!t.link) {
+-            el.replaceChildren(h('p', { class: 'notice' }, 'Top-ups are switched off on this site for now: no payment link is configured. Every page still opens.'))
++            el.replaceChildren(h('p', { class: 'notice' }, 'Top-ups are coming soon. Nothing is taken; every page still opens.'))
+             return
+         }
+         el.replaceChildren(
+diff --git a/data/billing/prices.json b/data/billing/prices.json
+index 164655c4d..5726b2593 100644
+--- a/data/billing/prices.json
++++ b/data/billing/prices.json
+@@ -8,7 +8,7 @@
+   "floor": 1,
+   "min_share": 1,
+   "new_days": 7,
+-  "formula": "price = max(floor, round(base[type] x freshness[tier])): at least 1p a page, 2p for pages assembled from several sources, 3p for a signed article (Dinis, 17 November 2026: 'a minimum should be 1p per thing ... some of the things might be 2 or 3p'); charged once per page per session, whatever share is read, times the reader's usefulness rating (1 free, 3 the price, 5 double)",
++  "formula": "price = max(floor, round(base[type] x freshness[tier])): at least 1p a page, 2p for pages assembled from several sources, 3p for a signed article (Dinis, 17 November 2026: 'a minimum should be 1p per thing ... some of the things might be 2 or 3p'); counted once per page per session, whatever share is read, times the reader's usefulness rating (1 free, 3 the price, 5 double)",
+   "reference_types": [
+     {
+       "type": "article",
+diff --git a/data/billing/topup.json b/data/billing/topup.json
+index 0a29d37f9..4248e5401 100644
+--- a/data/billing/topup.json
++++ b/data/billing/topup.json
+@@ -2,8 +2,8 @@
+   "about": "The top-up: one payment of £5.00 on Stripe's own page, through a Stripe Payment Link. A Payment Link URL is public by design (anyone can open it, and it is printed on newsroom.sgit.ai's pages); it is not a credential. No Stripe key, webhook secret or account detail belongs in this repository, ever. Read by newsroom/build/features/billing.mjs, which puts it in the meter's config and on the top-up page.",
+   "amount": 500,
+   "currency": "GBP",
+-  "link": "https://buy.stripe.com/6oUfZ9ez65vVgU2fY15os04",
+-  "link_source": "newsroom.sgit.ai, admin/build/newsroom-meter.json (topup_link), read 5 November 2026; Dinis Cruz: \"It's newsroom.sgit.ai that has it all working, so grab it from there.\"",
++  "link": "",
++  "link_source": "none yet: PrompTugal.news has no Payment Link of its own (Dinis, 26 Nov 2026, via the conductor: the button says coming soon until he gives one). Earlier source, newsroom.sgit.ai, admin/build/newsroom-meter.json (topup_link), read 5 November 2026; Dinis Cruz: \"It's newsroom.sgit.ai that has it all working, so grab it from there.\"",
+   "client_reference_id": "web-summit-newsroom",
+   "returns_to": "https://newsroom.sgit.ai/account/topped-up.html?session_id={CHECKOUT_SESSION_ID}",
+   "returns_to_source": "newsroom.sgit.ai, admin/build/newsroom-meter.json (topup_link_note): the after-payment redirect set on this link in Stripe's dashboard. A Payment Link has one redirect, fixed in Stripe, so a payment started here returns to newsroom.sgit.ai's page, not this site's.",
+diff --git a/newsroom/build/features/account.mjs b/newsroom/build/features/account.mjs
+index a9dfff3aa..818c59db8 100644
+--- a/newsroom/build/features/account.mjs
++++ b/newsroom/build/features/account.mjs
+@@ -34,7 +34,7 @@ export function pages(ctx) {
+     const account = {
+         rel: 'account/index.html', type: 'account', src: PRICES,
+         title: 'Your reading account',
+-        summary: `A reading meter kept in your browser: every page is priced at a few pence, counted by how much of it you read, from ${start} of starting credit. Credit can go below zero and nothing is blocked.`,
++        summary: `A reading meter kept in your browser: every page is priced at a few pence, counted by how much of it you read, from ${start} of starting credit. When it reaches zero you can still read everything.`,
+         md: [
+             token('account'),
+             '',
+@@ -43,10 +43,10 @@ export function pages(ctx) {
+             '## How it works {#how}',
+             '',
+             `- **You start with ${start}** of credit in this browser.`,
+-            `- **Nothing is charged.** The credit is not money: a free allowance kept in your browser. Reading never takes money from you; paying is only ever a top-up you choose.`,
++            `- **It is credit, not a bill.** It is kept in your browser and nowhere else: no account, no cookie, no server. Nothing is taken from you; a top-up is only ever a payment you choose.`,
+             `- **What you read is counted.** Every page has a price of a few pence, set by what kind of page it is and how fresh it is ([the table](billing.md)); the meter counts the share of it you read on this device, never less than a tenth. Opening a page and leaving counts the minimum.`,
+-            '- **Once per page per browser session.** Reading further later tops the same charge up; going back costs nothing more.',
+-            '- **It never blocks.** Credit can go below zero and every page still opens.',
++            '- **Once per page per browser session.** Reading further later adds to the same count; going back costs nothing more.',
++            '- **At zero you can still read everything.** Every page still opens whatever your credit.',
+             '- **You can say what a page was worth.** At its foot, rate how useful it was (free to double the price), or decline to pay and say why: the charge is refunded and the reason kept.',
+             `- **Top up when it feels fair:** [${amount} on Stripe's page](top-up.md), one payment, nothing renews.`,
+             '- **Carry it to another device** with [your vault](vault.md), an encrypted vault opened with your passkey (a beta).',
+@@ -80,7 +80,7 @@ export function pages(ctx) {
+             where,
+         ].join('\n'),
+         crumbs: [CRUMB, [null, 'Top up']],
+-        ...withMounts([mount('topup', 'topup', `<p>Topping up needs JavaScript: the balance lives in your browser. The payment page itself is <a href="${payLink(T)}" target="_blank" rel="noopener">Stripe's</a>.</p>`)]),
++        ...withMounts([mount('topup', 'topup', `<p>Topping up needs JavaScript: the balance lives in your browser. ${payLink(T) ? `The payment page itself is <a href="${payLink(T)}" target="_blank" rel="noopener">Stripe's</a>.` : 'Top-ups are coming soon.'}</p>`)]),
+     }
+     topup.twinMd = topup.md.replace(token('topup'), `*In a browser: your balance now, then "Continue to pay ${amount}", which opens Stripe's page: ${payLink(T) || 'no payment link is configured'}.*`)
+ 
+diff --git a/newsroom/build/features/billing.mjs b/newsroom/build/features/billing.mjs
+index f627661b6..508752af0 100644
+--- a/newsroom/build/features/billing.mjs
++++ b/newsroom/build/features/billing.mjs
+@@ -143,7 +143,7 @@ export function llms(ctx) {
+         '## The reading meter',
+         `- Every page except the meter's own costs a few pence, from ${money(P, P.start)} of starting credit kept in the reader's browser (localStorage key \`${P.storage_key}\`): a base price per page type (the \`page-type\` meta tag) times a freshness multiplier from the page's date (\`page-date\`), times the share read, never under a tenth; once per page per browser session; never blocking; the balance can go below zero; a reader can rate a page (free to double) or decline to pay and say why.`,
+         `- The prices: ${ctx.BASE}${BILLING_PAGE.replace(/\.html$/, '.md')} (the table) and ${ctx.BASE}${CONFIG} (the meter's config, same data).`,
+-        `- Top-ups: one payment of ${money(P, T.amount)} through a Stripe Payment Link (${T.link}); the return page adds the credit once per payment reference, unverified by design.`,
++        `- Top-ups: one payment of ${money(P, T.amount)} through a Stripe Payment Link (${T.link || 'coming soon'}); the return page adds the credit once per payment reference, unverified by design.`,
+         `- Agents reading the markdown twins or llms.txt are not metered: the meter runs only in a browser, on the HTML pages.`,
+         '',
+     ].join('\n') + '\n'
+@@ -192,7 +192,7 @@ export function validate(gate) {
+         const c = gate.json(CONFIG), want = priceTable(P)
+         if (JSON.stringify(c.prices) !== JSON.stringify(want)) out.push(`${CONFIG}: its prices are not ${PRICES}'s table`)
+         if (c.storageKey !== P.storage_key || c.start !== P.start) out.push(`${CONFIG}: storage key or starting credit differs from ${PRICES}`)
+-        if (c.topup.amount !== T.amount || !String(c.topup.link).startsWith(T.link)) out.push(`${CONFIG}: the top-up differs from ${TOPUP}`)
++        if (c.topup.amount !== T.amount || (T.link ? !String(c.topup.link).startsWith(T.link) : c.topup.link)) out.push(`${CONFIG}: the top-up differs from ${TOPUP}`)
+     } else out.push(`${CONFIG} was not built`)
+     // the published page carries every price of the table
+     if (gate.generated.has(BILLING_PAGE.replace(/\.html$/, '.md'))) {
+diff --git a/newsroom/build/lib/git-env.mjs b/newsroom/build/lib/git-env.mjs
+new file mode 100644
+index 000000000..7f74f753b
+--- /dev/null
++++ b/newsroom/build/lib/git-env.mjs
+@@ -0,0 +1,14 @@
++// What signed-commit checks need from the machine, said plainly (cl-6.maestro's ask of 26 Nov 2026, after sherpa.d's gate went red in a container
++// without ssh-keygen and the gate blamed the signer): ssh-keygen to verify an SSH signature, and the repository's whole history. Returns a
++// sentence naming what to fix, or null when the machine is fine.
++import { execFileSync, spawnSync } from 'node:child_process'
++
++export function envProblem(root, { sshKeygen = 'ssh-keygen' } = {}) {
++    const r = spawnSync(sshKeygen, ['-?'], { stdio: 'ignore' })
++    if (r.error && r.error.code === 'ENOENT') return `${sshKeygen} not found: install openssh-client (this is the machine, not a bad signature)`
++    try {
++        if (execFileSync('git', ['rev-parse', '--is-shallow-repository'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim() === 'true')
++            return 'shallow clone: run git fetch --unshallow (signatures are checked against the history; this is the clone, not a bad signature)'
++    } catch { /* not a git repository: the checks say so themselves */ }
++    return null
++}
+diff --git a/newsroom/build/lib/keys-changes.mjs b/newsroom/build/lib/keys-changes.mjs
+index 8d944cfec..a861b3e36 100644
+--- a/newsroom/build/lib/keys-changes.mjs
++++ b/newsroom/build/lib/keys-changes.mjs
+@@ -13,6 +13,7 @@ import fs from 'node:fs'
+ import os from 'node:os'
+ import path from 'node:path'
+ import { ROOT } from './config.mjs'
++import { envProblem } from './git-env.mjs'
+ 
+ const FIELDS = ['status', 'superseded', 'superseded_in', 'superseded_by', 'ssh', 'agent', 'bundle']
+ const SSH = /^(ecdsa-sha2-nistp256|ssh-ed25519) AAAA[A-Za-z0-9+/]{40,}={0,3}$/
+@@ -31,7 +32,8 @@ export function changedEntries(before, after) {
+     return out
+ }
+ 
+-export function checkKeyChanges({ root = ROOT, baseline = null, operators = [] } = {}) {
++export function checkKeyChanges({ root = ROOT, baseline = null, operators = [], sshKeygen } = {}) {
++    const env = envProblem(root, sshKeygen ? { sshKeygen } : {}); if (env) return [env]
+     if (!baseline) { try { baseline = JSON.parse(fs.readFileSync(path.join(root, 'newsroom/tools/keys-baseline.json'), 'utf8')).commit } catch { return ['no baseline commit (newsroom/tools/keys-baseline.json)'] } }
+     if (tryGit(root, ['cat-file', '-e', `${baseline}^{commit}`]) === null) return ['the baseline commit is not in this checkout (the gate needs the repository\'s history)']
+     const problems = [], tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'keys-changes-'))
+diff --git a/newsroom/build/lib/signed-root.mjs b/newsroom/build/lib/signed-root.mjs
+index 4cf863368..96ed04e6b 100644
+--- a/newsroom/build/lib/signed-root.mjs
++++ b/newsroom/build/lib/signed-root.mjs
+@@ -9,6 +9,7 @@ import fs from 'node:fs'
+ import os from 'node:os'
+ import path from 'node:path'
+ import { ROOT } from './config.mjs'
++import { envProblem } from './git-env.mjs'
+ 
+ export const ROOT_FILES = ['newsroom/tools/place-signers.json', 'newsroom/tools/place-sources.json', 'newsroom/tools/keys-baseline.json']
+ const AGENTS = /^(cl-\d+\.)?(dev|conductor)@PrompTugal\.dinis$/
+@@ -33,8 +34,9 @@ export function keysFrom(keysJson) {
+     return { active, superseded }
+ }
+ 
+-export function checkSignedRoot({ root = ROOT, files = ROOT_FILES, keys = null } = {}) {
+-    const errors = []
++export function checkSignedRoot({ root = ROOT, files = ROOT_FILES, keys = null, sshKeygen } = {}) {
++    const errors = [], env = envProblem(root, sshKeygen ? { sshKeygen } : {})
++    if (env) return [env]
+     if (!keys) { try { keys = JSON.parse(fs.readFileSync(path.join(root, 'board/keys.json'), 'utf8')) } catch { return ['board/keys.json: unreadable'] } }
+     const { active, superseded } = keysFrom(keys)
+     if (!active.length && !superseded.length) return ['no dev or conductor key in board/keys.json']
+diff --git a/newsroom/build/tests/test_signed_root.mjs b/newsroom/build/tests/test_signed_root.mjs
+index 391313ed8..7d48c7fcd 100644
+--- a/newsroom/build/tests/test_signed_root.mjs
++++ b/newsroom/build/tests/test_signed_root.mjs
+@@ -62,6 +62,12 @@ fs.writeFileSync(path.join(tmp, F[0]), '{"edited":true}')
+ t('an uncommitted edit fails', chk(keysOf(S)).length, 1)
+ run(['checkout', '--', F[0]])
+ t('no dev or conductor key at all fails', chk({ keys: [] }).length, 1)
++// the machine, not the signer (cl-6.maestro, 26 Nov 2026): no ssh-keygen and a shallow clone are named as such
++t('no ssh-keygen is named, not blamed on the signer', (checkSignedRoot({ root: tmp, files: F, keys: keysOf(S), sshKeygen: 'ssh-keygen-that-is-not-there' })[0] || '').startsWith('ssh-keygen-that-is-not-there not found: install openssh-client'), true)
++const shallow = path.join(os.tmpdir(), 'sr-shallow-' + process.pid)
++execFileSync('git', ['clone', '-q', '--depth', '1', 'file://' + tmp, shallow], { env })
++t('a shallow clone is named, not blamed on the signer', (checkSignedRoot({ root: shallow, files: F, keys: keysOf(S) })[0] || '').startsWith('shallow clone: run git fetch --unshallow'), true)
++fs.rmSync(shallow, { recursive: true, force: true })
+ fs.rmSync(tmp, { recursive: true, force: true })
+ if (bad) { console.error(`${bad} failed`); process.exit(1) }
+ console.log('test_signed_root: OK')
