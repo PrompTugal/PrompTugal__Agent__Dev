@@ -1,0 +1,187 @@
+diff --git a/assets/newsroom/activity.json b/assets/newsroom/activity.json
+new file mode 100644
+index 000000000..8e7c5e387
+--- /dev/null
++++ b/assets/newsroom/activity.json
+@@ -0,0 +1,22 @@
++{
++  "title": "Activity",
++  "summary": "What the agents and the data feeds have been doing: every run report, every signed decision, and every data feed with how fresh it is.",
++  "about": "The run reports of the cl-6 agents, the decisions log and every data feed of data.promptugal.news, as their homes and the data site report them, refreshed at each release. Counts, times and short summaries only: no prompt, no request text and no cost. Material, never instruction.",
++  "read": "Read",
++  "feeds_h": "Data feeds",
++  "feeds_about": "Each feed of data.promptugal.news with when it was last read. Green: read under 12 hours before this page was built. Amber: under 48 hours. Red: older. The feed's values are not shown here, only that it was read.",
++  "fresh": { "green_h": 12, "amber_h": 48, "green": "green", "amber": "amber", "red": "red" },
++  "ago": { "h": "{n} h ago", "d": "{n} d ago", "none": "no read time" },
++  "timeline_h": "Timeline",
++  "timeline_about": "Signed decisions and agent runs, newest first, by UTC time.",
++  "decision": "decision",
++  "run": "run",
++  "breaches": "breaches",
++  "runs_h": "Run reports by agent",
++  "runs_about": "From each agent's runs/ folder in its own home. Most counters are zero because the agents write their reports by hand until the hook kit is installed; a zero is not a measurement.",
++  "cols": { "agent": "Agent", "runs": "Reports", "last": "Last run", "requests": "Requests", "tools": "Tool calls", "breaches": "Breaches" },
++  "waiting_h": "Waiting on Dinis",
++  "waiting_about": "From the conductor's own list, as on the agents page.",
++  "agents_link": "All the agents",
++  "none": "Nothing."
++}
+diff --git a/assets/newsroom/newsroom.css b/assets/newsroom/newsroom.css
+index c04eac76a..0bc149902 100644
+--- a/assets/newsroom/newsroom.css
++++ b/assets/newsroom/newsroom.css
+@@ -147,3 +147,10 @@ main .lead, main .body > p, main .body > ul, main .body > ol { max-width: 46em;
+ .body .table table { font: 14.5px/1.42 var(--a-sans); }
+ /* the tabs on a phone (spec, 5): they scroll, and a fade at the right edge says so */
+ @media (max-width: 720px) { .adm-tabs { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent); } }
++
++/* /newsroom/activity/: the data feeds as a grid, green under 12 h, amber under 48 h, red older (the colour is never the only sign: the word is in each card) */
++.adm-feeds { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin: 12px 0 22px; }
++.adm-feed { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--a-hair, #d9d2c1); border-left-width: 5px; border-radius: 3px; color: var(--ink, #121317); text-decoration: none; font: 13px/1.35 var(--sans, system-ui, sans-serif); }
++.adm-feed b { font-weight: 600; } .adm-feed span { color: var(--ink-2, #3f424a); } .adm-feed i { color: var(--ink-3, #595c64); font-style: normal; font-size: 12px; }
++a.adm-feed:hover { background: var(--a-wash, rgba(0, 0, 0, .04)); }
++.adm-fresh-green { border-left-color: #1f7a3d; } .adm-fresh-amber { border-left-color: #b26a00; } .adm-fresh-red { border-left-color: #b3261e; }
+diff --git a/newsroom/build/features/newsroom.mjs b/newsroom/build/features/newsroom.mjs
+index dc7018618..1728eb3a0 100644
+--- a/newsroom/build/features/newsroom.mjs
++++ b/newsroom/build/features/newsroom.mjs
+@@ -14,12 +14,13 @@ import path from 'node:path'
+ import { esc, cell } from '../lib/markdown.mjs'
+ import { json } from '../lib/writers.mjs'
+ import { cl6Section } from '../lib/newsroom-cl6.mjs'
++import { activityMd } from '../lib/newsroom-activity.mjs'
+ import { loadSchemas, validate as checkSchema } from '../lib/schema.mjs'
+ import * as d from './newsroom-draw.mjs'
+ import { model, liveCounts, fillCounts, lanesFor, parallels, readLedger, STAGES, personName } from './newsroom-model.mjs'
+ 
+ export const order = 91
+-export const TABS = [['newsroom/index.html', 'Overview'], ['newsroom/runs/index.html', 'Runs'], ['newsroom/dashboard/index.html', 'Dashboard'], ['newsroom/decisions/index.html', 'Decisions'], ['newsroom/notes/index.html', 'Notes'], ['newsroom/stories/index.html', 'Stories'], ['newsroom/desks/index.html', 'Desks'], ['newsroom/quality/index.html', 'Quality'], ['newsroom/agents/index.html', 'Agents'], ['newsroom/live/index.html', 'Live'], ['newsroom/pieces/index.html', 'Pieces'], ['newsroom/decision-graph/index.html', 'Storm'], ['newsroom/timeline/index.html', 'Timeline'], ['newsroom/data/index.html', 'Data'], ['newsroom/workflows/index.html', 'Workflows'], ['newsroom/lab/index.html', 'Lab'], ['newsroom/observability/index.html', 'Observability'], ['newsroom/versions.html', 'Releases']]
++export const TABS = [['newsroom/index.html', 'Overview'], ['newsroom/runs/index.html', 'Runs'], ['newsroom/dashboard/index.html', 'Dashboard'], ['newsroom/decisions/index.html', 'Decisions'], ['newsroom/notes/index.html', 'Notes'], ['newsroom/stories/index.html', 'Stories'], ['newsroom/desks/index.html', 'Desks'], ['newsroom/quality/index.html', 'Quality'], ['newsroom/agents/index.html', 'Agents'], ['newsroom/activity/index.html', 'Activity'], ['newsroom/live/index.html', 'Live'], ['newsroom/pieces/index.html', 'Pieces'], ['newsroom/decision-graph/index.html', 'Storm'], ['newsroom/timeline/index.html', 'Timeline'], ['newsroom/data/index.html', 'Data'], ['newsroom/workflows/index.html', 'Workflows'], ['newsroom/lab/index.html', 'Lab'], ['newsroom/observability/index.html', 'Observability'], ['newsroom/versions.html', 'Releases']]
+ export const LABEL = '<p class="nr-label"><a href="@@UP@@newsroom/index.html">The newsroom</a> · How PrompTugal.news is made, in public</p>'
+ const ASSETS = { css: ['assets/newsroom/newsroom.css'], js: ['assets/newsroom/newsroom.js'] }
+ const TEAM_BOARD = 'https://github.com/SGit-AI/SGit-AI__Website__Web-Summit/blob/dev/'
+@@ -187,6 +188,10 @@ function agentsPage(ctx, m) {
+         sourcesSection(ctx, b.rel, m)
+     return page(b, { src: 'data/newsroom/agents.json', title: 'The agents', crumbs: crumbs([null, 'Agents']), summary: `${m.agents.length} agents: ${m.agents.filter(a => a.status === 'running').length} running, ${m.agents.filter(a => a.status === 'done').length} done, ${m.agents.filter(a => a.status === 'planned').length} planned. Who fired each one up and when, its role, its runs, its key and where its work lands.`, md })
+ }
++function activityPage(ctx) {
++    const b = builder('newsroom/activity/index.html'), T = ctx.readJSON('assets/newsroom/activity.json')
++    return page(b, { src: 'assets/newsroom/activity-snapshot.json', title: T.title, crumbs: crumbs([null, T.title]), summary: T.summary, md: tabs(b, ctx) + activityMd(ctx, b, T) })
++}
+ function agentPage(ctx, m, a) {
+     const b = builder(agentRel(a))
+     const facts = [
+@@ -392,7 +397,7 @@ export async function pages(ctx) {
+     const { loadFeatures } = await import('../lib/features.mjs')
+     FEATURES = await loadFeatures()
+     const m = model(ctx)
+-    return [overview(ctx, m), runsPage(ctx, m), agentsPage(ctx, m), ...m.agents.map(a => agentPage(ctx, m, a)), timelinePage(ctx, m), dataPage(ctx, m), workflowsPage(ctx, m), labPage(ctx, m)]
++    return [overview(ctx, m), runsPage(ctx, m), agentsPage(ctx, m), activityPage(ctx), ...m.agents.map(a => agentPage(ctx, m, a)), timelinePage(ctx, m), dataPage(ctx, m), workflowsPage(ctx, m), labPage(ctx, m)]
+ }
+ 
+ // the twin of a newsroom page: its markdown with each raw block's markdown in place (read at write time, after fill);
+diff --git a/newsroom/build/lib/newsroom-activity.mjs b/newsroom/build/lib/newsroom-activity.mjs
+new file mode 100644
+index 000000000..60a55ae1b
+--- /dev/null
++++ b/newsroom/build/lib/newsroom-activity.mjs
+@@ -0,0 +1,38 @@
++// The /newsroom/activity/ page (the conductor's brief, Dinis's word of 26 Nov 2026): data feeds by freshness, the timeline of signed decisions and
++// agent runs, the run reports by agent, and Dinis's waiting list. From assets/newsroom/activity-snapshot.json (newsroom/tools/sync-activity.mjs) and
++// agents-snapshot.json; the words are in assets/newsroom/activity.json. Every value is escaped; none is trusted. No cost figure. cl-6.dev@PrompTugal.dinis.
++import { esc, cell } from './markdown.mjs'
++
++const HOUR = 3600e3
++const tFmt = (s, n) => s.replace('{n}', n)
++
++export function activityParts(ctx, T, now = new Date()) {
++    let S, A; try { S = ctx.readJSON('assets/newsroom/activity-snapshot.json'); A = ctx.readJSON('assets/newsroom/agents-snapshot.json') } catch { return null }
++    const F = T.fresh
++    const age = iso => { const t = Date.parse(iso || ''); return Number.isFinite(t) ? (now - t) / HOUR : null }
++    const level = h => h === null ? F.red : h < F.green_h ? F.green : h < F.amber_h ? F.amber : F.red
++    const agoOf = h => h === null ? T.ago.none : h < 48 ? tFmt(T.ago.h, Math.max(0, Math.round(h))) : tFmt(T.ago.d, Math.round(h / 24))
++    const feeds = [...S.feeds].map(f => { const h = age(f.read_at); return { ...f, h, level: level(h), ago: agoOf(h) } }).sort((a, b) => (b.h ?? 1e9) - (a.h ?? 1e9))
++    const counts = Object.fromEntries([F.green, F.amber, F.red].map(l => [l, feeds.filter(f => f.level === l).length]))
++    const feedsHtml = `<div class="adm-feeds">${feeds.map(f => `<${f.page ? `a href="${esc(f.page)}"` : 'div'} class="adm-feed adm-fresh-${f.level}"><b>${esc(f.title || f.id)}</b><span>${esc(f.ago)}</span><i>${esc(f.cadence)} · ${esc(f.level)}</i></${f.page ? 'a' : 'div'}>`).join('')}</div>`
++    const feedsMd = `| Feed | Read | Cadence | Freshness |\n|---|---|---|---|\n` + feeds.map(f => `| ${f.page ? `[${cell(f.title || f.id)}](${f.page})` : cell(f.title || f.id)} | ${cell(f.ago)} | ${cell(f.cadence)} | ${f.level} |`).join('\n')
++    // the timeline: decisions and runs, newest first, by day
++    const ev = [...S.decisions.map(d => ({ at: d.at, kind: T.decision, md: `[${cell(d.record)}](${d.url}): ${cell(d.what)}` })),
++        ...S.runs.map(r => ({ at: r.ended || r.started, kind: T.run, md: `${cell(r.agent.replace(/@.*/, ''))}${r.breaches ? `, ${r.breaches} ${T.breaches}` : ''}: ${cell(r.line)}` }))]
++        .filter(e => /^\d{4}-\d\d-\d\dT/.test(e.at || '')).sort((a, b) => b.at.localeCompare(a.at))
++    const days = new Map(); for (const e of ev) { const d = e.at.slice(0, 10); if (!days.has(d)) days.set(d, []); days.get(d).push(e) }
++    const timeline = [...days].map(([d, xs]) => `### ${d} {#d${d}}\n\n${xs.map(e => `- ${e.at.slice(11, 16)} UTC · ${e.kind} · ${e.md}`).join('\n')}`).join('\n\n')
++    // run reports by agent
++    const by = new Map(); for (const r of S.runs) { const a = by.get(r.agent) || { n: 0, last: '', requests: 0, tools: 0, breaches: 0 }; a.n++; a.requests += r.requests; a.tools += r.tool_calls; a.breaches += r.breaches; if ((r.ended || r.started) > a.last) a.last = r.ended || r.started; by.set(r.agent, a) }
++    const C = T.cols
++    const runs = `| ${C.agent} | ${C.runs} | ${C.last} | ${C.requests} | ${C.tools} | ${C.breaches} |\n|---|---|---|---|---|---|\n` + [...by].sort((x, y) => y[1].last.localeCompare(x[1].last)).map(([a, v]) => `| ${cell(a.replace(/@.*/, ''))} | ${v.n} | ${cell(v.last.slice(0, 16))} | ${v.requests} | ${v.tools} | ${v.breaches} |`).join('\n')
++    const waiting = (A.dinis || []).length ? A.dinis.map(w => `- ${cell(w.what)}${w.since ? ` (${cell(w.since)})` : ''}`).join('\n') : T.none
++    return { counts, feedsHtml, feedsMd, timeline, runs, waiting, read: S.read }
++}
++
++export function activityMd(ctx, b, T, now) {
++    const p = activityParts(ctx, T, now); if (!p) return ''
++    const link = ctx.link(b.rel, 'newsroom/agents/index.html')
++    return `${T.about}\n\n${T.read}: ${cell(p.read)}.\n\n## ${T.feeds_h} {#feeds}\n\n${T.feeds_about}\n\n${Object.entries(p.counts).map(([l, n]) => `${n} ${l}`).join(' · ')}\n\n` + b.raw(p.feedsHtml, p.feedsMd) +
++        `\n\n## ${T.timeline_h} {#timeline}\n\n${T.timeline_about}\n\n${p.timeline}\n\n## ${T.runs_h} {#runs}\n\n${T.runs_about}\n\n${p.runs}\n\n## ${T.waiting_h} {#waiting}\n\n${T.waiting_about} [${T.agents_link}](${link}).\n\n${p.waiting}\n`
++}
+diff --git a/newsroom/tools/sync-activity.mjs b/newsroom/tools/sync-activity.mjs
+new file mode 100644
+index 000000000..fa73d1e63
+--- /dev/null
++++ b/newsroom/tools/sync-activity.mjs
+@@ -0,0 +1,55 @@
++#!/usr/bin/env node
++// Snapshot for /newsroom/activity/ (the conductor's brief, Dinis's word of 26 Nov 2026): the run reports of every cl-6 agent (each home's runs/<agent>/*.json),
++// the decisions log (cl-6.decisions' log.md) and every feed of data.promptugal.news's catalogue with its last read time. Written to
++// assets/newsroom/activity-snapshot.json, which the build reads. Run before a release:  node newsroom/tools/sync-activity.mjs
++// Public repositories, no token. From a run report only the counts, the times and a cut one-line summary are kept, never its requests, prompts or text;
++// from a feed only its id, title, cadence, status and read time, never a value. No cost figure is kept. Text goes through lib/agent-text.mjs.
++// A home that does not answer keeps its previous runs. cl-6.dev@PrompTugal.dinis.
++import { execFileSync } from 'node:child_process'
++import fs from 'node:fs'
++import os from 'node:os'
++import path from 'node:path'
++import { fileURLToPath } from 'node:url'
++import { cut } from '../build/lib/agent-text.mjs'
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
++const OUT = path.join(ROOT, 'assets/newsroom/activity-snapshot.json'), AGENTS = path.join(ROOT, 'assets/newsroom/agents-snapshot.json')
++const get = async u => { try { const r = await fetch(u, { signal: AbortSignal.timeout(30000) }); return r.ok ? await r.text() : null } catch { return null } }
++const num = v => Number.isFinite(+v) ? +v : 0
++
++let old = {}; try { old = JSON.parse(fs.readFileSync(OUT, 'utf8')) } catch { }
++const agents = JSON.parse(fs.readFileSync(AGENTS, 'utf8')).agents
++
++// run reports: shallow clone of each home, read runs/**/*.json
++function runsOf(home) {
++    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'activity-')), dir = path.join(tmp, 'h')
++    try {
++        execFileSync('git', ['clone', '-q', '--depth', '1', `https://github.com/${home}.git`, dir], { stdio: 'ignore', timeout: 60000 })
++        const out = [], walk = d => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) walk(p); else if (e.name.endsWith('.json')) out.push(p) } }
++        const rd = path.join(dir, 'runs'); if (fs.existsSync(rd)) walk(rd)
++        return out.flatMap(f => { try {
++            const j = JSON.parse(fs.readFileSync(f, 'utf8')), c = j.counts || {}
++            if (!j.agent || !j.run) return []
++            return [{ agent: cut(j.agent, 60), run: cut(j.run, 30), started: cut(j.started, 24), ended: cut(j.ended, 24), line: cut(j.line, 200),
++                requests: num(c.requests), tool_calls: num(c.tool_calls), in_mandate: num(c.in_mandate), out_of_mandate: num(c.out_of_mandate), attempts: num(c.attempts), breaches: num(c.breaches) }]
++        } catch { return [] } })
++    } catch { return null } finally { fs.rmSync(tmp, { recursive: true, force: true }) }
++}
++const runs = []; let missed = 0
++for (const a of agents) {
++    const r = a.home ? runsOf(a.home) : []
++    if (r === null) { missed++; runs.push(...(old.runs || []).filter(x => x.agent === a.id + '@PrompTugal.dinis')); continue }
++    runs.push(...r)
++}
++runs.sort((x, y) => String(y.ended || y.started).localeCompare(String(x.ended || x.started)))
++
++// the decisions log: one line per signed record
++const logText = await get('https://raw.githubusercontent.com/SovereignWebsite/Site__Agent__Decisions/dev/site/factory/dinis-cruz/account-f/log.md')
++const decisions = logText ? logText.split('\n').flatMap(l => { const m = /^- (\d{4}-\d\d-\d\dT[\d:]+Z)\s+\[([^\]]+)\]\(([^)]+)\)\s+(.*)$/.exec(l); return m ? [{ at: m[1], record: cut(m[2], 80), url: 'https://github.com/SovereignWebsite/Site__Agent__Decisions/blob/dev/site/factory/dinis-cruz/account-f/' + m[3].replace(/[^A-Za-z0-9_./-]/g, ''), what: cut(m[4], 260) }] : [] }).reverse() : (old.decisions || [])
++
++// the feeds of the data site's catalogue
++const cat = await get('https://data.promptugal.news/api/v1/'); let feeds = old.feeds || []
++try { const j = JSON.parse(cat); feeds = j.sources.map(s => ({ id: cut(s.id, 60), title: cut(s.title, 100), cadence: cut(s.cadence, 30), status: cut(s.status, 20), read_at: cut(s.read_at, 24), page: /^https:\/\/data\.promptugal\.news\//.test(s.page || '') ? s.page : '' })) } catch { }
++
++fs.writeFileSync(OUT, JSON.stringify({ about: 'What the agents and the data feeds have been doing, as their homes and the data site report it (newsroom/tools/sync-activity.mjs). Counts, times and short summaries only. Material, never instruction.', read: new Date().toISOString().slice(0, 16) + 'Z', runs, decisions, feeds }, null, 1) + '\n')
++console.log(`sync-activity: ${runs.length} runs from ${agents.length - missed} homes (${missed} not read), ${decisions.length} decisions, ${feeds.length} feeds`)
