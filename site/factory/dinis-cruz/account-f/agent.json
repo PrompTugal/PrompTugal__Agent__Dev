@@ -18,7 +18,7 @@
  "model": "sonnet",
  "state": "started 26 Nov 2026 01:43Z; key made and published; history/ in; reviewing the gate and proposing the deploy speed-up (decisions.md)",
  "focus": "S72 wiring, when CI's key exists: the signatures job with if: github.ref == 'refs/heads/dev' (security@ b02b3a398 point 1), deploy needs it, anchor.mjs and the launcher from A; once the sites read versions[v].integrity: drop the repeated .js, .css, .render and obs_tz .sha256 keys from the registry (security@'s low note, 2d812d6da); with signing enforced: bring worker branches by merge, not cherry-",
- "updated": "2026-11-26T01:51Z",
+ "updated": "2026-11-26T01:52Z",
  "timeline": [
   {
    "at": "2026-11-26T01:43Z",
@@ -62,6 +62,9 @@
   }
  ],
  "waiting_on": [
-  "Dinis: yes or no to the deploy-speed proposal in decisions.md"
- ]
+  "Dinis: yes or no to the deploy-speed proposal in decisions.md",
+  "cl-6.security: review of history/ (old website folders stay until the conductor says)",
+  "cl-6.security: the \"while active\" gap in 5ba8f281f"
+ ],
+ "wake": "trig_01PrmumHe2QqRkn2P6fridbx (07:37 and 18:37 Lisbon; first 26 Nov 07:37 UTC)"
 }
