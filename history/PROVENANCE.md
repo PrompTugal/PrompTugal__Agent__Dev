@@ -1,14 +1,22 @@
 # Provenance of history/
 
-Source repository: PrompTugal/PrompTugal__News__Website, branch `dev`, read on 26 November 2026 at 01:49Z (website head ee7408afb).
+Source repository: PrompTugal/PrompTugal__News__Website, branch `dev`, read on 26 November 2026 at 02:24Z (website head 8b5b0df83).
 Each file keeps its original path. Paths copied: board/team/dev and its seven workers (dev.search, dev.pages, dev.graphs, dev.portugal, dev.data, dev.verify, dev.places), desks/dev-vicky/, board/runs/dev* (not devops*: another role), board/inboxes/dev*.json (not devops*), board/the-newsroom-move.md, board/keys/dev-promptugal.json, and the briefs, specs and passes that name dev@ or a dev worker as writer or recipient in their first lines.
-Not copied: any private key, token or sealed credential. The `append_token` and `sealed` fields of each inbox file are replaced by a marker; the public key and fingerprints are kept.
+Also the Agent Behaviour Policies board/abp/dev*.md (not devops). Not copied: any private key, token or sealed credential. The `append_token` and `sealed` fields of each inbox file are replaced by a marker; the public key and fingerprints are kept.
 The old folders in the website stay until the conductor is told this history is in.
 
-1013 files.
+1021 files.
 
 | path | last commit | committed |
 |---|---|---|
+| board/abp/dev.data.md | [ed328db99](https://github.com/PrompTugal/PrompTugal__News__Website/commit/ed328db990a930111998064a051d797bcef15f2b) | 2026-11-24T00:16:10+00:00 |
+| board/abp/dev.graphs.md | [ed328db99](https://github.com/PrompTugal/PrompTugal__News__Website/commit/ed328db990a930111998064a051d797bcef15f2b) | 2026-11-24T00:16:10+00:00 |
+| board/abp/dev.md | [ed328db99](https://github.com/PrompTugal/PrompTugal__News__Website/commit/ed328db990a930111998064a051d797bcef15f2b) | 2026-11-24T00:16:10+00:00 |
+| board/abp/dev.pages.md | [ed328db99](https://github.com/PrompTugal/PrompTugal__News__Website/commit/ed328db990a930111998064a051d797bcef15f2b) | 2026-11-24T00:16:10+00:00 |
+| board/abp/dev.places.md | [ed328db99](https://github.com/PrompTugal/PrompTugal__News__Website/commit/ed328db990a930111998064a051d797bcef15f2b) | 2026-11-24T00:16:10+00:00 |
+| board/abp/dev.portugal.md | [ed328db99](https://github.com/PrompTugal/PrompTugal__News__Website/commit/ed328db990a930111998064a051d797bcef15f2b) | 2026-11-24T00:16:10+00:00 |
+| board/abp/dev.search.md | [ed328db99](https://github.com/PrompTugal/PrompTugal__News__Website/commit/ed328db990a930111998064a051d797bcef15f2b) | 2026-11-24T00:16:10+00:00 |
+| board/abp/dev.verify.md | [ed328db99](https://github.com/PrompTugal/PrompTugal__News__Website/commit/ed328db990a930111998064a051d797bcef15f2b) | 2026-11-24T00:16:10+00:00 |
 | board/briefs/2026-11-06-front-page-mock-e.md | [e833785e6](https://github.com/PrompTugal/PrompTugal__News__Website/commit/e833785e6be1f45740d100415e428a8b8bc08a80) | 2026-11-06T22:48:12+00:00 |
 | board/briefs/2026-11-06-wikipedia.md | [ae93221b6](https://github.com/PrompTugal/PrompTugal__News__Website/commit/ae93221b61d76e66471f8005646c97c1a1d4fed7) | 2026-11-06T04:39:56+00:00 |
 | board/briefs/2026-11-09-the-mockups-vs-the-live-site.md | [ed56c44a8](https://github.com/PrompTugal/PrompTugal__News__Website/commit/ed56c44a86175b90f52c1771fcb25c724acc5b14) | 2026-11-09T02:19:10+00:00 |
