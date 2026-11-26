@@ -1,13 +1,3 @@
-diff --git a/REALITY.md b/REALITY.md
-index fff7ddfab..dccd138b9 100644
---- a/REALITY.md
-+++ b/REALITY.md
-@@ -1,4 +1,4 @@
--# Reality: what exists (site v0.1.2317)
-+# Reality: what exists (site v0.1.2316)
- 
- A thing that is not in this file does not exist, whatever a brief says. Kept current by whoever ships; CI updates the version above on every release.
- 
 diff --git a/assets/article/tube-strikes-2026/chart.tmpl b/assets/article/tube-strikes-2026/chart.tmpl
 new file mode 100644
 index 000000000..1c568667e
@@ -158,6 +148,35 @@ index 000000000..1ca99df17
 +    const strikes = JSON.parse(fs.readFileSync(path.join(dir, 'strikes.json'), 'utf8')).strikes
 +    return [{ path: 'api/v1/charts/tube-strikes-2026.svg', schema: null, data: chart(fs.readFileSync(path.join(dir, 'chart.tmpl'), 'utf8'), strikes, new Date()) }]
 +}
+diff --git a/newsroom/build/lib/agent-text.mjs b/newsroom/build/lib/agent-text.mjs
+index 729adc2f3..c0eff7b3c 100644
+--- a/newsroom/build/lib/agent-text.mjs
++++ b/newsroom/build/lib/agent-text.mjs
+@@ -3,9 +3,11 @@
+ // The same shapes as validate.js rule 7. cl-6.dev@PrompTugal.dinis.
+ const EMAIL = /[^\s@()<>"']*@([A-Za-z0-9.-]+\.[A-Za-z]{2,})/g
+ const PHONE = /(?<![\w/])(?:\+|00)\d[\d ()-]{8,}\d/g
++// the names validate.js rule 7 accepts as agents, not addresses
++const AGENT_NAME = /@(web-summit|PrompTugal)\.(dinis|vicky|indi|silvio|jose|angelo|zed|stranger|person)$|@AgentiCCells\.dinis$|@account-[a-f]\.dinis$/i
+ export const MONEY = /[$€]\s?\d|\b\d[\d,.]*\s?(?:USD|EUR|dollars|euros)\b|\bAPI-equivalent\b|\bspend\b/i
+ 
+-export const scrub = s => String(s ?? '').replace(EMAIL, (m, d) => /\.dinis$/i.test(d) ? m : '[address]').replace(PHONE, '[number]')
++export const scrub = s => String(s ?? '').replace(EMAIL, (m) => AGENT_NAME.test(m) ? m : '[address]').replace(PHONE, '[number]')
+ export const cut = (s, n) => { s = scrub(s).replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s }
+ // text that is about the account's spend is Dinis's business, not copy for the public (the public £5 top-up is not)
+ export const noMoney = list => list.filter(x => !MONEY.test(typeof x === 'string' ? x : x.what || ''))
+diff --git a/newsroom/build/tests/test_agent_text.mjs b/newsroom/build/tests/test_agent_text.mjs
+index ded4dde24..3a0f46063 100644
+--- a/newsroom/build/tests/test_agent_text.mjs
++++ b/newsroom/build/tests/test_agent_text.mjs
+@@ -6,6 +6,7 @@ let bad = 0
+ const t = (what, got, want) => { if (JSON.stringify(got) !== JSON.stringify(want)) { bad++; console.error(`FAIL ${what}: ${JSON.stringify(got)}, want ${JSON.stringify(want)}`) } }
+ const now = 'Wrote to redacao@outlet.example and +351 912 345 678 (call 00351 21 123 4567), cc cl-6.dev@PrompTugal.dinis.'
+ t('an outlet mailbox and two phone numbers are replaced, an agent name stays', cut(now, 400), 'Wrote to [address] and [number] (call [number]), cc cl-6.dev@PrompTugal.dinis.')
++t('the operators\' agent names stay readable', cut('the old reviewer@PrompTugal.vicky and curator@PrompTugal.indi sessions, not x@other.example', 200), 'the old reviewer@PrompTugal.vicky and curator@PrompTugal.indi sessions, not [address]')
+ t('a hash and a path are not phone numbers', scrub('sha 0123456789abcdef0123456789abcdef /000110465916150147/'), 'sha 0123456789abcdef0123456789abcdef /000110465916150147/')
+ t('an item about money is dropped', noMoney([{ what: 'Spend: telemetry reports $409.05 API-equivalent' }, { what: 'Caps: 50 USD a day' }, { what: 'a £5 top-up' }, { what: 'the Stripe link' }, 'one line for the abp']).map(x => x.what || x), ['a £5 top-up', 'the Stripe link', 'one line for the abp'])
+ t('a long text is cut with an ellipsis', cut('x'.repeat(50), 10), 'xxxxxxxxx…')
 diff --git a/newsroom/build/tests/test_tube_chart.mjs b/newsroom/build/tests/test_tube_chart.mjs
 new file mode 100644
 index 000000000..1b859a29b
@@ -182,26 +201,3 @@ index 000000000..1b859a29b
 +t('after the last: all filled', marks(new Date('2027-03-01T00:00:00Z')), 'fl fl fl fl fl fl fl fl')
 +if (bad) { console.error(`${bad} failed`); process.exit(1) }
 +console.log('test_tube_chart: OK')
-diff --git a/newsroom/build/version.txt b/newsroom/build/version.txt
-index 704edcdfc..466b15cbb 100644
---- a/newsroom/build/version.txt
-+++ b/newsroom/build/version.txt
-@@ -1 +1 @@
--v0.1.2317
-+v0.1.2316
-diff --git a/newsroom/versions.json b/newsroom/versions.json
-index 69a62d2a2..7d6e8e7cd 100644
---- a/newsroom/versions.json
-+++ b/newsroom/versions.json
-@@ -1,11 +1,4 @@
- [
--  {
--    "version": "v0.1.2317",
--    "date": "2026-11-26",
--    "what": "cl-6.dev@PrompTugal.dinis: agents snapshot under the contact gate (rule 7 walks assets/newsroom), phone numbers and spend figures dropped, tests (cl-6.security's three conditions)",
--    "by": "cl-6.dev@PrompTugal.dinis",
--    "from": "29d3f1151"
--  },
-   {
-     "version": "v0.1.2316",
-     "date": "2026-11-26",
