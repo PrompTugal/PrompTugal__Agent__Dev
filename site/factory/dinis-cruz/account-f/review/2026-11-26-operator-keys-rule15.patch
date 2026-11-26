@@ -1,0 +1,139 @@
+diff --git a/newsroom/build/lib/keys-changes-cli.mjs b/newsroom/build/lib/keys-changes-cli.mjs
+index f9e35da3e..9ce394feb 100644
+--- a/newsroom/build/lib/keys-changes-cli.mjs
++++ b/newsroom/build/lib/keys-changes-cli.mjs
+@@ -1,3 +1,8 @@
+ // prints the problems checkKeyChanges finds, one per line (run by validate.js in a child process: the check is an ES module)
++import fs from 'node:fs'
++import path from 'node:path'
+ import { checkKeyChanges } from './keys-changes.mjs'
+-for (const p of checkKeyChanges()) console.log(p)
++import { ROOT } from './config.mjs'
++let operators = []
++try { operators = JSON.parse(fs.readFileSync(path.join(ROOT, 'newsroom/tools/operator-keys.json'), 'utf8')).operators.map(o => typeof o === 'string' ? o : o.ssh_fingerprint).filter(f => /^SHA256:[A-Za-z0-9+/]{43}$/.test(f || '')) } catch { }
++for (const p of checkKeyChanges({ operators })) console.log(p)
+diff --git a/newsroom/build/lib/keys-changes.mjs b/newsroom/build/lib/keys-changes.mjs
+index 0a708421e..f1db63336 100644
+--- a/newsroom/build/lib/keys-changes.mjs
++++ b/newsroom/build/lib/keys-changes.mjs
+@@ -5,7 +5,8 @@
+ //   a CHANGED or REMOVED existing entry: only by an active key of its agent in the parent, never by a key the commit adds: so a commit that adds
+ //     a new key for X, retires X's real one and is signed by the new key is reported as a hand-over (it needs an operator);
+ //   a RE-ACTIVATION (superseded or revoked back to active) is always reported, even when the agent signs: a retired key's private half outlives its session.
+-// An entry whose ssh field holds no key counts by its bundle.sign key (the same key, in PEM). An operator key (none is published yet, so the list is empty) vouches for any entry. The verifier is named on the command line. The result is
++// An entry whose ssh field holds no key counts by its bundle.sign key (the same key, in PEM); until cl-6.abp's S9 commit retires the ~109 entries that hold
++// none, their bundle.sign keys count as their agents' keys (cl-6.security, 26 Nov 2026: low risk, most are ended sessions). An operator key vouches for any entry: it is recognised only by its ssh fingerprint listed in newsroom/tools/operator-keys.json (empty until Dinis states his), never by an agent name or role in board/keys.json, which any agent can add. The verifier is named on the command line. The result is
+ // a list of problems; the gate shows them as warnings until Dinis's key is in board/keys.json, then as errors. Known gap: a first publication is
+ // self-signed. Pure of the gate: root, baseline and the operator list are parameters.
+ import { execFileSync } from 'node:child_process'
+@@ -48,6 +49,8 @@ export function checkKeyChanges({ root = ROOT, baseline = null, operators = [],
+         const f = path.join(tmp, `pem${n++}`); fs.writeFileSync(f, pem + '\n')
+         try { const o = execFileSync('ssh-keygen', ['-i', '-m', 'PKCS8', '-f', f], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); return /^ecdsa-sha2-nistp256 AAAA/.test(o) && SSH.test(o) ? o : '' } catch { return '' }
+     }
++    // the SHA-256 fingerprint of an ssh key string: how an operator is recognised (newsroom/tools/operator-keys.json), never by a name in board/keys.json
++    const fpOf = ssh => { const f = path.join(tmp, `fp${n++}.pub`); fs.writeFileSync(f, ssh + '\n'); try { return (/(SHA256:\S+)/.exec(execFileSync('ssh-keygen', ['-lf', f], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })) || [])[1] || '' } catch { return '' } }
+     const line = (k, who) => { const ssh = sshOf(k); return ssh ? [`${who} namespaces="git" ${ssh}`] : [] }
+     try {
+         const commits = (tryGit(root, ['rev-list', '--first-parent', '--reverse', `${baseline}..HEAD`, '--', 'board/keys.json']) || '').split('\n').filter(Boolean)
+@@ -56,14 +59,17 @@ export function checkKeyChanges({ root = ROOT, baseline = null, operators = [],
+             if (!before || !after) { problems.push(`${c.slice(0, 9)}: board/keys.json unreadable`); continue }
+             const changed = changedEntries(before, after); if (!changed.length) continue
+             const B = new Map(before.map(k => [k.id, k])), A = new Map(after.map(k => [k.id, k])), at = c.slice(0, 9)
+-            // the parent's active keys of an agent (or of an operator): the only keys that may vouch for an existing entry
+-            const parentKeys = agent => before.filter(k => k.status === 'active' && (k.agent === agent || operators.includes(k.agent))).flatMap(k => line(k, k.agent))
++            // the parent's active keys of an agent: the only keys that may vouch for an existing entry (an operator's key, by fingerprint, may vouch for any)
++            const parentKeys = agent => before.filter(k => k.status === 'active' && k.agent === agent).flatMap(k => line(k, k.agent))
+             const okParent = new Map(), okOwn = new Map()
++            let okOp = null
++            const opOk = () => { if (okOp === null) okOp = operators.length > 0 && verify(c, before.filter(k => k.status === 'active').flatMap(k => { const ssh = sshOf(k); return ssh && operators.includes(fpOf(ssh)) ? [`operator namespaces="git" ${ssh}`] : [] })); return okOp }
+             const parentOk = agent => { if (!okParent.has(agent)) okParent.set(agent, verify(c, parentKeys(agent))); return okParent.get(agent) }
+             const ownOk = id => { if (!okOwn.has(id)) okOwn.set(id, verify(c, line(A.get(id) || {}, 'own'))); return okOwn.get(id) }
+             const addedFor = agent => changed.filter(x => x.added && x.agent === agent && ownOk(x.id))
+             for (const x of changed) {
+                 const b = B.get(x.id), a = A.get(x.id)
++                if (opOk()) continue                  // signed by an operator's key (listed by fingerprint): any entry
+                 if (b && a && b.status !== 'active' && a.status === 'active') { problems.push(`${at}: ${x.id} re-activated (${b.status} to active); operator only`); continue }
+                 if (b && a && b.agent !== a.agent) { problems.push(`${at}: ${x.id} agent changed (${b.agent} to ${a.agent}); operator only`); continue }
+                 if (x.added) { if (!(ownOk(x.id) || parentOk(x.agent))) problems.push(`${at}: ${x.id} added, not signed by its own key or by an active key of ${x.agent}`); continue }
+diff --git a/newsroom/build/lib/signed-root.mjs b/newsroom/build/lib/signed-root.mjs
+index 056d71457..55d74f048 100644
+--- a/newsroom/build/lib/signed-root.mjs
++++ b/newsroom/build/lib/signed-root.mjs
+@@ -11,7 +11,7 @@ import path from 'node:path'
+ import { ROOT } from './config.mjs'
+ import { envProblem } from './git-env.mjs'
+ 
+-export const ROOT_FILES = ['newsroom/tools/place-signers.json', 'newsroom/tools/place-sources.json', 'newsroom/tools/keys-baseline.json', 'newsroom/tools/abp-paths.json', 'newsroom/tools/abp-signers.json']
++export const ROOT_FILES = ['newsroom/tools/place-signers.json', 'newsroom/tools/place-sources.json', 'newsroom/tools/keys-baseline.json', 'newsroom/tools/abp-paths.json', 'newsroom/tools/abp-signers.json', 'newsroom/tools/operator-keys.json']
+ const AGENTS = /^(cl-\d+\.)?(dev|conductor)@PrompTugal\.dinis$/
+ const SSH = /^(ecdsa-sha2-nistp256|ssh-ed25519) AAAA[A-Za-z0-9+/]{40,}={0,3}$/
+ 
+diff --git a/newsroom/build/lib/wsonly-cli.mjs b/newsroom/build/lib/wsonly-cli.mjs
+new file mode 100644
+index 000000000..133d863ba
+--- /dev/null
++++ b/newsroom/build/lib/wsonly-cli.mjs
+@@ -0,0 +1,4 @@
++// prints the count of what rests only on websummit.com (run by validate.js rule 15 in a child process: wsonly.mjs is an ES module)
++import { wsGate } from './wsonly.mjs'
++import { loadData } from './data.mjs'
++console.log(wsGate(loadData()))
+diff --git a/newsroom/build/tests/test_keys_changes.mjs b/newsroom/build/tests/test_keys_changes.mjs
+index d14107924..3d1ada2fb 100644
+--- a/newsroom/build/tests/test_keys_changes.mjs
++++ b/newsroom/build/tests/test_keys_changes.mjs
+@@ -69,6 +69,21 @@ t('a missing baseline is reported, not passed', checkKeyChanges({ root: tmp, bas
+     r = step([...keys, { ...BAD, status: 'superseded' }], KQ, 'the bad-PEM entry is changed')
+     t('a PEM that does not convert is no key', r.some(x => /p-3 changed/.test(x)), true)
+ }
++// an operator is recognised by the fingerprint listed in operator-keys.json, never by a name in board/keys.json (cl-6.security, 26 Nov 2026)
++{
++    const KO = key('o'), KM = key('m'), fp = k => /(SHA256:\S+)/.exec(execFileSync('ssh-keygen', ['-lf', k.file + '.pub'], { encoding: 'utf8' }))[1]
++    const OPK = E('o-1', 'dinis@x', KO), FAKE = E('m-1', 'operator@x', KM), V = E('v-1', 'v@x', KX), W2 = E('w-1', 'w@x', KX)
++    const base0 = commit([...keys, OPK, FAKE, V], KO, 'an operator key and an agent called operator are published'); prev = base0
++    const withOps = k => checkKeyChanges({ root: tmp, baseline: base0, operators: k })
++    let c1 = commit([...keys, OPK, FAKE, { ...V, status: 'superseded' }], KO, 'the operator retires V')
++    t('an operator, by fingerprint, may change another agent\'s entry', withOps([fp(KO)]), [])
++    t('with no operator listed the same commit is reported', withOps([]).length, 1)
++    prev = c1; let c2 = commit([...keys, OPK, FAKE, { ...V, status: 'active' }], KM, 'an agent called operator re-activates V')
++    const r2 = checkKeyChanges({ root: tmp, baseline: c1, operators: [fp(KO)] })
++    t('a key whose entry is named operator is not an operator: re-activation reported', [r2.length, /v-1 re-activated/.test(r2[0] || '')], [1, true])
++    prev = c2; commit([...keys, OPK, FAKE, { ...V, status: 'active' }, { ...OPK, status: 'superseded' }], KO, 'the operator key itself is retired by its own signature')
++    t('an operator, active in the parent, may retire its own key', checkKeyChanges({ root: tmp, baseline: c2, operators: [fp(KO)] }).length, 0)
++}
+ fs.rmSync(tmp, { recursive: true, force: true })
+ if (bad) { console.error(`${bad} failed`); process.exit(1) }
+ console.log('test_keys_changes: OK')
+diff --git a/newsroom/build/validate.js b/newsroom/build/validate.js
+index e2a9c4d58..9926b37c7 100644
+--- a/newsroom/build/validate.js
++++ b/newsroom/build/validate.js
+@@ -271,13 +271,14 @@ for (const f of html) {
+ // 15. what rests only on websummit.com (lib/wsonly.mjs; the pass 2026-11-11-only-websummit-sourced-comes-off): counted
+ // at every run; while the switch is off this is a dry run and nothing served changes
+ {
+-    try { warnings.push(execFileSync(process.execPath, [path.join(__dirname, 'lib/keys-changes-cli.mjs')], { cwd: __dirname, encoding: 'utf8' }).trim()) } catch (e) { errors.push('wsonly: ' + e.message) }
++    try { warnings.push(execFileSync(process.execPath, [path.join(__dirname, 'lib/wsonly-cli.mjs')], { cwd: __dirname, encoding: 'utf8' }).trim()) } catch (e) { errors.push('wsonly: ' + e.message) }
+ }
+ 
+-// 16. a change to board/keys.json belongs to the agent it concerns (lib/keys-changes.mjs; cl-6.security's follow-up 1b): a WARN until Dinis's
+-// key is published in board/keys.json, then an error
++// 16. a change to board/keys.json belongs to the agent it concerns (lib/keys-changes.mjs; cl-6.security's follow-up 1b): a WARN until an operator's
++// fingerprint is in newsroom/tools/operator-keys.json (Dinis's key is not published yet), then an error
+ {
+-    try { for (const p of execFileSync(process.execPath, [path.join(__dirname, 'lib/keys-changes-cli.mjs')], { cwd: __dirname, encoding: 'utf8' }).split('\n').filter(Boolean)) warnings.push('keys.json: ' + p) } catch (e) { warnings.push('keys.json: ' + String(e.message).split('\n')[0]) }
++    let sink = warnings; try { if (JSON.parse(read('newsroom/tools/operator-keys.json')).operators.length) sink = errors } catch { sink = errors }
++    try { for (const p of execFileSync(process.execPath, [path.join(__dirname, 'lib/keys-changes-cli.mjs')], { cwd: __dirname, encoding: 'utf8' }).split('\n').filter(Boolean)) sink.push('keys.json: ' + p) } catch (e) { sink.push('keys.json: ' + String(e.message).split('\n')[0]) }
+ }
+ 
+ // 17. a commit stays in its signer's ABP paths (lib/abp-paths.mjs; A7, cl-6.security's access review): warnings for a day, then errors
+diff --git a/newsroom/tools/operator-keys.json b/newsroom/tools/operator-keys.json
+new file mode 100644
+index 000000000..c9ee0100b
+--- /dev/null
++++ b/newsroom/tools/operator-keys.json
+@@ -0,0 +1,4 @@
++{
++ "about": "The operators whose key may vouch for any entry of board/keys.json (lib/keys-changes.mjs): fingerprints only, never a name or a role, because an entry in board/keys.json can be added by any agent. A key counts as an operator's only if it is active in board/keys.json and its ssh fingerprint (SHA256:...) is listed here. Empty today: Dinis's key is not published yet; he states its fingerprint, and a signed commit of cl-6.dev or cl-6.conductor, reviewed by cl-6.security, adds it. A GATE FILE, under the signed-root check; rule 16 of the gate is an error once this list is not empty.",
++ "operators": []
++}
