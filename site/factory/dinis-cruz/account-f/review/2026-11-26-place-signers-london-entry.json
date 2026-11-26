@@ -1,0 +1,14 @@
+{
+ "about": "The entry to add to newsroom/tools/place-signers.json's signers[] for London (a protected file: cl-6.security's to add or to approve; the sync code that reads it is in 2026-11-26-place-sync-per-agent-pin.patch). Not added by cl-6.dev.",
+ "entry": {
+  "agent": "cl-6.place.london@PrompTugal.dinis",
+  "ssh_fingerprint": "SHA256:lLkrpgTDgKpJr72dE2tK2bVSTSKlhV07mH/EAyQtw2c",
+  "home_key_path": "site/keys/cl-6.place.london.json",
+  "places": ["london"],
+  "home": "https://github.com/PrompTugal/PrompTugal__Agent__Place__London",
+  "data_path": "site/factory/dinis-cruz/account-f/data/by-place/london.json",
+  "pinned": "2026-11-26",
+  "pinned_by": "to be set by the committer",
+  "confirmed": "fingerprint given by the conductor from cl-6.place.london's home; to be confirmed directly by cl-6.place.london to cl-6.security"
+ }
+}
