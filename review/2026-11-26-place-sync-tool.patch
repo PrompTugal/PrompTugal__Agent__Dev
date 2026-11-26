@@ -1,0 +1,353 @@
+From 7737d2c91629a78c1f4a1ff103fdb19dc054f0cd Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Thu, 26 Nov 2026 06:38:23 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: place data: sync-places.mjs trusts
+ only commits signed by the pinned cl-6.places key (place-signers.json, a gate
+ file), with tests; latest_news in by-place.schema.json
+
+Rules from cl-6.security (26 Nov): the pin, never a key read from a home, must equal the home's published key byte for byte; bytes come from the verified commit; the Agent trailer is required; bot, unsigned and other-key commits are skipped; fail closed. Fingerprint SHA256:xSUBWx9MZBhggV5fKfu8HSvSqD03ounn5o3R/6kasVA confirmed by cl-6.places.
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+---
+ data/schemas/by-place.schema.json         |  60 +++++++++++
+ newsroom/build/tests/test_sync_places.mjs | 102 ++++++++++++++++++
+ newsroom/tools/place-signers.json         |  14 +++
+ newsroom/tools/sync-places.mjs            | 120 ++++++++++++++++++++++
+ 4 files changed, 296 insertions(+)
+ create mode 100644 newsroom/build/tests/test_sync_places.mjs
+ create mode 100644 newsroom/tools/place-signers.json
+ create mode 100644 newsroom/tools/sync-places.mjs
+
+diff --git a/data/schemas/by-place.schema.json b/data/schemas/by-place.schema.json
+index 2803a1381..d07af17f4 100644
+--- a/data/schemas/by-place.schema.json
++++ b/data/schemas/by-place.schema.json
+@@ -466,6 +466,66 @@
+           }
+         }
+       }
++    },
++    "latest_news": {
++      "type": "object",
++      "description": "The newest local news the place's agent read (cl-6.places, 26 Nov 2026): when, by whom, what it is about, the main headline with its date, and the dated items.",
++      "properties": {
++        "read_at": {
++          "type": "string"
++        },
++        "by": {
++          "type": "string"
++        },
++        "about": {
++          "type": "string"
++        },
++        "main_headline": {
++          "type": [
++            "object",
++            "null"
++          ],
++          "properties": {
++            "title": {
++              "type": "string"
++            },
++            "url": {
++              "type": "string"
++            },
++            "source": {
++              "type": "string"
++            },
++            "date": {
++              "type": [
++                "string",
++                "null"
++              ],
++              "pattern": "^\\d{4}-\\d\\d-\\d\\d"
++            },
++            "read_at": {
++              "type": "string"
++            },
++            "names_place": {
++              "type": "boolean"
++            }
++          }
++        },
++        "items": {
++          "type": "array",
++          "items": {
++            "type": "object",
++            "properties": {
++              "date": {
++                "type": [
++                  "string",
++                  "null"
++                ],
++                "pattern": "^\\d{4}-\\d\\d-\\d\\d"
++              }
++            }
++          }
++        }
++      }
+     }
+   }
+ }
+diff --git a/newsroom/build/tests/test_sync_places.mjs b/newsroom/build/tests/test_sync_places.mjs
+new file mode 100644
+index 000000000..9899b7d62
+--- /dev/null
++++ b/newsroom/build/tests/test_sync_places.mjs
+@@ -0,0 +1,102 @@
++#!/usr/bin/env node
++/* test_sync_places.mjs: the place-data sync's trust rules (newsroom/tools/sync-places.mjs), in real temporary git repositories
++ * with real SSH-signed commits.   node newsroom/build/tests/test_sync_places.mjs
++ * A home is trusted only for commits signed by the pinned key AND carrying "Agent: cl-6.places@PrompTugal.dinis"; the home's own key
++ * file must equal the pin; fail closed. Written by cl-6.dev@PrompTugal.dinis (cl-6.security's rules of 26 Nov 2026). Exit 1 on a failure. */
++import { execFileSync } from 'node:child_process'
++import fs from 'node:fs'
++import os from 'node:os'
++import path from 'node:path'
++import { syncHome, signedVersion, homeKeyMatches } from '../../tools/sync-places.mjs'
++
++const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sync-test-'))
++const run = (cwd, args, env = {}) => execFileSync('git', args, { cwd, encoding: 'utf8', env: { ...process.env, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_SYSTEM: '/dev/null', GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t', ...env } })
++const keygen = n => { const f = path.join(tmp, n); execFileSync('ssh-keygen', ['-q', '-t', 'ecdsa', '-b', '256', '-N', '', '-f', f]); return { file: f, pub: fs.readFileSync(f + '.pub', 'utf8').trim().split(' ').slice(0, 2).join(' ') } }
++const K1 = keygen('k1'), K2 = keygen('k2')           // K1 is the pinned key, K2 a stranger
++const AGENT = 'cl-6.places@PrompTugal.dinis', TR = `Agent: ${AGENT}`
++const pin = { ssh: K1.pub, agent: AGENT, home_key_path: 'site/keys/cl-6.places.json', fingerprint: '' }
++let bad = 0
++const t = (what, got, want) => { if (JSON.stringify(got) !== JSON.stringify(want)) { bad++; console.error(`FAIL ${what}: ${JSON.stringify(got)}, want ${JSON.stringify(want)}`) } }
++
++function home(name) { const d = path.join(tmp, name); fs.mkdirSync(d); run(d, ['init', '-q', '-b', 'dev']); return d }
++function commit(d, files, msg, key) {
++    for (const [f, c] of Object.entries(files)) { fs.mkdirSync(path.dirname(path.join(d, f)), { recursive: true }); fs.writeFileSync(path.join(d, f), c) }
++    run(d, ['add', '-A'])
++    const sign = key ? ['-c', 'gpg.format=ssh', '-c', `user.signingkey=${key.file}`, 'commit', '-S'] : ['-c', 'commit.gpgsign=false', 'commit']
++    run(d, [...sign, '-q', '-m', msg]); return run(d, ['rev-parse', 'HEAD']).trim()
++}
++const place = (v, id = 'x') => JSON.stringify({ id, name: 'X', v }) + '\n'
++const KEYFILE = k => JSON.stringify({ agent: AGENT, ssh: k.pub })
++const F = 'data/by-place/x.json'
++
++// --- a home with a mixed history: good, good, wrong key, unsigned, bot, no trailer
++{
++    const d = home('mixed'); const key = { 'site/keys/cl-6.places.json': KEYFILE(K1) }
++    commit(d, { ...key, [F]: place(1) }, `one\n\n${TR}`, K1)
++    const c2 = commit(d, { [F]: place(2) }, `two\n\n${TR}`, K1)
++    commit(d, { [F]: place(3) }, `three by a stranger\n\n${TR}`, K2)
++    commit(d, { [F]: place(4) }, `four unsigned\n\n${TR}`, null)
++    commit(d, { [F]: place(5) }, `five, a bot's (signed by the pin, no trailer)`, K1)
++    const head = run(d, ['rev-parse', 'HEAD']).trim()
++    const v = signedVersion(d, head, pin, F)
++    t('the last good version is taken (v2), not the newer bad ones', v && JSON.parse(v.bytes).v, 2)
++    t('and it is that commit', v && v.commit, c2)
++    t('three newer commits were skipped', v && v.skipped, 3)
++    // the sync writes only that version, reading bytes from the commit
++    const site = path.join(tmp, 'site1'); fs.mkdirSync(site)
++    fs.writeFileSync(path.join(d, F), place(99))          // a dirty working tree must never be read
++    const r = syncHome({ dir: d, id: 'x', pin, siteRoot: site })
++    t('wrote one file', r.wrote.length, 1)
++    t('from the commit, not the working tree', JSON.parse(fs.readFileSync(path.join(site, F), 'utf8')).v, 2)
++    t('no stop', r.stop, null)
++    const r2 = syncHome({ dir: d, id: 'x', pin, siteRoot: site })
++    t('a second run changes nothing', [r2.wrote.length, r2.same.length], [0, 1])
++}
++// --- a stale .json.sig of a replaced file is removed; nothing else is deleted
++{
++    const d = home('sig'); commit(d, { 'site/keys/cl-6.places.json': KEYFILE(K1), [F]: place(7) }, `s\n\n${TR}`, K1)
++    const site = path.join(tmp, 'site2'); fs.mkdirSync(path.join(site, 'data/by-place'), { recursive: true })
++    fs.writeFileSync(path.join(site, F), place(1)); fs.writeFileSync(path.join(site, F + '.sig'), '{}'); fs.writeFileSync(path.join(site, 'data/by-place/other.json'), '{}')
++    syncHome({ dir: d, id: 'x', pin, siteRoot: site })
++    t('the stale sig is gone', fs.existsSync(path.join(site, F + '.sig')), false)
++    t('an unrelated file stays', fs.existsSync(path.join(site, 'data/by-place/other.json')), true)
++}
++// --- the home publishes a different key: stopped, nothing written
++{
++    const d = home('rotated'); commit(d, { 'site/keys/cl-6.places.json': KEYFILE(K2), [F]: place(1) }, `a\n\n${TR}`, K2)
++    const site = path.join(tmp, 'site3'); fs.mkdirSync(site)
++    const r = syncHome({ dir: d, id: 'x', pin, siteRoot: site })
++    t('a home with another key is stopped', /different key/.test(r.stop || ''), true)
++    t('nothing written', fs.existsSync(path.join(site, F)), false)
++}
++// --- the home has no key file: stopped
++{
++    const d = home('nokey'); commit(d, { [F]: place(1) }, `a\n\n${TR}`, K1)
++    t('no key file in the home is stopped', /no key file/.test(syncHome({ dir: d, id: 'x', pin, siteRoot: path.join(tmp, 'site4') }).stop || ''), true)
++    t('homeKeyMatches says so', homeKeyMatches(d, run(d, ['rev-parse', 'HEAD']).trim(), pin).ok, false)
++}
++// --- every commit unsigned: fail closed, nothing written
++{
++    const d = home('unsigned'); commit(d, { 'site/keys/cl-6.places.json': KEYFILE(K1), [F]: place(1) }, `a\n\n${TR}`, null)
++    const site = path.join(tmp, 'site5'); fs.mkdirSync(site)
++    const r = syncHome({ dir: d, id: 'x', pin, siteRoot: site })
++    t('an unsigned history writes nothing', [r.wrote.length, fs.existsSync(path.join(site, F))], [0, false])
++    t('and says why', r.notes.some(n => /no commit signed/.test(n)), true)
++}
++// --- signed by the pin but no trailer: skipped
++{
++    const d = home('notrailer'); commit(d, { 'site/keys/cl-6.places.json': KEYFILE(K1), [F]: place(1) }, 'signed, no trailer', K1)
++    const r = syncHome({ dir: d, id: 'x', pin, siteRoot: path.join(tmp, 'site6') })
++    t('no trailer, nothing written', r.wrote.length, 0)
++}
++// --- a wrong id inside the file, and a failing schema check, write nothing
++{
++    const d = home('wrongid'); commit(d, { 'site/keys/cl-6.places.json': KEYFILE(K1), [F]: place(1, 'someone-else') }, `a\n\n${TR}`, K1)
++    t('a file for another place is refused', syncHome({ dir: d, id: 'x', pin, siteRoot: path.join(tmp, 'site7') }).wrote.length, 0)
++    const d2 = home('badschema'); commit(d2, { 'site/keys/cl-6.places.json': KEYFILE(K1), [F]: place(1) }, `a\n\n${TR}`, K1)
++    const r = syncHome({ dir: d2, id: 'x', pin, siteRoot: path.join(tmp, 'site8'), validate: () => ['bad shape'] })
++    t('a failing schema check writes nothing', [r.wrote.length, r.notes.some(n => /bad shape/.test(n))], [0, true])
++}
++fs.rmSync(tmp, { recursive: true, force: true })
++if (bad) { console.error(`${bad} failed`); process.exit(1) }
++console.log('test_sync_places: OK')
+diff --git a/newsroom/tools/place-signers.json b/newsroom/tools/place-signers.json
+new file mode 100644
+index 000000000..9073ccc86
+--- /dev/null
++++ b/newsroom/tools/place-signers.json
+@@ -0,0 +1,14 @@
++{
++ "about": "The one signer the place-data sync trusts (newsroom/tools/sync-places.mjs). A GATE FILE: it changes only by a signed commit of cl-6.dev@PrompTugal.dinis and cl-6.security's review; the sync never writes it. A home's own copy of this key must equal `ssh` byte for byte or that place is stopped, never followed. Rotation: a new pin through cl-6.security, with cl-6.places confirming the new fingerprint to it first.",
++ "signers": [
++  {
++   "agent": "cl-6.places@PrompTugal.dinis",
++   "ssh": "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBICAWZusNylPg4QQc9J4AM/mc9worwC8u9HN+rjjUNF5LQAY24rd9DpbsiG7Q460AZLy97U6bm9ODIECQqiSRyg=",
++   "ssh_fingerprint": "SHA256:xSUBWx9MZBhggV5fKfu8HSvSqD03ounn5o3R/6kasVA",
++   "home_key_path": "site/keys/cl-6.places.json",
++   "pinned": "2026-11-26",
++   "pinned_by": "cl-6.dev@PrompTugal.dinis",
++   "confirmed": "fingerprint read from the home's key file by cl-6.dev, found by cl-6.security in all 36 homes (the adding commits in Faro, Lisboa, Porto and Tavira are signed by this key), and confirmed directly by cl-6.places to cl-6.security on 26 Nov 2026"
++  }
++ ]
++}
+diff --git a/newsroom/tools/sync-places.mjs b/newsroom/tools/sync-places.mjs
+new file mode 100644
+index 000000000..0ff8b9ef9
+--- /dev/null
++++ b/newsroom/tools/sync-places.mjs
+@@ -0,0 +1,120 @@
++#!/usr/bin/env node
++/* sync-places.mjs: bring the place files from the places' homes (PrompTugal__Agent__Place__<Name>, branch dev) into data/by-place/,
++ * trusting only commits signed by the one key pinned in newsroom/tools/place-signers.json.
++ *
++ *   node newsroom/tools/sync-places.mjs [--only id,id] [--dry] [--cache dir]
++ *
++ * The rules (cl-6.security, 26 November 2026; decisions of cl-6.dev's home, site/factory/dinis-cruz/account-f/decisions.md):
++ *  1. The trust is the PIN, never a key read from a home: a home's site/keys/cl-6.places.json must equal the pinned ssh string
++ *     byte for byte, or that place is stopped and reported (never followed).
++ *  2. A file's bytes come from a commit that `git verify-commit` accepts against the pin alone AND that carries the trailer
++ *     "Agent: cl-6.places@PrompTugal.dinis": taken with `git show <sha>:<path>`, never from a working tree. A newer commit that is
++ *     unsigned, signed by another key, a bot's or without the trailer is skipped; the last good version is taken, or nothing.
++ *  3. Fail closed: no pin, no key in the home, no good version: nothing is written for that place, and it is reported.
++ *  4. Nothing is deleted. A changed place file loses its old .json.sig (made by an old site key over the old bytes, so it no longer
++ *     verifies); the provenance is newsroom/tools/place-sources.json (commit, signer, time), written by this tool.
++ * The result is an ordinary working-tree change: commit it and release it with newsroom/tools/release.sh (the gate checks every file).
++ * The pin file changes only by a signed commit of the dev agent and cl-6.security's review; this tool never writes it. */
++import { execFileSync } from 'node:child_process'
++import fs from 'node:fs'
++import os from 'node:os'
++import path from 'node:path'
++import { fileURLToPath } from 'node:url'
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
++const TRAILER = /^Agent: cl-6\.places@PrompTugal\.dinis$/m
++const HOME_URL = /^https:\/\/github\.com\/PrompTugal\/PrompTugal__Agent__Place__[A-Za-z0-9-]+$/
++
++const git = (cwd, args, env = {}) => execFileSync('git', args, { cwd, encoding: 'utf8', maxBuffer: 1 << 28, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, GIT_LFS_SKIP_SMUDGE: '1', ...env } })
++const tryGit = (cwd, args, env) => { try { return git(cwd, args, env) } catch { return null } }
++
++// the pinned signer, or null (fail closed)
++export function readPin(file = path.join(ROOT, 'newsroom/tools/place-signers.json')) {
++    let j; try { j = JSON.parse(fs.readFileSync(file, 'utf8')) } catch { return null }
++    const s = (j.signers || [])[0]
++    return s && s.ssh && s.agent && /^ecdsa-sha2-nistp256 \S+$/.test(s.ssh) ? { ssh: s.ssh, agent: s.agent, home_key_path: s.home_key_path || 'site/keys/cl-6.places.json', fingerprint: s.ssh_fingerprint || '' } : null
++}
++
++// a home's own key file, read at `head`, must equal the pin byte for byte
++export function homeKeyMatches(dir, head, pin) {
++    const raw = tryGit(dir, ['show', `${head}:${pin.home_key_path}`]); if (raw == null) return { ok: false, why: 'no key file in the home' }
++    let k; try { k = JSON.parse(raw) } catch { return { ok: false, why: 'the home key file is not JSON' } }
++    return String(k.ssh || '').trim() === pin.ssh ? { ok: true } : { ok: false, why: 'the home publishes a different key than the pin' }
++}
++
++// the newest version of `file` in a commit that is signed by the pin and carries the trailer; skipped commits are counted
++export function signedVersion(dir, head, pin, file, depth = 30) {
++    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'places-signers-'))
++    const allowed = path.join(tmp, 'allowed_signers')
++    fs.writeFileSync(allowed, `${pin.agent} namespaces="git" ${pin.ssh}\n`)
++    try {
++        const shas = (tryGit(dir, ['rev-list', '-n', String(depth), head, '--', file]) || '').split('\n').filter(Boolean)
++        let skipped = 0
++        for (const c of shas) {
++            const good = tryGit(dir, ['-c', 'gpg.format=ssh', '-c', 'gpg.ssh.program=ssh-keygen', '-c', `gpg.ssh.allowedSignersFile=${allowed}`, 'verify-commit', c]) !== null   // the verifier is named here, not taken from whatever git config is around
++            const msg = tryGit(dir, ['show', '-s', '--format=%B', c]) || ''
++            if (good && TRAILER.test(msg)) { const bytes = tryGit(dir, ['show', `${c}:${file}`]); if (bytes != null) return { commit: c, bytes, skipped } }
++            skipped++
++        }
++        return null
++    } finally { fs.rmSync(tmp, { recursive: true, force: true }) }
++}
++
++// one home: returns { id, wrote: [...], skipped: [...], stop: '...'|null }
++export function syncHome({ dir, id, pin, siteRoot = ROOT, validate = null, dry = false }) {
++    const out = { id, wrote: [], same: [], notes: [], stop: null }
++    const head = (tryGit(dir, ['rev-parse', 'HEAD']) || '').trim()
++    if (!head) { out.stop = 'no commit in the home'; return out }
++    const key = homeKeyMatches(dir, head, pin); if (!key.ok) { out.stop = key.why; return out }
++    out.head = head
++    for (const rel of [`data/by-place/${id}.json`, `data/by-place/now/${id}.json`]) {
++        if (tryGit(dir, ['cat-file', '-e', `${head}:${rel}`]) === null) continue   // the home has no such file (a now/ file only the Algarve has)
++        const v = signedVersion(dir, head, pin, rel)
++        if (!v) { out.notes.push(`${rel}: no commit signed by the pin with the trailer; nothing written`); continue }
++        let j; try { j = JSON.parse(v.bytes) } catch { out.notes.push(`${rel}: not JSON at ${v.commit.slice(0, 9)}; nothing written`); continue }
++        if (rel.indexOf('/now/') < 0 && j.id !== id) { out.notes.push(`${rel}: id is ${j.id}, not ${id}; nothing written`); continue }
++        const errs = validate ? validate(j, rel) : []
++        if (errs.length) { out.notes.push(`${rel}: ${errs.slice(0, 3).join('; ')}; nothing written`); continue }
++        const dest = path.join(siteRoot, rel), cur = fs.existsSync(dest) ? fs.readFileSync(dest, 'utf8') : null
++        if (cur === v.bytes) { out.same.push(rel); continue }
++        if (!dry) { fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.writeFileSync(dest, v.bytes); if (fs.existsSync(dest + '.sig')) fs.rmSync(dest + '.sig') }
++        out.wrote.push({ file: rel, commit: v.commit, skipped: v.skipped })
++    }
++    return out
++}
++
++// ---- the command ----
++async function main() {
++    const a = process.argv.slice(2), has = f => a.includes(f), val = f => { const i = a.indexOf(f); return i >= 0 ? a[i + 1] : '' }
++    const dry = has('--dry'), cache = val('--cache') || path.join(os.tmpdir(), 'place-homes'), only = val('--only') ? val('--only').split(',') : null
++    const pin = readPin(); if (!pin) { console.error('sync-places: no pin in newsroom/tools/place-signers.json; nothing synced (fail closed)'); process.exit(2) }
++    const { loadSchemas, validate: check } = await import('../build/lib/schema.mjs')
++    const reg = loadSchemas(path.join(ROOT, 'data/schemas'))
++    const validate = (j, rel) => check(j, rel.includes('/now/') ? 'by-place-now.schema.json' : 'by-place.schema.json', reg)
++    const places = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/by-place/places.json'), 'utf8')).places
++    fs.mkdirSync(cache, { recursive: true })
++    const fetchHome = url => { const d = path.join(cache, url.split('/').pop()); if (fs.existsSync(path.join(d, '.git'))) { git(d, ['fetch', '-q', '--depth', '50', 'origin', 'dev']); git(d, ['checkout', '-q', '--detach', 'FETCH_HEAD']) } else git(cache, ['clone', '-q', '--depth', '50', '--branch', 'dev', '--single-branch', url, d]); return d }
++    // each place's home: the registry in the Algarve home lists them; only a PrompTugal/PrompTugal__Agent__Place__<Name> URL is accepted
++    const regDir = fetchHome('https://github.com/PrompTugal/PrompTugal__Agent__Place__Algarve')
++    const regHead = git(regDir, ['rev-parse', 'HEAD']).trim()
++    if (!homeKeyMatches(regDir, regHead, pin).ok) { console.error('sync-places: the Algarve home does not publish the pinned key; stopped'); process.exit(2) }
++    const reg2 = signedVersion(regDir, regHead, pin, 'site/factory/dinis-cruz/account-f/places.json')
++    if (!reg2) { console.error('sync-places: the registry of homes has no signed version; stopped'); process.exit(2) }
++    const homes = new Map(JSON.parse(reg2.bytes).places.filter(p => HOME_URL.test(p.home || '')).map(p => [p.id, p.home]))
++    const sources = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'newsroom/tools/place-sources.json'), 'utf8')) } catch { return { places: {} } } })()
++    let stopped = 0, wrote = 0
++    for (const p of places) {
++        if (only && !only.includes(p.id)) continue
++        const url = homes.get(p.id); if (!url) { console.log(`${p.id}: no home in the registry; skipped`); continue }
++        let r; try { r = syncHome({ dir: fetchHome(url), id: p.id, pin, validate, dry }) } catch (e) { r = { id: p.id, wrote: [], same: [], notes: [], stop: String(e.message).split('\n')[0] } }
++        if (r.stop) { stopped++; console.log(`${p.id}: STOPPED: ${r.stop}`); continue }
++        for (const n of r.notes) console.log(`${p.id}: ${n}`)
++        wrote += r.wrote.length
++        console.log(`${p.id}: ${r.wrote.length} written, ${r.same.length} unchanged${r.wrote.length ? ' (' + r.wrote.map(w => `${w.file} @ ${w.commit.slice(0, 9)}${w.skipped ? `, ${w.skipped} newer unsigned skipped` : ''}`).join('; ') + ')' : ''}`)
++        if (r.wrote.length && !dry) sources.places[p.id] = { repo: url, head: r.head, files: Object.fromEntries(r.wrote.map(w => [w.file, w.commit])), signed_by: pin.agent, key: pin.fingerprint, synced: new Date().toISOString().slice(0, 16) + 'Z' }
++    }
++    if (!dry) fs.writeFileSync(path.join(ROOT, 'newsroom/tools/place-sources.json'), JSON.stringify({ about: 'Where each place file came from: the home, the commit whose bytes were taken (signed by the pinned key, with the trailer), the signer and when. Written by newsroom/tools/sync-places.mjs.', places: sources.places }, null, 1) + '\n')
++    console.log(`sync-places: ${wrote} file(s) ${dry ? 'would be ' : ''}written, ${stopped} place(s) stopped`)
++    process.exit(stopped ? 1 : 0)
++}
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main()
+-- 
+2.43.0
+
