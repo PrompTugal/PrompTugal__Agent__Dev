@@ -1,0 +1,36 @@
+diff --git a/assets/front-e/front-e.css b/assets/front-e/front-e.css
+index d5ac1561b..1ab78177e 100644
+--- a/assets/front-e/front-e.css
++++ b/assets/front-e/front-e.css
+@@ -216,3 +216,5 @@
+ .fe-ptmap .cnt { font: 700 9px var(--sans); fill: var(--ink, #222); paint-order: stroke; stroke: #fff; stroke-width: 2.5px; pointer-events: none; }
+ .fe-ptk .on.is-week { background: #d98e04; } .fe-ptk .on.is-day { background: var(--brand-red, #c8102e); }
+ .fe-pall { margin: 12px 0 4px; font: 600 15px var(--sans); }
++
++.fe-expl { margin: 8px 0 0; font-size: 14px; }
+diff --git a/assets/front-e/front-e.tmpl b/assets/front-e/front-e.tmpl
+index ca9ba41af..913f2fe10 100644
+--- a/assets/front-e/front-e.tmpl
++++ b/assets/front-e/front-e.tmpl
+@@ -8,7 +8,7 @@
+ <header class="fe-mast"><a href="index.html" aria-label="{{name}}, the home page">{{wordmark}}</a></header>
+ <nav class="fe-nav" aria-label="Sections">{{#nav}}</nav></div>
+ {{lead}}
+-<div class="fe-w">{{nowline}}</div>
++<div class="fe-w">{{nowline}}{{explainer}}</div>
+ <section class="fe-w fe-ptb" aria-label="Portugal, town by town"><div class="fe-ptb-map"><h2 class="fe-h">Portugal, town by town</h2>{{ptmap}}<p class="fe-ptk">{{ptk}}</p></div><div class="fe-pl"><h2 class="fe-h">The Algarve</h2><p class="fe-pli">{{places_intro}}</p><ul>{{#places}}</ul><p class="fe-more fe-pall"><a href="algarve/index.html">{{places_all}} <span aria-hidden="true">→</span></a></p><p class="fe-more"><a href="algarve/index.html">The Algarve</a> · <a href="portugal/index.html">Portugal</a> · <a href="api/swagger/index.html">The API</a></p></div></section>
+ <div class="fe-w"><div class="fe-cols">
+ <section class="fe-brf"><h2 class="fe-h">National and international</h2><ol>{{#briefing}}</ol><p class="fe-more">From the summit: <a href="interviews/buzz-messaging-ai/guy-ben-zvi/index.html">Guy Ben Zvi, Buzz Messaging AI</a> · <a href="interviews/student-property-network/leo-tashev-and-fraser-lloyd/index.html">Student Property Network</a> · <a href="summit/index.html">the archive</a> · <a href="agentic/index.html">the GAMMA-Ray spectrum</a></p></section>
+diff --git a/newsroom/build/features/front-e.mjs b/newsroom/build/features/front-e.mjs
+index 39133d846..2ef16c506 100644
+--- a/newsroom/build/features/front-e.mjs
++++ b/newsroom/build/features/front-e.mjs
+@@ -195,6 +195,8 @@ function fillE(page, ctx) {
+         today: ctx.TODAY, date: `${ctx.DAY(ctx.TODAY)} ${y}`, opening_at: openingAt, opening_in: days > 0 ? `${days}d` : '', name: esc(ctx.SITE.name), wordmark: WORDMARK(''),
+         '#nav': many('nav', ctx.NAV.nav.map(n => ({ href: n.href, label: esc(n.label), cur: n.id === 'now' ? ' aria-current="page"' : '' }))),
+         lead: lead(ctx, theLead),
++        explainer: (() => { const x = FP && FP.explainer, rel = x && typeof x.path === 'string' ? x.path : ''   // the correspondent's link to the pay-for-what-you-read page: shown only for a page that exists
++            return /^[a-z0-9-]+(\/[a-z0-9-]+)*\/index\.html$/.test(rel) && typeof x.label === 'string' && x.label.trim() && fs.existsSync(path.join(ctx.ROOT, 'content', rel.replace(/index\.html$/, 'index.md'))) ? `<p class="fe-expl"><a href="${esc(rel)}">${esc(cut(x.label.trim(), 80))}</a></p>` : '' })(),
+         spectrum: stripHtml(ctx, ''),   // GAMMA-Ray's cards under the lead (THE RESTART: the agentic edition), left out with no data
+         ...(() => { const tk = PR.filter(r => r.a || r.n).map(r => r.a ? { href: r.a.rel, date: r.a.meta.date, when: esc(r.p.name), what: esc(cut(r.a.meta.title, 80)), where: '' } : { href: r.p.path + 'index.html', date: '', when: esc(r.p.name), what: esc(cut(r.n.title || r.n.headline || '', 80)), where: '' })
+             return { '#week': many('week', tk), '#week_again': many('week', tk.map(w => ({ ...w, tab: ' tabindex="-1"' }))) } })(),
