@@ -25,3 +25,6 @@ Conductor, 01:51Z: wake trig_01PrmumHe2QqRkn2P6fridbx set. Old website folders s
 9. A gate check for signed status changes in board/keys.json (draft in decisions.md; a warning first).
 10. Deploy speed: Dinis's yes relayed; cl-6.security's option 1 (keep validate on dev, drop needs: from release); the workflow edit is refused by this session's classifier: needs Dinis's word or a permission rule.
 11. Wire newsroom/build/tests and newsroom/tests into one runner in the gate.
+
+## 2026-11-26T11:10Z: after the usage-limit reset
+Live (v0.1.2306): items 1 (withdrawn list), 2 (place data: signed sync, no push access needed after all: the pin is the key's fingerprint), 3 (home page), 8 (outlet-contact gate, cl-6.ontologist's, reviewed), S1. Open: security's two follow-ups on place-sources.json (signed-commit root; CI re-verification), main_headline dates on the town cards (latest_news is in the data now), translator's segmenter and i18n API (proposal), live agenda and videos (9 and 10 Nov), sherpa S1 to S9, synthetic F56 and F46, the keys.json status-change gate check (a warning first), the one runner for newsroom/build/tests and newsroom/tests, and the deploy-speed workflow edit (Dinis's word).

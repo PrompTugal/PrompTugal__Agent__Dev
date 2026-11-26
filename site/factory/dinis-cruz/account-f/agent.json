@@ -13,13 +13,34 @@
   "published": "site/keys/cl-6.dev.json",
   "website_entry": "board/keys.json",
   "signing_fingerprint": "sha256:eccc8a811c5abad4",
-  "encryption_fingerprint": "sha256:a1c2dff6e9733451"
+  "encryption_fingerprint": "sha256:a1c2dff6e9733451",
+  "pinned_in": "website newsroom/tools/place-signers.json pins cl-6.places by fingerprint (SHA256:xSUBWx9MZBhggV5fKfu8HSvSqD03ounn5o3R/6kasVA)"
  },
  "model": "sonnet",
- "state": "started 26 Nov 2026 01:43Z; key made and published; history/ in; reviewing the gate and proposing the deploy speed-up (decisions.md)",
+ "state": "running (wake 07:37 and 18:37 Lisbon). Live on promptugal.news v0.1.2306: S1 (superseded keys by ancestry), Dinis's home-page feedback, the API withdrawn list and withheld flags, the signed place-data sync (36 homes, pinned key fingerprint, gate hold on place files). Waiting on Dinis for the deploy-speed workflow edit.",
  "focus": "S72 wiring, when CI's key exists: the signatures job with if: github.ref == 'refs/heads/dev' (security@ b02b3a398 point 1), deploy needs it, anchor.mjs and the launcher from A; once the sites read versions[v].integrity: drop the repeated .js, .css, .render and obs_tz .sha256 keys from the registry (security@'s low note, 2d812d6da); with signing enforced: bring worker branches by merge, not cherry-",
- "updated": "2026-11-26T01:52Z",
+ "updated": "2026-11-26T11:10Z",
  "timeline": [
+  {
+   "at": "2026-11-26T11:10Z",
+   "event": "wake after the usage-limit reset: pulled both repos, no HOLD.md, live site checked (v0.1.2306: lead, 26 dates, map marks, 9 town cards plus 'All 17 towns', articles.json withdrawn list, place data of 26 Nov); ABP run report filed by hand (runs/cl-6.dev/)"
+  },
+  {
+   "at": "2026-11-26T06:50Z",
+   "event": "place-data sync live (commits 36047db1b, eb73f9402, 097e97c01, 2dfe2c4d6, release v0.1.2300): newsroom/tools/sync-places.mjs, place-signers.json (pin by fingerprint), place-sources.json, gate hold on place files; reviewed by cl-6.security"
+  },
+  {
+   "at": "2026-11-26T06:30Z",
+   "event": "API: articles.json withdrawn list, index.json withheld flags (2304357a7, v0.1.2299); security approved"
+  },
+  {
+   "at": "2026-11-26T06:25Z",
+   "event": "home page for Dinis's feedback live (314ea3a9b, 8a3954900, v0.1.2296): dates, map marks, capped grid, header wrap, Design pill, front-page.json's lead; security approved"
+  },
+  {
+   "at": "2026-11-26T02:30Z",
+   "event": "S1 live (c6e902f62, 861a9e39b, v0.1.2290): a superseded key vouches only for a .sig unchanged since the commit that superseded it; security approved"
+  },
   {
    "at": "2026-11-26T01:43Z",
    "event": "session started by cl-6.conductor at Dinis's word; key dev-promptugal-cl-6 made, published in the home and the website (ee7408afb); history/ copied"
@@ -62,9 +83,9 @@
   }
  ],
  "waiting_on": [
-  "Dinis: yes or no to the deploy-speed proposal in decisions.md",
-  "cl-6.security: review of history/ (old website folders stay until the conductor says)",
-  "cl-6.security: the \"while active\" gap in 5ba8f281f"
+  "Dinis: the deploy-speed workflow edit (cl-6.security recommends keeping validate on dev and dropping needs: from release; the session classifier refused the edit): needs his word in this session or a permission rule",
+  "cl-6.security: post-review of the four place-sync commits; the two follow-ups are mine (the commit that last changed place-sources.json or place-signers.json must be signed by cl-6.dev or cl-6.conductor; CI re-verifying the recorded commit)",
+  "cl-6.designer: review of the home page at 375 and 1280 px, then which of their extras to take (pin size by count, button in the masthead)"
  ],
  "wake": "trig_01PrmumHe2QqRkn2P6fridbx (07:37 and 18:37 Lisbon; first 26 Nov 07:37 UTC)"
 }
