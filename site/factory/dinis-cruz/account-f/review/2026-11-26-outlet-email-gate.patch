@@ -1,0 +1,85 @@
+From d4a70535b54401f136f30578f994a452e2b788b3 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Thu, 26 Nov 2026 11:31:28 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: gate: an outlet's published
+ newsroom mailbox passes rule 7 (cl-6.ontologist's patch, cleared by
+ cl-6.security); sapo.pt is a shared host; tests
+
+validate.js officialContacts(): for data/organisations/<id>/organisation.json only media.contact.official_email, only when the contact page and its source are on the address's own domain with a read date; the role allowlist, https, shared hosts and the phone ban stay in lib/media-contact.mjs. sapo.pt joins the shared hosts (many unrelated outlets under its sub-domains). Test: newsroom/build/tests/test_outlet_email_gate.mjs (a *.sapo.pt outlet and a non-role local part still fail).
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+---
+ newsroom/build/lib/media-contact.mjs          |  2 +-
+ .../build/tests/test_outlet_email_gate.mjs    | 20 +++++++++++++++++++
+ newsroom/build/validate.js                    | 10 ++++++++++
+ 3 files changed, 31 insertions(+), 1 deletion(-)
+ create mode 100644 newsroom/build/tests/test_outlet_email_gate.mjs
+
+diff --git a/newsroom/build/lib/media-contact.mjs b/newsroom/build/lib/media-contact.mjs
+index 83c861f97..2eec98d0a 100644
+--- a/newsroom/build/lib/media-contact.mjs
++++ b/newsroom/build/lib/media-contact.mjs
+@@ -5,7 +5,7 @@
+ export const ROLE_MAILBOXES = ['redacao', 'redaccao', 'newsroom', 'news', 'noticias', 'geral', 'info', 'imprensa', 'press', 'editor', 'editorial', 'tips', 'contacto', 'contact']
+ 
+ // Shared hosts never count as an outlet's own domain (any outlet can have a page there).
+-export const SHARED_HOSTS = ['blogspot.com', 'blogspot.pt', 'wordpress.com', 'medium.com', 'substack.com', 'facebook.com', 'instagram.com', 'x.com', 'twitter.com', 'linkedin.com', 'youtube.com', 'tumblr.com', 'wixsite.com', 'github.io', 'linktr.ee']
++export const SHARED_HOSTS = ['blogspot.com', 'blogspot.pt', 'wordpress.com', 'medium.com', 'substack.com', 'facebook.com', 'instagram.com', 'x.com', 'twitter.com', 'linkedin.com', 'youtube.com', 'tumblr.com', 'wixsite.com', 'github.io', 'linktr.ee', 'sapo.pt']   // sapo.pt: many unrelated outlets live under its sub-domains (cl-6.security, 26 Nov)
+ 
+ const SECOND_LEVEL = new Set(['co', 'com', 'org', 'net', 'gov', 'ac', 'edu'])
+ 
+diff --git a/newsroom/build/tests/test_outlet_email_gate.mjs b/newsroom/build/tests/test_outlet_email_gate.mjs
+new file mode 100644
+index 000000000..f37212534
+--- /dev/null
++++ b/newsroom/build/tests/test_outlet_email_gate.mjs
+@@ -0,0 +1,20 @@
++#!/usr/bin/env node
++/* test_outlet_email_gate.mjs: an outlet's published mailbox gets past validate.js's rule 7 (officialContacts) only to be held by the data check
++ * (lib/media-contact.mjs), which still refuses a shared-host address and a non-role local part (cl-6.security, 26 Nov 2026).
++ *   node newsroom/build/tests/test_outlet_email_gate.mjs   Written by cl-6.dev@PrompTugal.dinis. */
++import { checkMediaContact } from '../lib/media-contact.mjs'
++const NOW = new Date('2026-11-26T12:00:00Z')
++const rec = (site, email, page = site + 'contactos') => ({ id: 'x', kind: 'media', media: { website: site, contact: { page, official_email: email, source: { url: page, read_at: '2026-11-26', how: 'read the outlet contact page' } } } })
++let bad = 0
++const t = (what, got, want) => { if (got !== want) { bad++; console.error(`FAIL ${what}: ${got}, want ${want}`) } }
++const fails = (o, re) => checkMediaContact(o, NOW).some(e => re.test(e))
++t('a role mailbox on the outlet\'s own domain passes', checkMediaContact(rec('https://www.barlavento.pt/', 'redacao@barlavento.pt'), NOW).length, 0)
++t('a non-role local part fails', fails(rec('https://www.barlavento.pt/', 'maria.silva@barlavento.pt'), /role mailbox/), true)
++t('another non-role local part fails', fails(rec('https://www.barlavento.pt/', 'joao@barlavento.pt'), /role mailbox/), true)
++t('a *.sapo.pt outlet cannot claim a sapo.pt address (shared host)', fails(rec('https://outlet.sapo.pt/', 'redacao@sapo.pt'), /shared host/), true)
++t('nor an address on its own sapo.pt sub-domain', checkMediaContact(rec('https://outlet.sapo.pt/', 'redacao@outlet.sapo.pt'), NOW).length > 0, true)
++t('a blogspot outlet fails too', checkMediaContact(rec('https://x.blogspot.com/', 'redacao@blogspot.com'), NOW).length > 0, true)
++t('a foreign domain fails', fails(rec('https://www.barlavento.pt/', 'redacao@outro.pt'), /own domain/), true)
++t('a page on another domain fails', fails(rec('https://www.barlavento.pt/', 'redacao@barlavento.pt', 'https://outro.pt/c'), /contact page/), true)
++if (bad) { console.error(`${bad} failed`); process.exit(1) }
++console.log('test_outlet_email_gate: OK')
+diff --git a/newsroom/build/validate.js b/newsroom/build/validate.js
+index c92f860b1..6d04ae1c3 100644
+--- a/newsroom/build/validate.js
++++ b/newsroom/build/validate.js
+@@ -158,6 +158,16 @@ const PUBLIC_BODY = /(?:^|\.)(?:gov\.pt|cm-[a-z0-9-]+\.pt|jf-[a-z0-9-]+\.pt|[a-z
+ const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, '').toLowerCase() } catch { return '' } }
+ function officialContacts(f) {
+     const ok = { emails: new Set(), phones: new Set() }
++    // an outlet's published newsroom mailbox (cl-6.security's conditions, 26 Nov 2026): data/organisations/<id>/organisation.json,
++    // media.contact.official_email, only when the contact page and its source are on the address's own domain with a read date;
++    // the role-mailbox allowlist, https, shared hosts and the phone ban are the data check's (lib/media-contact.mjs)
++    if (/^data\/organisations\/[a-z0-9-]+\/organisation\.json$/.test(rel(f))) {
++        try {
++            const c = JSON.parse(text(f)).media?.contact, e = c?.official_email
++            if (e && c.source?.read_at && typeof c.page === 'string' && [c.page, c.source.url].every(u => { const h = hostOf(u), dom = e.split('@')[1].toLowerCase(); return h && (dom === h || dom.endsWith('.' + h) || h.endsWith('.' + dom)) })) ok.emails.add(e)
++        } catch { /* not JSON: the data check says so */ }
++        return ok
++    }
+     if (!/^data\/by-place\/[a-z0-9-]+\.json$/.test(rel(f))) return ok
+     let d; try { d = JSON.parse(text(f)) } catch { return ok }
+     for (const c of Array.isArray(d.contacts) ? d.contacts : []) {
+-- 
+2.43.0
+
