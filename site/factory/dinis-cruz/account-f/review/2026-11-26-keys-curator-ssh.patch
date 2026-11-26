@@ -1,0 +1,34 @@
+From c97c4388646559adc88869d442fc0a60b725350f Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Thu, 26 Nov 2026 21:00:00 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: board/keys.json: the curator's
+ entry gets its ssh field, derived from its own bundle.sign and equal to the
+ one in its home key file (no key changed)
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ board/keys.json | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/board/keys.json b/board/keys.json
+index dbe503cac..a5a223612 100644
+--- a/board/keys.json
++++ b/board/keys.json
+@@ -5410,7 +5410,9 @@
+         "fingerprint": "sha256:2821b20218d848c0",
+         "signing_fingerprint": "sha256:dc3744ec15cd2f66"
+       },
+-      "status": "active"
++      "status": "active",
++      "ssh": "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKNyRbtUP+SLdBhmuEu3LI9/W8dL0EINvet2WDGd8sC5Cl7bpFoRtpkbUYQ+6lX8JkP0hXBRAjeU6xDAPVY4xWk=",
++      "ssh_added": "2026-11-26T21:01Z"
+     },
+     {
+       "id": "checker-promptugal-cl-6",
+-- 
+2.43.0
+
