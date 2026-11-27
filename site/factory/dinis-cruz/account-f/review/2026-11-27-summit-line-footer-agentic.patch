@@ -1,0 +1,50 @@
+From 35e4cac1e6e650f9813e416fc2b8a5abb55a23c3 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Fri, 27 Nov 2026 02:05:54 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: the home page drops its 'From the
+ summit' line; /agentic/ is linked from the footer's Read column as 'Rated
+ agentic products: the GAMMA-Ray spectrum' (cl-6.designer's route A), so it is
+ no longer an orphan
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ assets/front-e/front-e.tmpl | 2 +-
+ data/site/nav.json          | 5 +++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/assets/front-e/front-e.tmpl b/assets/front-e/front-e.tmpl
+index 3895daa91..a95104a01 100644
+--- a/assets/front-e/front-e.tmpl
++++ b/assets/front-e/front-e.tmpl
+@@ -11,7 +11,7 @@
+ <div class="fe-w">{{nowline}}{{explainer}}</div>
+ <section class="fe-w fe-ptb" aria-label="Portugal, town by town"><div class="fe-ptb-map"><h2 class="fe-h">Portugal, town by town</h2>{{ptmap}}{{ptmap_alg}}<p class="fe-ptk">{{ptk}}</p></div><div class="fe-pl"><h2 class="fe-h">The Algarve</h2><p class="fe-pli">{{places_intro}}</p><p class="fe-ord">Newest local news first · {{places_shown}} of {{places_total}} towns</p><ul>{{#places}}</ul><p class="fe-more fe-pall"><a href="algarve/index.html">{{places_all}} <span aria-hidden="true">→</span></a></p><p class="fe-more"><a href="algarve/index.html">The Algarve</a> · <a href="portugal/index.html">Portugal</a> · <a href="api/swagger/index.html">The API</a></p></div></section>
+ <div class="fe-w fe-colsw"><div class="fe-cols">
+-<section class="fe-brf"><h2 class="fe-h">National and international</h2><ol>{{#briefing}}</ol><p class="fe-more">From the summit: <a href="interviews/buzz-messaging-ai/guy-ben-zvi/index.html">Guy Ben Zvi, Buzz Messaging AI</a> · <a href="interviews/student-property-network/leo-tashev-and-fraser-lloyd/index.html">Student Property Network</a> · <a href="summit/index.html">the archive</a> · <a href="agentic/index.html">the GAMMA-Ray spectrum</a></p></section>
++<section class="fe-brf"><h2 class="fe-h">National and international</h2><ol>{{#briefing}}</ol></section>
+ <section class="fe-stories"><h2 class="fe-h">From the Algarve</h2>{{#stories}}</section>
+ <section class="fe-nx"><div class="fe-stats"><p class="fe-rh"><b>By the numbers</b><span>from the place files</span></p><ul>{{#stats}}</ul><details class="fe-allfig" open><summary>All {{nstats}} figures</summary><ul>{{#stats_more}}</ul></details></div><div class="fe-radar"><p class="fe-rh"><b>The companies we follow</b><span>by field</span></p>{{#radar}}<p class="fe-more"><a href="companies/index.html">All companies, by field</a> · <a href="summit/index.html">Web Summit 2026, the archive</a></p></div></section>
+ </div></div>
+diff --git a/data/site/nav.json b/data/site/nav.json
+index 33c1d03b7..e81eba3ad 100644
+--- a/data/site/nav.json
++++ b/data/site/nav.json
+@@ -256,6 +256,11 @@
+       "label": "People",
+       "href": "people/index.html"
+     },
++    {
++      "column": "Read",
++      "label": "Rated agentic products: the GAMMA-Ray spectrum",
++      "href": "agentic/index.html"
++    },
+     {
+       "column": "Read",
+       "label": "Your reading account",
+-- 
+2.43.0
+
