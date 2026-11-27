@@ -1,0 +1,81 @@
+From 71c8f430f550410729f7137e061e51441f8e11b8 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Fri, 27 Nov 2026 02:59:48 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: home lead band: where the lead has
+ no picture, an 'Also today' panel with the next three items of
+ front-page.json (top, then the briefing), each a dated headline; under the
+ lead below 1000 px, hidden on a phone (cl-6.designer's call 4)
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ assets/front-e/front-e.css          | 10 ++++++++++
+ assets/front-e/front-e.tmpl         |  2 ++
+ newsroom/build/features/front-e.mjs | 11 ++++++++++-
+ 3 files changed, 22 insertions(+), 1 deletion(-)
+
+diff --git a/assets/front-e/front-e.css b/assets/front-e/front-e.css
+index eeb722aa3..1309e7bf9 100644
+--- a/assets/front-e/front-e.css
++++ b/assets/front-e/front-e.css
+@@ -236,3 +236,13 @@
+ .fe-ptmap .lbl { font: 500 11px var(--mono, monospace); fill: var(--ink, #14171c); paint-order: stroke; stroke: var(--paper, #fff); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+ .fe-ord { margin: 2px 0 8px; font: 12px var(--mono, monospace); color: var(--ink-3); }
+ .fe-ptmap-alg { margin-top: 8px; }
++
++/* "Also today": the lead's right half when it has no picture (designer@, 27 Nov): three dated headlines ruled apart; under the lead below 1000 px, not on a phone */
++.fe-also { align-self: stretch; display: flex; flex-direction: column; justify-content: center; color: var(--fe-on-band, #fff); }
++.fe-also .fe-h { color: var(--fe-on-band-2, #cfe3d4); border-color: rgba(255,255,255,.25); }
++.fe-also ol { list-style: none; margin: 0; padding: 0; }
++.fe-also li { padding: 14px 0; border-top: 1px solid rgba(255,255,255,.22); font: 600 19px/1.3 var(--serif, serif); }
++.fe-also li:first-child { border-top: 0; }
++.fe-also a { color: inherit; text-decoration: none; } .fe-also a:hover { text-decoration: underline; }
++.fe-also .fe-dt { display: block; margin-top: 4px; font: 12px var(--mono, monospace); color: var(--fe-on-band-2, #cfe3d4); }
++@media (max-width: 760px) { .fe-also { display: none; } }
+diff --git a/assets/front-e/front-e.tmpl b/assets/front-e/front-e.tmpl
+index 6ee9719b8..de6252dae 100644
+--- a/assets/front-e/front-e.tmpl
++++ b/assets/front-e/front-e.tmpl
+@@ -22,6 +22,8 @@
+ <section class="fe-band" aria-label="The lead story"><div class="fe-w"><div><p class="fe-kk">{{kicker}}</p><h2 class="fe-hed"><a href="{{href}}">{{headline}}</a></h2>{{live}}<p class="fe-dek">{{dek}}</p>{{programme}}{{developments}}<p class="fe-lmore"><a href="{{href}}">Read the full story <span aria-hidden="true">→</span></a></p>{{storm}}<p class="fe-by">{{byline}} · {{minutes}} min read</p>{{pill}}</div>{{figure}}</div></section>
+ <!-- part:none -->
+ <section class="fe-band" aria-label="The lead story"><div class="fe-w"><div><h2 class="fe-hed">Our first article is on the way.</h2></div></div></section>
++<!-- item:also --><aside class="fe-also" aria-label="Also today"><h2 class="fe-h">Also today</h2><ol>{{items}}</ol></aside>
++<!-- item:alsoi --><li><a href="{{href}}">{{title}}</a>{{date}}</li>
+ <!-- item:programme --><p class="fe-lpg"><b>{{label}}</b> {{text}}{{src}}</p>
+ <!-- item:developments --><ul class="fe-ldv">{{items}}</ul>
+ <!-- item:devitem --><li>{{text}}{{src}}</li>
+diff --git a/newsroom/build/features/front-e.mjs b/newsroom/build/features/front-e.mjs
+index e289f4211..cf745587b 100644
+--- a/newsroom/build/features/front-e.mjs
++++ b/newsroom/build/features/front-e.mjs
+@@ -93,13 +93,22 @@ function satFigure(ctx, a) {
+ }
+ // the lead links to the storm page when this is the satellite's article (S41) and the page's data exists
+ const stormLink = (ctx, a) => { try { const L = JSON.parse(fs.readFileSync(path.join(ctx.ROOT, 'assets/satellite/loop.json'), 'utf8')); return L.article === slugOf(a) && fs.existsSync(path.join(ctx.ROOT, 'desks/dev-vicky/storm/charles.json')) ? item('lstorm') : '' } catch { return '' } }
++// "Also today" (designer@, 27 Nov): where the lead has no picture, the next three items of front-page.json (top, then the briefing), each a dated headline
++let FPALSO = null
++function alsoPanel(ctx, a) {
++    if (!FPALSO) { try { FPALSO = JSON.parse(fs.readFileSync(path.join(ctx.ROOT, 'desks/correspondent/front-page.json'), 'utf8')) } catch { FPALSO = {} } }
++    const by = new Map(frontOrder(ctx).map(x => [slugOf(x), x])), seen = new Set([slugOf(a)]), out = []
++    for (const x of [...(FPALSO.top || []), ...((FPALSO.briefing || {}).items || [])]) { const b = x && by.get(x.article); if (b && !seen.has(x.article)) { seen.add(x.article); out.push(b) } }
++    const rows = out.slice(0, 3).map(b => ({ href: b.rel, title: ctx.md.esc(b.meta.title), date: dt(ctx, dateOf(ctx, b)).replace(/^ · /, '') }))
++    return rows.length ? put(item('also'), { items: many('alsoi', rows) }) : ''
++}
+ function lead(ctx, a) {
+     if (!a) return part('none')
+     const esc = ctx.md.esc, f = figureOf(a), fig = picture(esc, a, 'card', false)
+     let headline = esc(a.meta.title)
+     if (f?.value && headline.includes(esc(f.value))) headline = headline.replace(esc(f.value), put(item('mark'), { text: esc(f.value) }))
+     return put(part('lead'), { href: a.rel, kicker: esc(a.meta.tags || beatOf(a)) + dt(ctx, dateOf(ctx, a)), headline, dek: esc(a.meta.summary || ''), byline: esc(byline(a.meta.author)), minutes: minutes(a.md),
+-        pill: pill(ctx, a), storm: stormLink(ctx, a), figure: satFigure(ctx, a) || (fig ? put(item('figure'), { href: a.rel, picture: fig, cap: 'AI-made image' }) : ''), ...leadExtra(ctx, a) })
++        pill: pill(ctx, a), storm: stormLink(ctx, a), figure: satFigure(ctx, a) || (fig ? put(item('figure'), { href: a.rel, picture: fig, cap: 'AI-made image' }) : '') || alsoPanel(ctx, a), ...leadExtra(ctx, a) })
+ }
+ 
+ 
+-- 
+2.43.0
+
