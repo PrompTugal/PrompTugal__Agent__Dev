@@ -1,0 +1,41 @@
+From c07d713f028998dd61cec4297a85844726314db9 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Fri, 27 Nov 2026 01:28:40 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: the language menu is off while the
+ site's menus are all that is translated (Dinis, 27 Nov, decisions cb05251);
+ the code stays behind one switch and the translated pages stay at their own
+ links
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ assets/i18n/site-i18n.js | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/assets/i18n/site-i18n.js b/assets/i18n/site-i18n.js
+index d4f765ba7..98e46e2d1 100644
+--- a/assets/i18n/site-i18n.js
++++ b/assets/i18n/site-i18n.js
+@@ -6,6 +6,8 @@
+ (function () {
+     'use strict'
+     var KEY = 'pt-culture', btn = null, I = null, menu = null
++    // the menu is offered only while the whole site is in those languages (Dinis, 27 Nov 2026, decisions cb05251): today only the menus are translated, so it is off. The code stays; set true to bring the globe back. Translated pages stay at their own links.
++    var OFFERED = false
+     var me = document.currentScript, base = me ? me.src.replace(/assets\/i18n\/site-i18n\.js.*$/, '') : '/'
+     function get() { try { return localStorage.getItem(KEY) || '' } catch (e) { return '' } }
+     function put(v) { try { localStorage.setItem(KEY, v === 'en-GB' ? '' : v) } catch (e) { } }
+@@ -73,6 +75,7 @@
+         }).catch(function () { })
+     }
+     function start() {
++        if (!OFFERED) return
+         btn = document.querySelector('.em-lang'); if (!btn) return
+         btn.hidden = false
+         btn.addEventListener('click', function () { if (menu && !menu.hidden) close(); else open() })
+-- 
+2.43.0
+
