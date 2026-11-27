@@ -1,0 +1,154 @@
+From 97b2bb50c3dbb808289bbfe162a726682b836157 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Fri, 27 Nov 2026 03:08:29 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: the gate checks the news-flow
+ front matter (town and region must be registry places; builds_on: existing
+ earlier articles, not itself, no cycle, no higher level) and the articles API
+ lists each article's derived level and builds_on (cl-6.ontologist's proposal;
+ all keys optional)
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ newsroom/build/features/article-flow.mjs   | 13 ++++++++
+ newsroom/build/features/datasci-places.mjs |  6 ++--
+ newsroom/build/lib/article-flow.mjs        | 38 ++++++++++++++++++++++
+ newsroom/build/tests/test_article_flow.mjs | 20 ++++++++++++
+ 4 files changed, 75 insertions(+), 2 deletions(-)
+ create mode 100644 newsroom/build/features/article-flow.mjs
+ create mode 100644 newsroom/build/lib/article-flow.mjs
+ create mode 100644 newsroom/build/tests/test_article_flow.mjs
+
+diff --git a/newsroom/build/features/article-flow.mjs b/newsroom/build/features/article-flow.mjs
+new file mode 100644
+index 000000000..871f65db8
+--- /dev/null
++++ b/newsroom/build/features/article-flow.mjs
+@@ -0,0 +1,13 @@
++// The gate for the news-flow front matter (lib/article-flow.mjs): town and region are registry ids, builds_on is sound. dev@PrompTugal.dinis.
++import fs from 'node:fs'
++import { fileURLToPath } from 'node:url'
++import path from 'node:path'
++import { loadContent } from '../lib/content.mjs'
++import { checkFlow } from '../lib/article-flow.mjs'
++export const order = 99
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
++export function validate() {
++    let registry; try { registry = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/site/places-registry.json'), 'utf8')) } catch { return ['data/site/places-registry.json: missing or not JSON'] }
++    const articles = loadContent().filter(p => /^articles\/[^/]+\.html$/.test(p.rel) && p.rel !== 'articles/index.html').map(p => ({ slug: p.rel.replace(/^articles\/|\.html$/g, ''), fm: p.meta }))
++    return checkFlow(articles, registry)
++}
+diff --git a/newsroom/build/features/datasci-places.mjs b/newsroom/build/features/datasci-places.mjs
+index a4e166a0d..6b3c8282d 100644
+--- a/newsroom/build/features/datasci-places.mjs
++++ b/newsroom/build/features/datasci-places.mjs
+@@ -17,6 +17,7 @@
+ //   api/v1/articles.json, api/v1/articles/<slug>.json   every article's front matter, its links and its sources as data
+ //
+ // The OpenAPI specs that describe all of this are features/openapi.mjs; the audit is features/datasci-audit.mjs.
++import { levelOfArticle, listOf } from '../lib/article-flow.mjs'
+ import crypto from 'node:crypto'
+ import { api as byPlaceApi } from './by-place.mjs'
+ import { withdrawn } from '../lib/withdrawn.mjs'
+@@ -242,6 +243,7 @@ export const placeIds = ctx => model(ctx).recs.map(r => r.id)
+ export const placeOf = (ctx, id) => model(ctx).byId.get(id)
+ export const placeList = ctx => model(ctx).recs
+ 
++const flowRegistry = ctx => { try { return ctx.readJSON('data/site/places-registry.json') } catch { return { index: {}, places: [] } } }
+ function articlesData(ctx) {
+     const arts = ctx.content.filter(c => /^articles\/[^/]+\.html$/.test(c.rel) && c.rel !== 'articles/index.html' && c.meta && c.meta.title && c.meta.date)
+         .sort((a, b) => String(b.meta.date || '').localeCompare(String(a.meta.date || '')))
+@@ -251,7 +253,7 @@ function articlesData(ctx) {
+         const seen = new Set(), sources = links.filter(l => { const k = l.url.replace(/\/+$/, ''); if (seen.has(k)) return false; seen.add(k); return true })
+         return {
+             id: slug, title: m.title, date: day(String(m.date || '')), author: m.author || null, summary: m.summary || null, status: m.status || null, licence: m.license || m.licence || null,
+-            town: m.town || null, region: m.region || null,
++            town: m.town || null, region: m.region || null, level: levelOfArticle(flowRegistry(ctx), m), builds_on: listOf(m.builds_on),
+             page: `${SITE_URL}${c.rel}`, twin: `${SITE_URL}${c.rel.replace(/\.html$/, '.md')}`, signature: ctx.exists(`articles/${slug}.md.sig`) ? `${SITE_URL}articles/${slug}.md.sig` : null,
+             words: String(c.md).split(/\s+/).filter(Boolean).length,
+             sources: sources.map(l => ({ url: l.url, host: hostOf(l.url), text: l.text })),
+@@ -306,7 +308,7 @@ export function api(ctx) {
+         places: all.map(q => ({ id: q.id, name: q.name, score: q.score.value, quality: `${SITE_URL}api/v1/places/${q.id}/quality.json` })),
+     }, 'datasci-quality-all')
+     const arts = articlesData(ctx)
+-    add('api/v1/articles.json', { about: A.articles, version: ctx.VERSION, count: arts.length, items: arts.map(a => ({ id: a.id, title: a.title, date: a.date, author: a.author, town: a.town, region: a.region, sources: a.sources.length, api: `${SITE_URL}api/v1/articles/${a.id}.json`, page: a.page })),
++    add('api/v1/articles.json', { about: A.articles, version: ctx.VERSION, count: arts.length, items: arts.map(a => ({ id: a.id, title: a.title, date: a.date, author: a.author, town: a.town, region: a.region, level: a.level, builds_on: a.builds_on, sources: a.sources.length, api: `${SITE_URL}api/v1/articles/${a.id}.json`, page: a.page })),
+         // the pages taken down (data/site/withdrawn.json): their address answers with the notice, and there is no file for them here; slug and notice only
+         withdrawn: { notice: withdrawn().notice, articles: [...withdrawn().articles].sort() } }, null)
+     for (const a of arts) add(`api/v1/articles/${a.id}.json`, { version: ctx.VERSION, ...a }, null)
+diff --git a/newsroom/build/lib/article-flow.mjs b/newsroom/build/lib/article-flow.mjs
+new file mode 100644
+index 000000000..753ef5397
+--- /dev/null
++++ b/newsroom/build/lib/article-flow.mjs
+@@ -0,0 +1,38 @@
++// The flow of news up the levels, as front matter (cl-6.ontologist's proposal 2026-11-27, agreed by cl-6.dev): `town` and `region` are ids of the
++// places registry (data/site/places-registry.json); `builds_on` is a list of earlier articles a piece builds on (the graph verb "feeds" is derived
++// from it). The level of an article is derived, never written: local, regional, national, europe, unplaced. All optional, so untagged articles pass.
++export const LEVELS = ['local', 'regional', 'national', 'europe', 'unplaced']
++const RANK = { local: 0, regional: 1, national: 2 }
++const DAY = /^\d{4}-\d\d-\d\d/
++export const listOf = v => (Array.isArray(v) ? v : String(v == null ? '' : v).replace(/^\s*\[|\]\s*$/g, '').split(',')).map(s => String(s).trim()).filter(Boolean)
++export const rowOf = (registry, fm) => { const w = fm.town || fm.region, id = w && registry.index[String(w).toLowerCase()]; return id ? registry.places.find(p => p.id === id) || null : null }
++export const levelOfRow = r => !r ? 'unplaced' : r.country && r.country !== 'PT' ? 'europe' : r.kind === 'country' ? 'national' : r.kind === 'region' ? 'regional' : 'local'
++export const levelOfArticle = (registry, fm) => levelOfRow(rowOf(registry, fm))
++
++// articles: [{ slug, fm }]; returns the problems, each starting with the slug
++export function checkFlow(articles, registry) {
++    const out = [], by = new Map(articles.map(a => [a.slug, a]))
++    for (const a of articles) {
++        for (const k of ['town', 'region']) if (a.fm[k] && !registry.index[String(a.fm[k]).toLowerCase()]) out.push(`${a.slug}: ${k} "${a.fm[k]}" is not in the places registry`)
++        const lv = levelOfArticle(registry, a.fm), date = String(a.fm.date || '').slice(0, 10)
++        for (const s of listOf(a.fm.builds_on)) {
++            const b = by.get(s)
++            if (!b) { out.push(`${a.slug}: builds_on "${s}" is not an article`); continue }
++            if (s === a.slug) { out.push(`${a.slug}: builds_on itself`); continue }
++            if (DAY.test(date) && DAY.test(String(b.fm.date || '')) && String(b.fm.date).slice(0, 10) > date) out.push(`${a.slug}: builds_on "${s}", which is dated later`)
++            const lb = levelOfArticle(registry, b.fm)
++            if (lb in RANK && lv in RANK && RANK[lb] > RANK[lv]) out.push(`${a.slug}: builds_on "${s}", a higher level (${lb} above ${lv})`)
++        }
++    }
++    // no cycle of any length
++    const state = new Map(), stack = []
++    const visit = s => {
++        if (state.get(s) === 2) return
++        if (state.get(s) === 1) { out.push(`${s}: builds_on has a cycle (${[...stack.slice(stack.indexOf(s)), s].join(' > ')})`); return }
++        state.set(s, 1); stack.push(s)
++        for (const n of listOf((by.get(s) || { fm: {} }).fm.builds_on)) if (n !== s && by.has(n)) visit(n)
++        stack.pop(); state.set(s, 2)
++    }
++    for (const a of articles) visit(a.slug)
++    return out
++}
+diff --git a/newsroom/build/tests/test_article_flow.mjs b/newsroom/build/tests/test_article_flow.mjs
+new file mode 100644
+index 000000000..2ccfc40fd
+--- /dev/null
++++ b/newsroom/build/tests/test_article_flow.mjs
+@@ -0,0 +1,20 @@
++#!/usr/bin/env node
++/* test_article_flow.mjs: the news-flow front matter rules (lib/article-flow.mjs; cl-6.ontologist's proposal of 27 Nov 2026).   node newsroom/build/tests/test_article_flow.mjs */
++import { checkFlow, levelOfArticle, listOf } from '../lib/article-flow.mjs'
++let bad = 0
++const t = (what, got, want) => { if (JSON.stringify(got) !== JSON.stringify(want)) { bad++; console.error(`FAIL ${what}: ${JSON.stringify(got)}, want ${JSON.stringify(want)}`) } }
++const registry = { index: { faro: 'faro', algarve: 'algarve', portugal: 'portugal', london: 'london' }, places: [
++    { id: 'portugal', kind: 'country', country: 'PT' }, { id: 'algarve', kind: 'region', country: 'PT' }, { id: 'faro', kind: 'municipality', country: 'PT' }, { id: 'london', kind: 'city', country: 'GB' }] }
++t('a list in brackets or bare', [listOf('[a, b-c]'), listOf('a,b'), listOf(['x']), listOf('')], [['a', 'b-c'], ['a', 'b'], ['x'], []])
++t('levels', ['faro', 'algarve', 'portugal', 'london', ''].map(w => levelOfArticle(registry, w ? { town: w } : {})), ['local', 'regional', 'national', 'europe', 'unplaced'])
++const A = (slug, fm) => ({ slug, fm: { date: '2026-11-20', ...fm } })
++t('untagged articles pass', checkFlow([A('a', {}), A('b', {})], registry), [])
++t('an unknown town is an error', checkFlow([A('a', { town: 'atlantis' })], registry).length, 1)
++t('a sound chain passes', checkFlow([A('l', { town: 'faro' }), A('r', { region: 'algarve', builds_on: '[l]', date: '2026-11-21' }), A('n', { region: 'portugal', builds_on: 'r, l', date: '2026-11-22' })], registry), [])
++t('an unknown slug, itself', checkFlow([A('a', { builds_on: '[zzz]' }), A('b', { builds_on: 'b' })], registry).length, 2)
++t('a later-dated source', checkFlow([A('a', { builds_on: 'b' }), A('b', { date: '2026-11-25' })], registry).length, 1)
++t('a higher level', checkFlow([A('l', { town: 'faro', builds_on: 'n' }), A('n', { region: 'portugal' })], registry).length, 1)
++t('europe and unplaced are not ranked', checkFlow([A('e', { town: 'london', builds_on: 'u' }), A('u', {})], registry), [])
++t('a cycle of any length', checkFlow([A('a', { builds_on: 'b' }), A('b', { builds_on: 'c' }), A('c', { builds_on: 'a' })], registry).some(e => /cycle/.test(e)), true)
++if (bad) { console.error(`${bad} failed`); process.exit(1) }
++console.log('test_article_flow: OK')
+-- 
+2.43.0
+
