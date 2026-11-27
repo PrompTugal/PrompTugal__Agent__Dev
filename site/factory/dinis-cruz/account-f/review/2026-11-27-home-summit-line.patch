@@ -1,0 +1,33 @@
+From 10af49ec55da27cc267fc6bb71a814ee4da96598 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Fri, 27 Nov 2026 00:59:02 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: the home page no longer prints the
+ 'From the summit' line (four links to Web Summit pages that were never in
+ front-page.json; the summit ended on 12 Nov; cl-6.correspondent's read, via
+ the conductor)
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ assets/front-e/front-e.tmpl | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/assets/front-e/front-e.tmpl b/assets/front-e/front-e.tmpl
+index afab4b723..9bbc9748f 100644
+--- a/assets/front-e/front-e.tmpl
++++ b/assets/front-e/front-e.tmpl
+@@ -11,7 +11,7 @@
+ <div class="fe-w">{{nowline}}{{explainer}}</div>
+ <section class="fe-w fe-ptb" aria-label="Portugal, town by town"><div class="fe-ptb-map"><h2 class="fe-h">Portugal, town by town</h2>{{ptmap}}<p class="fe-ptk">{{ptk}}</p></div><div class="fe-pl"><h2 class="fe-h">The Algarve</h2><p class="fe-pli">{{places_intro}}</p><ul>{{#places}}</ul><p class="fe-more fe-pall"><a href="algarve/index.html">{{places_all}} <span aria-hidden="true">→</span></a></p><p class="fe-more"><a href="algarve/index.html">The Algarve</a> · <a href="portugal/index.html">Portugal</a> · <a href="api/swagger/index.html">The API</a></p></div></section>
+ <div class="fe-w"><div class="fe-cols">
+-<section class="fe-brf"><h2 class="fe-h">National and international</h2><ol>{{#briefing}}</ol><p class="fe-more">From the summit: <a href="interviews/buzz-messaging-ai/guy-ben-zvi/index.html">Guy Ben Zvi, Buzz Messaging AI</a> · <a href="interviews/student-property-network/leo-tashev-and-fraser-lloyd/index.html">Student Property Network</a> · <a href="summit/index.html">the archive</a> · <a href="agentic/index.html">the GAMMA-Ray spectrum</a></p></section>
++<section class="fe-brf"><h2 class="fe-h">National and international</h2><ol>{{#briefing}}</ol></section>
+ <section class="fe-stories"><h2 class="fe-h">From the Algarve</h2>{{#stories}}</section>
+ <section class="fe-nx"><div class="fe-stats"><p class="fe-rh"><b>By the numbers</b><span>from the place files</span></p><ul>{{#stats}}</ul></div><div class="fe-radar"><p class="fe-rh"><b>The companies we follow</b><span>by field</span></p>{{#radar}}<p class="fe-more"><a href="companies/index.html">All companies, by field</a> · <a href="summit/index.html">Web Summit 2026, the archive</a></p></div></section>
+ </div></div>
+-- 
+2.43.0
+

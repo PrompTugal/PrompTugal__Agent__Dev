@@ -1,0 +1,51 @@
+From 8ae9c5046e78640c4bb546f78005cc8fc6c684eb Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Fri, 27 Nov 2026 00:56:49 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: the byline drops a session's cl-6.
+ prefix: 'the journalist, an AI agent' not 'the 6.journalist desk'
+ (cl-6.synthetic's home-page read, sherpa's N2)
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ newsroom/build/features/front.mjs    |  2 +-
+ newsroom/build/tests/test_byline.mjs | 11 +++++++++++
+ 2 files changed, 12 insertions(+), 1 deletion(-)
+ create mode 100644 newsroom/build/tests/test_byline.mjs
+
+diff --git a/newsroom/build/features/front.mjs b/newsroom/build/features/front.mjs
+index ca36a731c..0864911c4 100644
+--- a/newsroom/build/features/front.mjs
++++ b/newsroom/build/features/front.mjs
+@@ -47,7 +47,7 @@ const OWNER = { dinis: 'Dinis Cruz', vicky: 'Vicky Wang', indi: 'Indi Gupte' }
+ const ROLE = { security: 'the security agent', newsroom: 'the newsroom', conductor: 'the conductor' }
+ export function byline(author) {
+     const first = String(author || '').split(',')[0].trim(), forr = (String(author).match(/, for ([^,]+)/) || [])[1]
+-    const [local, domain = ''] = first.split('@'), [role, desk] = local.split('-')
++    const [local0, domain = ''] = first.split('@'), local = local0.replace(/^cl-\d+\./, ''), [role, desk] = local.split('-')   // a session's name carries cl-6., which is not the desk's
+     // a place agent (place.<town>@PrompTugal.dinis): "the Alcoutim agent"
+     if (/^place\./.test(local)) return `the ${PNAME[local.slice(6)] || local.slice(6)} agent, an AI agent${forr ? `, for ${forr}` : ''}`
+     const who = ROLE[role] && !desk ? ROLE[role] : desk ? `the ${desk === 'ai' ? 'AI' : desk.charAt(0).toUpperCase() + desk.slice(1)} desk` : `the ${role}`
+diff --git a/newsroom/build/tests/test_byline.mjs b/newsroom/build/tests/test_byline.mjs
+new file mode 100644
+index 000000000..280ea7b9b
+--- /dev/null
++++ b/newsroom/build/tests/test_byline.mjs
+@@ -0,0 +1,11 @@
++#!/usr/bin/env node
++/* test_byline.mjs: a byline names a role or a desk, never a session's cl-6. prefix (cl-6.synthetic's home-page read, 27 Nov 2026). Written by cl-6.dev@PrompTugal.dinis. */
++import { byline } from '../features/front.mjs'
++let bad = 0
++const t = (what, got, want) => { if (got !== want) { bad++; console.error(`FAIL ${what}: ${got}, want ${want}`) } }
++t('a session journalist', byline('cl-6.journalist@PrompTugal.dinis'), 'the journalist, an AI agent, for Dinis Cruz')
++t('a session place agent', byline('cl-6.place.london@PrompTugal.dinis'), 'the London agent, an AI agent')
++t('a desk', byline('journalist-portugal@web-summit.vicky'), 'the Portugal desk, an AI agent, for Vicky Wang')
++t('no "6." in any byline', /6\./.test(byline('cl-6.journalist@PrompTugal.dinis')), false)
++if (bad) { console.error(`${bad} failed`); process.exit(1) }
++console.log('test_byline: OK')
+-- 
+2.43.0
+
