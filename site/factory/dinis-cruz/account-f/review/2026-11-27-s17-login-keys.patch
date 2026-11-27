@@ -1,0 +1,644 @@
+From 54f9959fe02519b5497937bba2ab345922e63e69 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Fri, 27 Nov 2026 02:37:54 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: S17: keys are made in the person's
+ browser on /login/key/ (bare page, strict CSP, frame guard), kept in memory
+ only unless 'remember' is ticked, backed up in a passphrase-sealed file; the
+ #key= import and the agent-made keys are retired; signing only on a click;
+ the old IndexedDB/localStorage store is deleted and said so (cl-6.security's
+ S17 a to d, f)
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ assets/login/key-page.json            |  23 ++++
+ assets/login/key-words.json           |  27 ++++
+ assets/login/key.js                   |  53 ++++++++
+ assets/login/keyring.js               | 125 ++++++++++++-------
+ assets/login/login.js                 | 170 ++++----------------------
+ assets/obs/obs-view.js                |   6 +-
+ data/site/nav.json                    |   5 +
+ newsroom/build/features/login.mjs     |  15 ++-
+ newsroom/build/tests/test_keyring.mjs |  47 +++++++
+ newsroom/tools/person-key.mjs         |   1 +
+ 10 files changed, 276 insertions(+), 196 deletions(-)
+ create mode 100644 assets/login/key-page.json
+ create mode 100644 assets/login/key-words.json
+ create mode 100644 assets/login/key.js
+ create mode 100644 newsroom/build/tests/test_keyring.mjs
+
+diff --git a/assets/login/key-page.json b/assets/login/key-page.json
+new file mode 100644
+index 000000000..ecb2e252e
+--- /dev/null
++++ b/assets/login/key-page.json
+@@ -0,0 +1,23 @@
++{
++  "about": "The key page (/login/key/): its words and its Content-Security-Policy. Read by newsroom/build/features/login.mjs (cl-6.dev@PrompTugal.dinis, 27 November 2026, for cl-6.security's S17).",
++  "title": "Make or unlock your key",
++  "summary": "Editors and reviewers make their own key in this browser, keep a backup sealed with their own passphrase, and send only the public half to be enrolled. The key is held in this page's memory and nowhere else unless you ask.",
++  "md": [
++    "Your key is made **here, in your browser**. No agent makes it or holds it. The private halves leave this page only in a backup file, sealed with your own passphrase (PBKDF2, 600 000 rounds, AES-256-GCM); the page keeps them as keys it can use but never read out, and only in memory, so closing or reloading the page forgets them.",
++    "",
++    "1. **Make your key** with a passphrase of at least 12 characters. Download the backup file and keep it safe: it is the only way back.",
++    "2. **Send the public key** the page shows to Dinis. He decides who is enrolled, and an enrolment is a public signed statement.",
++    "3. **Next visit, unlock** the key from the backup file and the passphrase.",
++    "",
++    "Signing happens only when you press a button, over the exact text the page shows you. Nothing is sent from this page to any server. Readers need no key: every page of the site is public.",
++    "",
++    "::: pt-key pt-login",
++    "This page needs JavaScript: the key is made and used in this browser.",
++    ":::"
++  ],
++  "csp": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'",
++  "head": [
++    "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'\">",
++    "<meta name=\"referrer\" content=\"no-referrer\">"
++  ]
++}
+diff --git a/assets/login/key-words.json b/assets/login/key-words.json
+new file mode 100644
+index 000000000..0ea454e07
+--- /dev/null
++++ b/assets/login/key-words.json
+@@ -0,0 +1,27 @@
++{
++  "about": "The words of /login/key/ (assets/login/key.js), kept as data (cl-6.dev@PrompTugal.dinis, 27 Nov 2026).",
++  "framed": "This page must be opened on its own, not inside another page.",
++  "upgraded": "An earlier key that this site had stored in this browser was deleted. That kind of key (made by an agent and handed over in a link) is no longer used. Make your own below.",
++  "pass1": "passphrase, at least 12 characters",
++  "pass2": "the passphrase again",
++  "remember": " Remember this key on this device (off by default: any script on this site could then use it; leave it off on a shared computer)",
++  "make_h": "Make your key",
++  "make_p": "Your browser makes two P-256 keys. The private halves never leave this page except in a backup file sealed with your passphrase; keep that file and the passphrase safe. Nobody else, including the agents, ever sees them.",
++  "make_btn": "Make my key and download the backup",
++  "differ": "The two passphrases differ.",
++  "made": "Your key is made and the backup downloaded. Keep the file somewhere safe: without it and the passphrase there is no way back. Send the public key below to Dinis to be enrolled.",
++  "unlock_h": "Unlock your key",
++  "unlock_p": "Choose the backup file you downloaded and type its passphrase. The key is held in this page only, and is gone when you close or reload it.",
++  "unlock_btn": "Unlock",
++  "pick": "Choose your backup file first.",
++  "pass_label": "your passphrase",
++  "enrolled": "This key is enrolled for you in board/person-keys.json.",
++  "unenrolled": "This key is not enrolled yet. Send the public key below to Dinis; until then no page treats you as signed in.",
++  "unlocked": "A key is unlocked",
++  "pub_h": "Your public key (safe to send)",
++  "prove_h": "Prove it is you",
++  "prove_p": "Your browser will sign exactly this text, once, when you press the button:",
++  "prove_btn": "Sign this text",
++  "signed": "Signed. The signature (not secret) is: ",
++  "lock_btn": "Lock: forget the key in this page"
++}
+diff --git a/assets/login/key.js b/assets/login/key.js
+new file mode 100644
+index 000000000..e03bb23d3
+--- /dev/null
++++ b/assets/login/key.js
+@@ -0,0 +1,53 @@
++// /login/key/: make your key here, or unlock it from your backup file (cl-6.dev@PrompTugal.dinis, 27 Nov 2026, for cl-6.security's S17).
++// A bare page with its own strict Content-Security-Policy (assets/login/key-page.json): no inline script or style, no third-party host.
++// The key is made in this browser (assets/login/keyring.js), the private halves leave only in the backup file the person downloads, and the page
++// shows the PUBLIC half to send for enrolment. Signing happens only in the click handler of "Sign this text", over the exact text shown.
++// Its words are data: assets/login/key-words.json.
++(async () => {
++    'use strict'
++    const mount = document.querySelector('.pt-key'); if (!mount) return
++    const root = (document.currentScript && document.currentScript.src || '').replace(/assets\/login\/key\.js.*$/, '') || '/'
++    let W = {}; try { W = await (await fetch(root + 'assets/login/key-words.json')).json() } catch { }
++    // the frame guard must pass before the key is used (a page in someone else's frame could be clicked for you)
++    if (window.top !== window) { mount.textContent = W.framed || ''; return }
++    const h = (tag, attrs = {}, kids = []) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'text') e.textContent = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v) } for (const c of [].concat(kids)) if (c) e.append(c); return e }
++    const KR = () => window.PTKeyring
++    const say = (box, t, bad) => { box.textContent = t; box.className = 'pt-login-msg' + (bad ? ' bad' : '') }
++    const download = (name, text) => { const a = h('a', { href: URL.createObjectURL(new Blob([text], { type: 'application/json' })), download: name }); document.body.append(a); a.click(); a.remove() }
++    const cap = p => p.charAt(0).toUpperCase() + p.slice(1)
++
++    async function draw() {
++        const K = KR(); await K.ready.catch(() => { })
++        mount.textContent = ''
++        if (K.upgraded) mount.append(h('p', { class: 'pt-login-state warn', role: 'status', text: W.upgraded }))
++        if (K.fingerprint) return drawHeld(K)
++        mount.append(makeBox(), unlockBox())
++    }
++    const pass = (label, auto) => h('input', { type: 'password', autocomplete: auto, 'aria-label': label, placeholder: label })
++    const remember = () => { const c = h('input', { type: 'checkbox' }); return [c, h('label', { text: W.remember })] }
++    function makeBox() {
++        const p1 = pass(W.pass1, 'new-password'), p2 = pass(W.pass2, 'new-password'), [rem, remLabel] = remember(), msg = h('p', { role: 'status', class: 'pt-login-msg' })
++        return h('div', { class: 'pt-login-ways' }, [h('h2', { text: W.make_h }), h('p', { text: W.make_p }), p1, p2, rem, remLabel,
++            h('button', { type: 'button', text: W.make_btn, onclick: async () => {
++                if (p1.value !== p2.value) return say(msg, W.differ, true)
++                try { const r = await KR().make(p1.value, rem.checked); download('promptugal-key-backup.json', r.backup); await draw(); mount.prepend(h('p', { class: 'pt-login-state ok', role: 'status', text: W.made })) } catch (e) { say(msg, String(e && e.message || e), true) }
++            } }), msg])
++    }
++    function unlockBox() {
++        const file = h('input', { type: 'file', accept: 'application/json,.json', 'aria-label': W.unlock_h }), pw = pass(W.pass_label, 'current-password'), [rem, remLabel] = remember(), msg = h('p', { role: 'status', class: 'pt-login-msg' })
++        return h('div', { class: 'pt-login-ways' }, [h('h2', { text: W.unlock_h }), h('p', { text: W.unlock_p }), file, pw, rem, remLabel,
++            h('button', { type: 'button', text: W.unlock_btn, onclick: async () => {
++                try { if (!file.files[0]) return say(msg, W.pick, true); await KR().unlock(await file.files[0].text(), pw.value, rem.checked); await draw() } catch (e) { say(msg, String(e && e.message || e), true) }
++            } }), msg])
++    }
++    function drawHeld(K) {
++        const msg = h('p', { role: 'status', class: 'pt-login-msg' }), text = `promptugal.news/login ${K.fingerprint} ${new Date().toISOString()}`
++        mount.append(h('div', { class: 'pt-login-state ' + (K.person ? 'ok' : 'warn') }, [
++            h('p', { class: 'pt-login-who' }, [K.person ? h('b', { text: cap(K.person) }) : W.unlocked, ` · key ${K.fingerprint}`]), h('p', { text: K.person ? W.enrolled : W.unenrolled })]),
++            h('h2', { text: W.pub_h }), h('textarea', { rows: '8', readonly: '', 'aria-label': W.pub_h, spellcheck: 'false', text: JSON.stringify(K.publicKeys(), null, 2) }),
++            h('div', { class: 'pt-login-ways' }, [h('h2', { text: W.prove_h }), h('p', { text: W.prove_p }), h('pre', { text }),
++                h('button', { type: 'button', text: W.prove_btn, onclick: async () => { try { say(msg, W.signed + (await K.sign(text)).slice(0, 32) + '…') } catch (e) { say(msg, String(e && e.message || e), true) } } }), msg]),
++            h('button', { type: 'button', class: 'pt-login-out', text: W.lock_btn, onclick: async () => { await K.lock(); await draw() } }))
++    }
++    draw()
++})()
+diff --git a/assets/login/keyring.js b/assets/login/keyring.js
+index 1d406d242..1e83a51eb 100644
+--- a/assets/login/keyring.js
++++ b/assets/login/keyring.js
+@@ -1,65 +1,98 @@
+-// Moved here from assets/obs/ by dev@PrompTugal.dinis (6 November 2026) for the sign-in feature: loaded on every page,
+-// read by assets/login/login.js (/login/) and assets/obs/obs-view.js; the conductor issues keys with
+-// newsroom/tools/person-key.mjs. Copied from the team site's assets/keyring.js on 6 November 2026 by observability@PrompTugal.dinis (this site's own
+-// IndexedDB and name, window.PTKeyring; a key held on web-summit.sgit.ai is not seen here: another origin). Its header:
+-// The person's key in this browser (Dinis, 3 November 2026): the key a conductor issues to its person
+-// (admin/tools/person-key.mjs) arrives as a link whose #key= fragment carries it (a fragment never reaches a server).
+-// This imports it as NON-EXTRACTABLE CryptoKeys into IndexedDB (a later script can use it, never copy it out), removes it
+-// from the address bar, and sets "who are you" to that person. It then opens what is sealed to them on the site
+-// (data/sealed/<id>/, ws-ecies-1) and signs what their browser sends. window.PTKeyring: { ready, person, fingerprint,
+-// open(envelope), sign(text), lock() }. Built by conductor@web-summit.dinis.
++// The person's key in this browser (rewritten by cl-6.dev@PrompTugal.dinis, 27 November 2026, for cl-6.security's S17 and its r3 review of the
++// human-provenance design). Before: a conductor's agent MADE the key, held its private half, and handed it over in a link (#key=); the page kept it in
++// IndexedDB. Now: the key is made HERE, in the browser, on /login/key/ (assets/login/key.js); the private halves leave the page once, in a backup
++// file sealed with the person's own passphrase (PBKDF2-SHA-256, 600 000 rounds, AES-256-GCM, a random salt and IV, the parameters in the file's
++// header and bound to the ciphertext); and the key then lives as NON-EXTRACTABLE CryptoKeys in this page's memory only. A reload forgets it: the
++// person unlocks it again from the backup file. "Remember on this device" (off unless ticked) additionally keeps the non-extractable handles in
++// IndexedDB 'pt-keyring-2' of this origin, with the consequence security@ names: any script on this origin could then use the handle.
++// The one function that ever holds an extractable key is make(). Signing needs a user gesture (navigator.userActivation), so no script can sign
++// from page load, a fragment or a message. The old store ('pt-keyring', localStorage 'pt.me') is deleted on load and the page says so.
++// window.PTKeyring: { ready, person, fingerprint, signing, upgraded, make(pass, remember), unlock(text, pass, remember), publicKeys(), open(env), sign(text), lock(), add() (retired) }
+ (() => {
+     'use strict'
+-    const DB = 'pt-keyring', STORE = 'keys', te = new TextEncoder(), td = new TextDecoder()
+-    const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0))
++    const S = window.crypto && window.crypto.subtle, te = new TextEncoder(), td = new TextDecoder()
++    const DB = 'pt-keyring-2', OLD = 'pt-keyring', STORE = 'keys', ITER = 600000, MIN_PASS = 12
++    const ECDH = { name: 'ECDH', namedCurve: 'P-256' }, ECDSA = { name: 'ECDSA', namedCurve: 'P-256' }
++    const me = document.currentScript, root = me ? me.src.replace(/assets\/login\/keyring\.js.*$/, '') : '/'
+     const toB64 = b => { let s = ''; for (const x of new Uint8Array(b)) s += String.fromCharCode(x); return btoa(s) }
+-    const fromB64u = s => atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4))
++    const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0))
++    const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('')
++    const K = { person: '', fingerprint: '', signing: '', enc: null, sig: null, pub: null, upgraded: false }
++    // the fingerprint every list on this site uses: sha256 of "crv:x:y", 16 hex characters (newsroom/build/features/login.mjs)
++    const fp = async j => 'sha256:' + hex(await S.digest('SHA-256', te.encode(`${j.crv}:${j.x}:${j.y}`))).slice(0, 16)
++    const pubOf = j => ({ kty: 'EC', crv: j.crv, x: j.x, y: j.y })
++
+     const idb = () => new Promise((ok, no) => { const r = indexedDB.open(DB, 1); r.onupgradeneeded = () => r.result.createObjectStore(STORE); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error) })
+-    const tx = async (mode, fn) => { const db = await idb(); return new Promise((ok, no) => { const t = db.transaction(STORE, mode), s = t.objectStore(STORE), r = fn(s); t.oncomplete = () => ok(r && r.result); t.onerror = () => no(t.error) }) }
+-    const S = window.crypto && window.crypto.subtle
+-    const K = { person: '', fingerprint: '', enc: null, sig: null }
++    const tx = async (mode, fn) => { const db = await idb(); return new Promise((ok, no) => { const t = db.transaction(STORE, mode), r = fn(t.objectStore(STORE)); t.oncomplete = () => ok(r && r.result); t.onerror = () => no(t.error) }) }
++    const dropDb = name => new Promise(ok => { try { const q = indexedDB.deleteDatabase(name); q.onsuccess = q.onerror = q.onblocked = () => ok() } catch { ok() } })
++
++    // the earlier key store: removed, and said so (cl-6.security's S17 a)
++    async function purgeOld() {
++        let had = false
++        try { if (localStorage.getItem('pt.me') !== null) { localStorage.removeItem('pt.me'); had = true } } catch { }
++        try { if (window.indexedDB && indexedDB.databases) had = (await indexedDB.databases()).some(d => d.name === OLD) || had } catch { }
++        if (window.indexedDB) await dropDb(OLD)
++        return had
++    }
++    async function personOf(f) {
++        try { const r = await fetch(root + 'board/person-keys.json', { cache: 'no-cache' }); return ((await r.json()).keys || []).find(k => k.fingerprint === f && k.status === 'active') || null } catch { return null }
++    }
++    async function adopt(ej, sj, remember) {
++        K.enc = await S.importKey('jwk', { ...ej, ext: false }, ECDH, false, ['deriveBits'])
++        K.sig = await S.importKey('jwk', { ...sj, ext: false }, ECDSA, false, ['sign'])
++        K.fingerprint = await fp(ej); K.signing = await fp(sj); K.pub = { fingerprint: K.fingerprint, signing_fingerprint: K.signing, encrypt: pubOf(ej), sign: pubOf(sj) }
++        const entry = await personOf(K.fingerprint); K.person = entry ? entry.person : ''
++        if (remember && window.indexedDB) await tx('readwrite', s => s.put({ enc: K.enc, sig: K.sig, pub: K.pub, at: new Date().toISOString() }, 'me'))
++    }
++    // the backup file: a header the page can read, a ciphertext it cannot without the passphrase; the header is bound to the ciphertext (AAD)
++    const aad = h => te.encode(JSON.stringify([h.v, h.kind, h.kdf, h.enc.name, h.enc.iv]))
++    const kdfKey = async (pass, salt, iter) => S.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: iter }, await S.importKey('raw', te.encode(pass), 'PBKDF2', false, ['deriveKey']), { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt'])
++    const need = pass => { if (!S) throw new Error('this browser has no Web Crypto here (it needs HTTPS)'); if (typeof pass !== 'string' || pass.length < MIN_PASS) throw new Error(`the passphrase needs at least ${MIN_PASS} characters`) }
+ 
+-    async function importFromHash() {
+-        const m = location.hash.match(/(?:^#|&)key=([A-Za-z0-9_-]+)/)
+-        if (!m) return false
+-        history.replaceState(null, '', location.pathname + location.search)   // the key leaves the address bar at once
+-        return importPacked(m[1])
++    // the only place an extractable key exists: it is made, written into the backup, and dropped; what stays is non-extractable
++    async function make(pass, remember) {
++        need(pass)
++        const e = await S.generateKey(ECDH, true, ['deriveBits']), s = await S.generateKey(ECDSA, true, ['sign', 'verify'])
++        const ej = await S.exportKey('jwk', e.privateKey), sj = await S.exportKey('jwk', s.privateKey)
++        const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12))
++        const head = { v: 1, kind: 'pt-key-backup', kdf: { name: 'PBKDF2', hash: 'SHA-256', iter: ITER, salt: toB64(salt) }, enc: { name: 'AES-GCM', iv: toB64(iv) } }
++        const ct = await S.encrypt({ name: 'AES-GCM', iv, additionalData: aad(head) }, await kdfKey(pass, salt, ITER), te.encode(JSON.stringify({ e: ej, s: sj })))
++        await adopt(ej, sj, remember)
++        return { backup: JSON.stringify({ ...head, ct: toB64(ct) }, null, 2), pub: publicKeys() }
+     }
+-    async function importPacked(packed) {
+-        const p = JSON.parse(fromB64u(packed))
+-        const jwk = ([d, x, y]) => ({ kty: 'EC', crv: 'P-256', d, x, y, ext: false })
+-        const enc = await S.importKey('jwk', jwk(p.e), { name: 'ECDH', namedCurve: 'P-256' }, false, ['deriveBits'])
+-        const sig = await S.importKey('jwk', jwk(p.s), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign'])
+-        await tx('readwrite', s => s.put({ person: p.p, fingerprint: p.f, enc, sig, at: new Date().toISOString() }, 'me'))
+-        try { localStorage.setItem('pt.me', p.p) } catch { }
+-        return true
++    async function unlock(text, pass, remember) {
++        need(pass)
++        let f; try { f = JSON.parse(String(text)) } catch { throw new Error('that is not a key backup file') }
++        const ok = f && f.v === 1 && f.kind === 'pt-key-backup' && f.kdf && f.kdf.name === 'PBKDF2' && f.kdf.hash === 'SHA-256' && Number.isInteger(f.kdf.iter) && f.kdf.iter >= 100000 && f.kdf.iter <= 5000000 && f.enc && f.enc.name === 'AES-GCM' && typeof f.kdf.salt === 'string' && typeof f.enc.iv === 'string' && typeof f.ct === 'string'
++        if (!ok) throw new Error('that is not a key backup file')
++        let p; try { p = JSON.parse(td.decode(await S.decrypt({ name: 'AES-GCM', iv: fromB64(f.enc.iv), additionalData: aad(f) }, await kdfKey(pass, fromB64(f.kdf.salt), f.kdf.iter), fromB64(f.ct)))) } catch { throw new Error('wrong passphrase, or the file was changed') }
++        for (const j of [p && p.e, p && p.s]) if (!j || j.kty !== 'EC' || j.crv !== 'P-256' || !j.d || !j.x || !j.y) throw new Error('that is not a key backup file')
++        await adopt(p.e, p.s, remember)
++        return publicKeys()
+     }
++    const publicKeys = () => K.pub ? JSON.parse(JSON.stringify(K.pub)) : null
+     async function load() {
+-        if (!S || !window.indexedDB) return K
+-        try { await importFromHash() } catch (e) { console.warn('keyring: the key in the link could not be read', e) }
+-        try { const r = await tx('readonly', s => s.get('me')); if (r) Object.assign(K, r) } catch { }
++        K.upgraded = await purgeOld()
++        if (S && window.indexedDB) { try { const r = await tx('readonly', s => s.get('me')); if (r && r.enc && r.sig && r.pub) { Object.assign(K, { enc: r.enc, sig: r.sig, pub: r.pub, fingerprint: r.pub.fingerprint, signing: r.pub.signing_fingerprint }); const e = await personOf(K.fingerprint); K.person = e ? e.person : '' } } catch { } }
+         return K
+     }
+     async function open(env) {
+-        if (!K.enc) throw new Error('no key in this browser')
++        if (!K.enc) throw new Error('no key is unlocked in this browser')
+         if (env.key !== K.fingerprint) throw new Error(`sealed to ${env.key}, this browser holds ${K.fingerprint}`)
+-        const epk = await S.importKey('jwk', env.epk, { name: 'ECDH', namedCurve: 'P-256' }, false, [])
+-        const bits = await S.deriveBits({ name: 'ECDH', public: epk }, K.enc, 256)
+-        const hk = await S.importKey('raw', bits, 'HKDF', false, ['deriveKey'])
++        const epk = await S.importKey('jwk', env.epk, ECDH, false, [])
++        const hk = await S.importKey('raw', await S.deriveBits({ name: 'ECDH', public: epk }, K.enc, 256), 'HKDF', false, ['deriveKey'])
+         const key = await S.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: te.encode('ws-ecies-1') }, hk, { name: 'AES-GCM', length: 256 }, false, ['decrypt'])
+         return JSON.parse(td.decode(await S.decrypt({ name: 'AES-GCM', iv: fromB64(env.iv) }, key, fromB64(env.ct))))
+     }
++    // signing only inside a user gesture, over the exact text the person was shown (cl-6.security's S17 d)
+     async function sign(text) {
+-        if (!K.sig) throw new Error('no key in this browser')
+-        return toB64(await S.sign({ name: 'ECDSA', hash: 'SHA-256' }, K.sig, te.encode(text)))
+-    }
+-    async function lock() { await tx('readwrite', s => s.delete('me')); Object.assign(K, { person: '', fingerprint: '', enc: null, sig: null }) }
+-    // a pasted link (or the bare key): the same as opening the link
+-    async function add(text) {
+-        const m = String(text || '').trim().match(/key=([A-Za-z0-9_-]+)/) || String(text || '').trim().match(/^([A-Za-z0-9_-]{100,})$/)
+-        if (!m) throw new Error('that is not a key link')
+-        await importPacked(m[1]); const r = await tx('readonly', s => s.get('me')); if (r) Object.assign(K, r); return K.person
++        if (!K.sig) throw new Error('no key is unlocked in this browser')
++        const ua = navigator.userActivation
++        if (!ua || !ua.isActive) throw new Error('signing needs a click or a key press on this page')
++        return toB64(await S.sign({ name: 'ECDSA', hash: 'SHA-256' }, K.sig, te.encode(String(text))))
+     }
++    async function lock() { if (window.indexedDB) await dropDb(DB); Object.assign(K, { person: '', fingerprint: '', signing: '', enc: null, sig: null, pub: null }) }
++    const add = async () => { throw new Error('a key link is no longer accepted: make your own key on /login/key/') }
+     const ready = load()
+-    window.PTKeyring = { ready, open, sign, lock, add, get person() { return K.person }, get fingerprint() { return K.fingerprint } }
++    window.PTKeyring = { ready, make, unlock, publicKeys, open, sign, lock, add, get person() { return K.person }, get fingerprint() { return K.fingerprint }, get signing() { return K.signing }, get upgraded() { return K.upgraded } }
+ })()
+diff --git a/assets/login/login.js b/assets/login/login.js
+index 3af93591f..0b8b7097c 100644
+--- a/assets/login/login.js
++++ b/assets/login/login.js
+@@ -1,24 +1,16 @@
+-// Sign in to PrompTugal.news with the key a conductor issued you (Dinis, 6 November 2026). The key is a pair of P-256
+-// keys in a link (https://promptugal.news/login/#key=...), handed over as a QR code by the conductor
+-// (newsroom/tools/person-key.mjs). assets/login/keyring.js (window.PTKeyring) takes it into this browser as
+-// non-extractable keys in IndexedDB; this script proves it: it signs a fresh challenge with the browser's key and
+-// verifies the signature against the person's public key in board/person-keys.json. Signing in identifies you to the
+-// parts of the site that act for a person (the drain on /newsroom/observability/); every page stays public.
++// Sign in to PrompTugal.news (Dinis, 6 November 2026; rewritten by cl-6.dev@PrompTugal.dinis, 27 November 2026, for cl-6.security's S17). A person makes their own
++// key on /login/key/ (assets/login/key.js, assets/login/keyring.js) and is enrolled by a public statement; this script, on every page, only REPORTS who is
++// signed in on pages that load the keyring (the observability drain, /talk/): the key held in memory (or remembered on this device by choice) whose
++// fingerprint is an active entry of board/person-keys.json. It never signs on its own; signing is a click in keyring.js. Every page stays public.
+ //
+-//   window.PTLogin: { ready (a promise of the state), state(), signIn(text), signOut() }
+-//   state: { person, fingerprint, verified (true | false), status ('signed-out' | 'verified' | 'replaced' | 'unknown' |
+-//            'mismatch' | 'no-crypto' | 'elsewhere'), entry (the public record, or null) }
++//   window.PTLogin: { ready (a promise of the state), state(), signIn() (retired), signOut() }
++//   state: { person, fingerprint, verified (true | false), status ('signed-out' | 'verified' | 'replaced' | 'unenrolled' | 'no-crypto' | 'elsewhere'), entry (the public record, or null) }
+ //   event 'pt:login' on window, with the state, whenever it changes; tool auth.whoami (read) on window.__tool.
+-//
+-// On every page: a small chip in #nr-tools once you are signed in. On /login/: the sign-in panel (.pt-login, a layout hook in content/login.md): scan the
+-// QR code with the camera, choose or paste or drop a picture of it, or paste the link. QR codes are read with the browser's
+-// BarcodeDetector where it has one, else with jsQR (assets/vendor/jsqr/1.4.0/, loaded only then).
+ (() => {
+     'use strict'
+-    const S = window.crypto && window.crypto.subtle, te = new TextEncoder()
+-    const site = () => window.NRSite || { url: r => r, mount: () => null, fetchJSON: async r => (await fetch(r)).json() }
+-    const h = (tag, attrs = {}, kids = []) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'text') e.textContent = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (v !== undefined && v !== null && v !== false) e.setAttribute(k, v) } for (const c of [].concat(kids)) e.append(c); return e }
+-    const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0))
++    const S = window.crypto && window.crypto.subtle
++    const site = () => window.NRSite || { url: r => r, mount: () => null }
++    const h = (tag, attrs = {}) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'text') e.textContent = v; else e.setAttribute(k, v) } return e }
+     const title = p => p ? p.charAt(0).toUpperCase() + p.slice(1) : ''
+     let state = { person: '', fingerprint: '', verified: false, status: 'signed-out', entry: null }
+ 
+@@ -32,155 +24,45 @@
+     async function register() {
+         try { const r = await fetch(site().url('board/person-keys.json'), { cache: 'no-cache' }); return (await r.json()).keys || [] } catch { return [] }
+     }
+-    // the proof: the browser's private key signs a fresh challenge; the published public key must verify it
+     async function check() {
+         const KR = await keyring()
+         if (!HERE) return set({ person: '', fingerprint: '', verified: false, status: 'elsewhere', entry: null })
+         if (!S || !KR) return set({ person: '', fingerprint: '', verified: false, status: 'no-crypto', entry: null })
+-        if (!KR.person) return set({ person: '', fingerprint: '', verified: false, status: 'signed-out', entry: null })
+-        const keys = await register(), entry = keys.find(k => k.fingerprint === KR.fingerprint) || null
+-        const base = { person: KR.person, fingerprint: KR.fingerprint, verified: false, entry }
+-        if (!entry) return set({ ...base, status: 'unknown' })
+-        if (entry.person !== KR.person) return set({ ...base, status: 'mismatch' })
+-        const challenge = `promptugal.news/login ${KR.fingerprint} ${new Date().toISOString()} ${[...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, '0')).join('')}`
+-        let ok = false
+-        try {
+-            const pub = await S.importKey('jwk', { ...entry.sign, ext: true }, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify'])
+-            ok = await S.verify({ name: 'ECDSA', hash: 'SHA-256' }, pub, fromB64(await KR.sign(challenge)), te.encode(challenge))
+-        } catch { ok = false }
+-        if (!ok) return set({ ...base, status: 'mismatch' })
++        if (!KR.fingerprint) return set({ person: '', fingerprint: '', verified: false, status: 'signed-out', entry: null })
++        const entry = (await register()).find(k => k.fingerprint === KR.fingerprint) || null, base = { person: entry ? entry.person : '', fingerprint: KR.fingerprint, verified: false, entry }
++        if (!entry) return set({ ...base, status: 'unenrolled' })
+         return set({ ...base, verified: entry.status === 'active', status: entry.status === 'active' ? 'verified' : 'replaced' })
+     }
+     function set(s) { state = s; try { window.dispatchEvent(new CustomEvent('pt:login', { detail: s })) } catch { } drawChip(); drawPanel(); return s }
+ 
+-    async function signIn(text) {
+-        const KR = await keyring(); if (!KR) throw new Error('this browser cannot hold a key here (no IndexedDB or Web Crypto)')
+-        await KR.add(String(text || '').trim()); return check()
+-    }
++    const signIn = async () => { throw new Error('make or unlock your key on ' + site().url('login/key/index.html')) }
+     async function signOut() { const KR = await keyring(); if (KR) await KR.lock(); return check() }
+ 
+-    // the chip: only once someone is signed in, so a reader's page is unchanged
++    // the chip: only once a key is held, so a reader's page is unchanged
+     let chip = null
+     function drawChip() {
+         const tools = site().mount('nr-tools'); if (!tools) return
+-        if (!state.person) { if (chip) { chip.remove(); chip = null } return }
++        if (!state.fingerprint) { if (chip) { chip.remove(); chip = null } return }
+         if (!chip) { chip = h('a', { class: 'pt-login-chip' }); tools.prepend(chip) }
+-        chip.href = site().url('login/index.html')
++        chip.href = site().url('login/key/index.html')
+         chip.className = 'pt-login-chip ' + (state.verified ? 'ok' : 'warn')
+-        chip.title = state.verified ? `signed in as ${title(state.person)} (key ${state.fingerprint}, verified against board/person-keys.json)` : `a key for ${title(state.person)} is in this browser but is not verified (${state.status})`
+-        chip.textContent = (state.verified ? '● ' : '○ ') + title(state.person)
++        chip.title = state.verified ? `signed in as ${title(state.person)} (key ${state.fingerprint}, enrolled in board/person-keys.json)` : `a key (${state.fingerprint}) is held in this browser but is not enrolled (${state.status})`
++        chip.textContent = (state.verified ? '● ' : '○ ') + (title(state.person) || 'key')
+     }
+ 
+-    // the panel on /login/
+-    const SAY = {
+-        'signed-out': 'You are not signed in on this browser.',
+-        verified: 'Signed in. Your browser signed a fresh challenge and your published key verified it.',
+-        replaced: 'This browser holds a key that has since been replaced: ask the conductor for your new QR code, then sign in again.',
+-        unknown: 'This browser holds a key that is not in board/person-keys.json: it may have been issued on another site. Sign out and sign in with the QR code the conductor gave you.',
+-        mismatch: 'This browser holds a key whose signature does not match its published key. Sign out and sign in again.',
+-        'elsewhere': 'Your key is not used on this page.',
+-        'no-crypto': 'This browser cannot hold a key here (it needs IndexedDB and Web Crypto, over HTTPS).',
+-    }
+-    let panel = null, msg = null, video = null, stream = null
++    // the panel on /login/ (content/login.md): where the key is made and unlocked
+     function drawPanel() {
+-        panel = document.querySelector('#pt-login, .pt-login'); if (!panel) return
+-        stopCamera(); panel.textContent = ''
+-        const st = state
+-        panel.append(h('div', { class: 'pt-login-state ' + (st.verified ? 'ok' : st.person ? 'warn' : '') }, [
+-            h('p', { class: 'pt-login-who' }, [st.person ? h('b', { text: title(st.person) }) : 'Signed out', st.person ? ` · key ${st.fingerprint}` : '']),
+-            h('p', { text: SAY[st.status] || '' }),
+-            st.entry ? h('p', { class: 'pt-login-meta', text: `Issued ${String(st.entry.issued_at || '').slice(0, 16).replace('T', ' ')} UTC by ${st.entry.issued_by || 'a conductor'}; ${st.entry.valid || ''}.` }) : '',
+-            st.person ? h('button', { type: 'button', class: 'pt-login-out', text: 'Sign out on this browser', onclick: () => signOut() }) : '',
+-        ]))
+-        if (st.verified) return
+-        wirePaste()
+-        msg = h('p', { class: 'pt-login-msg', role: 'status' })
+-        const paste = h('textarea', { rows: '3', placeholder: 'https://promptugal.news/login/#key=…', autocomplete: 'off', spellcheck: 'false', 'aria-label': 'your sign-in link' })
+-        const file = h('input', { type: 'file', accept: 'image/*', hidden: '', onchange: () => file.files[0] && readImage(file.files[0]) })
+-        video = h('video', { playsinline: '', muted: '', hidden: '', class: 'pt-login-video' })
+-        panel.append(h('div', { class: 'pt-login-ways' }, [
+-            h('h2', { text: 'Sign in with your QR code' }),
+-            h('div', { class: 'pt-login-row' }, [
+-                h('button', { type: 'button', text: 'Scan it with the camera', onclick: () => startCamera() }),
+-                h('button', { type: 'button', text: 'Choose a picture of it', onclick: () => file.click() }), file,
+-                h('button', { type: 'button', text: 'Paste the QR code', onclick: () => pasteFromClipboard() }),
+-            ]),
+-            video,
+-            h('label', { text: 'Or paste the QR code (a copied image: Ctrl or Cmd+V, or drop it here) or the link it holds:' }), paste,
+-            h('button', { type: 'button', text: 'Sign in', onclick: () => tryText(paste.value) }),
+-            msg,
+-        ]))
+-    }
+-    const say = t => { if (msg) msg.textContent = t }
+-    // a QR code shared as an image: pasted (Ctrl or Cmd+V anywhere on the page), dropped, or read from the clipboard
+-    const imageOf = items => { for (const it of items || []) { const f = it.kind === 'file' ? it.getAsFile() : it; if (f && /^image\//.test(f.type)) return f } return null }
+-    let wired = false
+-    function wirePaste() {
+-        if (wired) return; wired = true
+-        document.addEventListener('paste', e => { if (!panel || !document.contains(panel) || state.verified) return; const f = imageOf(e.clipboardData && e.clipboardData.items); if (f) { e.preventDefault(); readImage(f) } })
+-        document.addEventListener('dragover', e => { if (panel && !state.verified && e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault() })
+-        document.addEventListener('drop', e => { if (!panel || state.verified) return; const f = imageOf(e.dataTransfer && e.dataTransfer.files); if (f) { e.preventDefault(); readImage(f) } })
+-    }
+-    async function pasteFromClipboard() {
+-        if (!navigator.clipboard || !navigator.clipboard.read) return say('This browser does not let the page read the clipboard: press Ctrl or Cmd+V on this page instead.')
+-        try {
+-            for (const item of await navigator.clipboard.read()) {
+-                const type = item.types.find(t => /^image\//.test(t))
+-                if (type) return readImage(await item.getType(type))
+-                if (item.types.includes('text/plain')) return tryText(await (await item.getType('text/plain')).text())
+-            }
+-            say('The clipboard holds no image or link. Copy the QR code first.')
+-        } catch (e) { say('Could not read the clipboard (' + (e && e.message || e) + '). Press Ctrl or Cmd+V on this page instead.') }
+-    }
+-    async function tryText(text) {
+-        if (!/key=|^[A-Za-z0-9_-]{100,}$/.test(String(text || '').trim())) return say('That is not a sign-in link: it should contain #key=.')
+-        say('Checking your key…')
+-        try { const s = await signIn(text); if (!s.verified) say(SAY[s.status]) } catch (e) { say('Could not sign in: ' + (e && e.message || e)) }
+-    }
+-
+-    // reading a QR code: BarcodeDetector where there is one, else jsQR on the pixels
+-    let jsqrP = null
+-    const loadJsQR = () => jsqrP || (jsqrP = new Promise((ok, no) => { const s = document.createElement('script'); s.src = site().url('assets/vendor/jsqr/1.4.0/jsQR.js'); s.onload = () => ok(window.jsQR); s.onerror = () => no(new Error('could not load the QR reader')); document.head.append(s) }))
+-    async function decode(source, w, hgt) {
+-        if ('BarcodeDetector' in window) {
+-            try { const d = new window.BarcodeDetector({ formats: ['qr_code'] }); const r = await d.detect(source); if (r.length) return r[0].rawValue; return null } catch { }
+-        }
+-        const jsQR = await loadJsQR()
+-        const c = document.createElement('canvas'); c.width = w; c.height = hgt
+-        const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(source, 0, 0, w, hgt)
+-        const r = jsQR(g.getImageData(0, 0, w, hgt).data, w, hgt, { inversionAttempts: 'attemptBoth' })
+-        return r ? r.data : null
+-    }
+-    async function readImage(f) {
+-        say('Reading the picture…')
+-        try {
+-            const img = await createImageBitmap(f), scale = Math.min(1, 1600 / Math.max(img.width, img.height))
+-            const text = await decode(img, Math.round(img.width * scale), Math.round(img.height * scale))
+-            if (!text) return say('No QR code found in that picture. Try a sharper, closer picture, or paste the link.')
+-            await tryText(text)
+-        } catch (e) { say('Could not read that picture: ' + (e && e.message || e)) }
+-    }
+-    async function startCamera() {
+-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return say('This browser gives no camera to the page. Choose a picture of the QR code instead.')
+-        try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false }) } catch (e) { return say('No camera: ' + (e && e.message || e)) }
+-        video.srcObject = stream; video.hidden = false; await video.play().catch(() => { })
+-        say('Hold the QR code in front of the camera…')
+-        const tick = async () => {
+-            if (!stream) return
+-            if (video.videoWidth) {
+-                const text = await decode(video, video.videoWidth, video.videoHeight).catch(() => null)
+-                if (text) { stopCamera(); return tryText(text) }
+-            }
+-            setTimeout(tick, 250)
+-        }
+-        tick()
++        const panel = document.querySelector('#pt-login, .pt-login'); if (!panel) return
++        panel.textContent = ''
++        const a = h('a', { href: site().url('login/key/index.html'), text: 'Make or unlock your key' })
++        const box = h('div', { class: 'pt-login-state' }); box.append(h('p', { text: 'Your key is made in your browser, on its own page, and held in memory only. Nothing is stored or sent from this page.' }))
++        panel.append(box, a)
+     }
+-    function stopCamera() { if (stream) { for (const t of stream.getTracks()) t.stop(); stream = null } if (video) video.hidden = true }
+ 
+     ; (window.__toolQueue = window.__toolQueue || []).push(['register', 'auth.whoami', {
+-        level: 'read', description: 'Who is signed in on this browser (the person, their key fingerprint, and whether the key verified against board/person-keys.json). Never returns a key.',
++        level: 'read', description: 'Who is signed in on this browser (the person, their key fingerprint, and whether the key is enrolled in board/person-keys.json). Never returns a key.',
+         params: { type: 'object', properties: {} },
+-        run: async () => { await ready; const { entry, ...s } = state; return { ...s, issued_by: entry && entry.issued_by || null, login_page: site().url('login/index.html') } },
++        run: async () => { await ready; const { entry, ...s } = state; return { ...s, issued_by: entry && entry.issued_by || null, login_page: site().url('login/key/index.html') } },
+     }])
+     const ready = (document.readyState === 'loading' ? new Promise(r => document.addEventListener('DOMContentLoaded', r, { once: true })) : Promise.resolve()).then(check)
+     window.PTLogin = { ready, state: () => state, signIn, signOut }
+diff --git a/assets/obs/obs-view.js b/assets/obs/obs-view.js
+index c4ec0ed2b..e58e3140f 100644
+--- a/assets/obs/obs-view.js
++++ b/assets/obs/obs-view.js
+@@ -591,10 +591,8 @@
+         whoBox.textContent = ''
+         if (!KR || !KR.person) {
+             whoBox.append(h('p', { text: 'Anonymous: this browser holds no site key. Everything here is read with the vault\'s public read key.' }))
+-            // a key is imported once per browser, on this site: open this page with your key link (#key=...), or paste it here
+-            const inp = h('input', { type: 'password', placeholder: 'paste your key link (…#key=…)', autocomplete: 'off', style: 'width:100%;margin:4px 0' })
+-            if (KR) whoBox.append(inp, h('button', { type: 'button', text: 'Use my key', onclick: async () => { try { await KR.add(inp.value); inp.value = ''; location.reload() } catch (e) { log('error', e.message) } } }),
+-                h('p', { class: 'obsd-m', text: 'The key is kept in this browser only (IndexedDB, non-extractable) and never sent anywhere.' }))
++            // the key is made and unlocked on its own page (S17, 27 Nov 2026); tick "Remember on this device" there to have it here
++            whoBox.append(h('p', {}, ['To open the keys sealed to you, ', h('a', { href: '../../login/key/index.html', text: 'make or unlock your key' }), ' (and tick "Remember this key on this device" so this page can use it).']))
+             log('who', 'no site key in this browser'); return null }
+         whoBox.append(h('p', {}, ['Signed in by key as ', h('b', { text: KR.person }), ' (', code(KR.fingerprint), '). The private half is a non-extractable CryptoKey in this browser\'s IndexedDB: the page can use it, never read it.']))
+         log('who', `this browser holds ${KR.person}'s site key ${KR.fingerprint}`)
+diff --git a/data/site/nav.json b/data/site/nav.json
+index e81eba3ad..8a491cefc 100644
+--- a/data/site/nav.json
++++ b/data/site/nav.json
+@@ -191,6 +191,11 @@
+       "href": "newsroom/index.html",
+       "column": "The newsroom"
+     },
++    {
++      "column": "The newsroom",
++      "label": "Editors: make or unlock your key",
++      "href": "login/key/index.html"
++    },
+     {
+       "column": "The newsroom",
+       "label": "Design",
+diff --git a/newsroom/build/features/login.mjs b/newsroom/build/features/login.mjs
+index 3fbb47ea4..289e51365 100644
+--- a/newsroom/build/features/login.mjs
++++ b/newsroom/build/features/login.mjs
+@@ -8,8 +8,8 @@
+ import crypto from 'node:crypto'
+ export const order = 6
+ export const assets = { css: ['assets/login/login.css'], js: ['assets/login/login.js'] }
+-export const KEYRING_PAGES = ['login/index.html', 'newsroom/observability/index.html', 'talk/index.html']   // talk/: the reader's own talk page (talk.mjs; dev.places@, 15 Nov 2026, for security@'s review)
+-export function decorate(p) { if (KEYRING_PAGES.includes(p.rel)) p.assets = { css: [...(p.assets?.css || [])], js: ['assets/login/keyring.js', ...(p.assets?.js || [])] } }
++export const KEYRING_PAGES = ['login/key/index.html', 'newsroom/observability/index.html', 'talk/index.html']   // login/key/ replaces login/ (27 Nov 2026, S17): the key is made and unlocked on its own page, which has its own CSP   // talk/: the reader's own talk page (talk.mjs; dev.places@, 15 Nov 2026, for security@'s review)
++export function decorate(p) { if (KEYRING_PAGES.includes(p.rel) && p.rel !== 'login/key/index.html') p.assets = { css: [...(p.assets?.css || [])], js: ['assets/login/keyring.js', ...(p.assets?.js || [])] } }
+ const REGISTER = 'board/person-keys.json', JSQR = 'assets/vendor/jsqr/1.4.0/jsQR.js', JSQR_VENDOR = 'assets/vendor/jsqr/1.4.0/VENDOR.md'
+ const fp = jwk => 'sha256:' + crypto.createHash('sha256').update(`${jwk.crv}:${jwk.x}:${jwk.y}`).digest('hex').slice(0, 16)
+ 
+@@ -47,3 +47,14 @@ export function validate(gate) {
+     if (!/Apache License/.test(gate.text('assets/vendor/jsqr/1.4.0/LICENSE'))) out.push('assets/vendor/jsqr/1.4.0/LICENSE: the licence must stay beside the file')
+     return out
+ }
++
++// the key page (S17): a bare page with its own Content-Security-Policy (script-src 'self', no inline script or style, no third-party host); its words, head lines and CSP are data
++export function pages(ctx) {
++    const W = ctx.readJSON('assets/login/key-page.json')
++    return [{
++        rel: 'login/key/index.html', type: 'account', src: 'assets/login/key-page.json', bare: true, head: W.head.join('\n'),
++        title: W.title, summary: W.summary, md: W.md.join('\n'),
++        crumbs: [['login/index.html', 'Sign in'], [null, W.title]],
++        assets: { css: ['assets/login/login.css'], js: ['assets/login/keyring.js', 'assets/login/key.js'] },
++    }]
++}
+diff --git a/newsroom/build/tests/test_keyring.mjs b/newsroom/build/tests/test_keyring.mjs
+new file mode 100644
+index 000000000..f7c4831e6
+--- /dev/null
++++ b/newsroom/build/tests/test_keyring.mjs
+@@ -0,0 +1,47 @@
++#!/usr/bin/env node
++/* test_keyring.mjs: assets/login/keyring.js (cl-6.security's S17): the key is made in the browser, the backup opens only with the passphrase, the file holds no
++ * plain private half, the passphrase minimum holds, a changed file is refused, signing needs a user gesture, and the fingerprint is the site's scheme.
++ *   node newsroom/build/tests/test_keyring.mjs   Written by cl-6.dev@PrompTugal.dinis, 27 Nov 2026. */
++import fs from 'node:fs'
++import vm from 'node:vm'
++import crypto, { webcrypto } from 'node:crypto'
++const SRC = fs.readFileSync(new URL('../../../assets/login/keyring.js', import.meta.url), 'utf8')
++const fresh = (active = true, pre = {}) => {
++    const store = new Map(Object.entries(pre)), win = { crypto: webcrypto, localStorage: { getItem: k => store.get(k) ?? null, removeItem: k => store.delete(k), setItem: (k, v) => store.set(k, v) } }
++    const ctx = { window: win, document: { currentScript: null }, crypto: webcrypto, navigator: { userActivation: { isActive: active } }, fetch: async () => ({ json: async () => ({ keys: [] }) }), TextEncoder, TextDecoder, atob, btoa, Uint8Array, JSON, Promise, Math, Error, Number, String, Object, Array }
++    ctx.localStorage = win.localStorage; vm.runInNewContext(SRC, ctx); return { KR: win.PTKeyring, win, ctx, store }
++}
++let bad = 0
++const t = (what, got, want) => { if (JSON.stringify(got) !== JSON.stringify(want)) { bad++; console.error(`FAIL ${what}: ${JSON.stringify(got)}, want ${JSON.stringify(want)}`) } }
++const rejects = async (what, p, re) => { try { await p; bad++; console.error(`FAIL ${what}: did not throw`) } catch (e) { if (!re.test(String(e && e.message))) { bad++; console.error(`FAIL ${what}: ${e.message}`) } } }
++const A = fresh(); await A.KR.ready
++await rejects('a short passphrase', A.KR.make('short'), /at least 12/)
++const made = await A.KR.make('correct horse battery staple')
++const file = JSON.parse(made.backup)
++t('header', [file.v, file.kind, file.kdf.name, file.kdf.hash, file.kdf.iter, file.enc.name], [1, 'pt-key-backup', 'PBKDF2', 'SHA-256', 600000, 'AES-GCM'])
++t('no plain private component in the file', /"d"\s*:/.test(made.backup), false)
++t('no private component in the public keys', /"d"\s*:/.test(JSON.stringify(made.pub)), false)
++const fpOf = j => 'sha256:' + crypto.createHash('sha256').update(`${j.crv}:${j.x}:${j.y}`).digest('hex').slice(0, 16)
++t('the fingerprint is the site scheme (crv:x:y)', [made.pub.fingerprint, made.pub.signing_fingerprint], [fpOf(made.pub.encrypt), fpOf(made.pub.sign)])
++t('the key is held after make', A.KR.fingerprint, made.pub.fingerprint)
++const B = fresh(); await B.KR.ready
++t('a new page holds no key (memory only)', B.KR.fingerprint, '')
++await rejects('a wrong passphrase', B.KR.unlock(made.backup, 'another long passphrase!!'), /wrong passphrase/)
++const bad1 = JSON.parse(made.backup); bad1.kdf.iter = 100001
++await rejects('a changed header', B.KR.unlock(JSON.stringify(bad1), 'correct horse battery staple'), /wrong passphrase/)
++await rejects('not a backup file', B.KR.unlock('{"v":2}', 'correct horse battery staple'), /not a key backup/)
++const pub2 = await B.KR.unlock(made.backup, 'correct horse battery staple')
++t('unlocking gives the same key', pub2.fingerprint, made.pub.fingerprint)
++t('nothing stored in localStorage', [...B.store.keys()], [])
++// signing needs a gesture, and verifies against the public key
++const sig = await B.KR.sign('promptugal.news/login test')
++const pubKey = await webcrypto.subtle.importKey('jwk', pub2.sign, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify'])
++t('the signature verifies', await webcrypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, pubKey, Buffer.from(sig, 'base64'), new TextEncoder().encode('promptugal.news/login test')), true)
++const C = fresh(false); await C.KR.ready; await C.KR.unlock(made.backup, 'correct horse battery staple')
++await rejects('signing without a gesture', C.KR.sign('x'), /needs a click/)
++await rejects('a key link is refused', C.KR.add('#key=abc'), /no longer accepted/)
++// the earlier store (localStorage pt.me) is removed on load, and the page says so
++const E = fresh(true, { 'pt.me': 'dinis' }); await E.KR.ready
++t('the old pt.me is deleted and reported', [E.store.has('pt.me'), E.KR.upgraded], [false, true])
++if (bad) { console.error(`${bad} failed`); process.exit(1) }
++console.log('test_keyring: OK')
+diff --git a/newsroom/tools/person-key.mjs b/newsroom/tools/person-key.mjs
+index 344cc43d5..713ad27d9 100644
+--- a/newsroom/tools/person-key.mjs
++++ b/newsroom/tools/person-key.mjs
+@@ -35,6 +35,7 @@ const STORE = path.join(os.homedir(), '.sg-send/issued')
+ const args = process.argv.slice(2), cmd = args[0]
+ const opt = k => { const i = args.indexOf('--' + k); return i > 0 ? args[i + 1] : undefined }
+ const fail = m => { console.error('person-key: ' + m); process.exit(1) }
++if (cmd === 'issue' || cmd === 'link') fail('retired (S17, 27 Nov 2026): a key is made in the person\'s own browser on /login/key/, never by an agent')
+ const b64 = b => Buffer.from(b).toString('base64'), b64u = b => Buffer.from(b).toString('base64url')
+ const fp = jwk => 'sha256:' + crypto.createHash('sha256').update(`${jwk.crv}:${jwk.x}:${jwk.y}`).digest('hex').slice(0, 16)
+ const readPub = () => fs.existsSync(PUB) ? JSON.parse(fs.readFileSync(PUB, 'utf8')) : { about: '', keys: [] }
+-- 
+2.43.0
+
