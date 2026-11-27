@@ -1,0 +1,32 @@
+From cc95f6862f0e60c15e45cfc2831e38d2fa85739f Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Fri, 27 Nov 2026 03:41:51 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: the lead band's panel is headed
+ 'More from the front page', not 'Also today' (cl-6.designer's word, on
+ cl-6.security's nit: no relative words)
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ assets/front-e/front-e.tmpl | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/assets/front-e/front-e.tmpl b/assets/front-e/front-e.tmpl
+index de6252dae..de6366e0c 100644
+--- a/assets/front-e/front-e.tmpl
++++ b/assets/front-e/front-e.tmpl
+@@ -22,7 +22,7 @@
+ <section class="fe-band" aria-label="The lead story"><div class="fe-w"><div><p class="fe-kk">{{kicker}}</p><h2 class="fe-hed"><a href="{{href}}">{{headline}}</a></h2>{{live}}<p class="fe-dek">{{dek}}</p>{{programme}}{{developments}}<p class="fe-lmore"><a href="{{href}}">Read the full story <span aria-hidden="true">→</span></a></p>{{storm}}<p class="fe-by">{{byline}} · {{minutes}} min read</p>{{pill}}</div>{{figure}}</div></section>
+ <!-- part:none -->
+ <section class="fe-band" aria-label="The lead story"><div class="fe-w"><div><h2 class="fe-hed">Our first article is on the way.</h2></div></div></section>
+-<!-- item:also --><aside class="fe-also" aria-label="Also today"><h2 class="fe-h">Also today</h2><ol>{{items}}</ol></aside>
++<!-- item:also --><aside class="fe-also" aria-label="More from the front page"><h2 class="fe-h">More from the front page</h2><ol>{{items}}</ol></aside>
+ <!-- item:alsoi --><li><a href="{{href}}">{{title}}</a>{{date}}</li>
+ <!-- item:programme --><p class="fe-lpg"><b>{{label}}</b> {{text}}{{src}}</p>
+ <!-- item:developments --><ul class="fe-ldv">{{items}}</ul>
+-- 
+2.43.0
+

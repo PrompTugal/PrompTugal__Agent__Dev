@@ -1,4 +1,4 @@
-From 6543a707c2a4ab07bff28e1c181acc220c58dc4b Mon Sep 17 00:00:00 2001
+From 041c259f43782acd1430c0c96e481da0f30835ea Mon Sep 17 00:00:00 2001
 From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
 Date: Fri, 27 Nov 2026 02:37:54 +0000
 Subject: [PATCH] cl-6.dev@PrompTugal.dinis: S17: keys are made in the person's
@@ -14,21 +14,24 @@ For: Dinis
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
 ---
- assets/login/key-page.json            |  23 ++++
- assets/login/key-words.json           |  27 ++++
- assets/login/key.js                   |  53 ++++++++
- assets/login/keyring.js               | 125 ++++++++++++-------
- assets/login/login.js                 | 170 ++++----------------------
- assets/obs/obs-view.js                |   6 +-
- data/site/nav.json                    |   5 +
- newsroom/build/features/login.mjs     |  22 +++-
- newsroom/build/tests/test_keyring.mjs |  47 +++++++
- newsroom/tools/person-key.mjs         |   1 +
- 10 files changed, 283 insertions(+), 196 deletions(-)
+ assets/login/key-page.json                |  23 +++
+ assets/login/key-words.json               |  27 ++++
+ assets/login/key.js                       |  53 +++++++
+ assets/login/keyring.js                   | 125 ++++++++++------
+ assets/login/login.js                     | 170 ++++------------------
+ assets/obs/obs-view.js                    |   6 +-
+ assets/talk/talk.js                       |   2 +-
+ data/site/nav.json                        |   5 +
+ newsroom/build/features/login.mjs         |  26 +++-
+ newsroom/build/tests/test_keyring.mjs     |  47 ++++++
+ newsroom/build/tests/test_keyring_csp.mjs |  19 +++
+ newsroom/tools/person-key.mjs             |   1 +
+ 12 files changed, 307 insertions(+), 197 deletions(-)
  create mode 100644 assets/login/key-page.json
  create mode 100644 assets/login/key-words.json
  create mode 100644 assets/login/key.js
  create mode 100644 newsroom/build/tests/test_keyring.mjs
+ create mode 100644 newsroom/build/tests/test_keyring_csp.mjs
 
 diff --git a/assets/login/key-page.json b/assets/login/key-page.json
 new file mode 100644
@@ -528,6 +531,19 @@ index c4ec0ed2b..3237f2e92 100644
              log('who', 'no site key in this browser'); return null }
          whoBox.append(h('p', {}, ['Signed in by key as ', h('b', { text: KR.person }), ' (', code(KR.fingerprint), '). The private half is a non-extractable CryptoKey in this browser\'s IndexedDB: the page can use it, never read it.']))
          log('who', `this browser holds ${KR.person}'s site key ${KR.fingerprint}`)
+diff --git a/assets/talk/talk.js b/assets/talk/talk.js
+index d1bac7b25..0bd528031 100644
+--- a/assets/talk/talk.js
++++ b/assets/talk/talk.js
+@@ -112,7 +112,7 @@
+         mount.textContent = ''
+         if (!KR) { mount.append(el('p', 'talk-msg', W.talk_need_key)); return }
+         await KR.ready.catch(() => { })
+-        if (!KR.person) { const p = el('p', 'talk-msg', W.talk_need_key + ' '); const a = el('a', null, '/login/'); a.href = root + 'login/'; p.append(a); mount.append(p); return }
++        if (!KR.person) { const p = el('p', 'talk-msg', W.talk_need_key + ' '); const a = el('a', null, '/login/key/'); a.href = root + 'login/key/'; p.append(a); mount.append(p); return }
+         const raw = SS.get('draft')
+         if (raw) {
+             const d = JSON.parse(raw), box = el('div', 'talk-draft')
 diff --git a/data/site/nav.json b/data/site/nav.json
 index e81eba3ad..8a491cefc 100644
 --- a/data/site/nav.json
@@ -545,7 +561,7 @@ index e81eba3ad..8a491cefc 100644
        "column": "The newsroom",
        "label": "Design",
 diff --git a/newsroom/build/features/login.mjs b/newsroom/build/features/login.mjs
-index 3fbb47ea4..a6315bf82 100644
+index 3fbb47ea4..1c9b690f6 100644
 --- a/newsroom/build/features/login.mjs
 +++ b/newsroom/build/features/login.mjs
 @@ -8,8 +8,8 @@
@@ -559,21 +575,32 @@ index 3fbb47ea4..a6315bf82 100644
  const REGISTER = 'board/person-keys.json', JSQR = 'assets/vendor/jsqr/1.4.0/jsQR.js', JSQR_VENDOR = 'assets/vendor/jsqr/1.4.0/VENDOR.md'
  const fp = jwk => 'sha256:' + crypto.createHash('sha256').update(`${jwk.crv}:${jwk.x}:${jwk.y}`).digest('hex').slice(0, 16)
  
-@@ -39,6 +39,13 @@ export function validate(gate) {
+@@ -24,6 +24,12 @@ export const fill = {
+ 
+ export const llms = ctx => `## Sign in\n- [login/](${ctx.BASE}login/index.md): editors and agents sign in with the key a conductor issued them (a QR code of the sign-in link); the browser proves it against [board/person-keys.json](${ctx.BASE}board/person-keys.json). Readers need no account. In a browser: \`window.PTLogin.state()\`, tool \`auth.whoami\` (read).\n\n`
+ 
++// S17 R1: a page that loads the keyring carries a strict CSP as the first element after the charset (script-src 'self', default-src 'none', no unsafe-*, no wildcard)
++export function cspProblem(html) {
++    const head = (String(html).match(/<meta charset="utf-8">\s*<meta http-equiv="Content-Security-Policy" content="([^"]*)"/) || [])[1]
++    const sc = head && (head.match(/(?:^|;)\s*script-src ([^;]*)/) || [])[1]
++    return !head || sc !== "'self'" || /unsafe-|\*/.test(head) || !/default-src 'none'/.test(head) ? 'loads the keyring without a strict CSP first in head' : ''
++}
+ export function validate(gate) {
+     const out = []
+     // the register: public halves only, each fingerprint what the key gives, one active key per person
+@@ -39,6 +45,11 @@ export function validate(gate) {
              if (k.status === 'active') { if (active[k.person]) out.push(`${REGISTER}: two active keys for ${k.person}`); active[k.person] = 1 }
          }
      }
 +    // S17 R1: a page that loads the keyring carries a strict CSP as the first element after the charset (no inline script, no eval, no wildcard, no third-party script host)
 +    for (const f of KEYRING_PAGES) {
 +        if (![...gate.generated].includes(f)) { out.push(`${f}: missing`); continue }
-+        const head = (gate.text(f).match(/<meta charset="utf-8">\s*<meta http-equiv="Content-Security-Policy" content="([^"]*)"/) || [])[1]
-+        const sc = head && (head.match(/(?:^|;)\s*script-src ([^;]*)/) || [])[1]
-+        if (!head || sc !== "'self'" || /unsafe-|\*/.test(head) || !/default-src 'none'/.test(head)) out.push(`${f}: loads the keyring without a strict CSP first in head (script-src 'self', default-src 'none', no unsafe-*)`)
++        const bad = cspProblem(gate.text(f)); if (bad) out.push(`${f}: ${bad}`)
 +    }
      // S1: the keyring only on the pages that use the key
      for (const f of gate.generated) if (f.endsWith('.html') && !KEYRING_PAGES.includes(f) && gate.text(f).includes('login/keyring.js')) out.push(`${f}: loads assets/login/keyring.js; the key is for ${KEYRING_PAGES.join(' and ')} only (security@'s S1)`)
      // the vendored QR reader is unedited
-@@ -47,3 +54,14 @@ export function validate(gate) {
+@@ -47,3 +58,14 @@ export function validate(gate) {
      if (!/Apache License/.test(gate.text('assets/vendor/jsqr/1.4.0/LICENSE'))) out.push('assets/vendor/jsqr/1.4.0/LICENSE: the licence must stay beside the file')
      return out
  }
@@ -641,6 +668,31 @@ index 000000000..f7c4831e6
 +t('the old pt.me is deleted and reported', [E.store.has('pt.me'), E.KR.upgraded], [false, true])
 +if (bad) { console.error(`${bad} failed`); process.exit(1) }
 +console.log('test_keyring: OK')
+diff --git a/newsroom/build/tests/test_keyring_csp.mjs b/newsroom/build/tests/test_keyring_csp.mjs
+new file mode 100644
+index 000000000..8f175be7e
+--- /dev/null
++++ b/newsroom/build/tests/test_keyring_csp.mjs
+@@ -0,0 +1,19 @@
++#!/usr/bin/env node
++/* test_keyring_csp.mjs: the gate's CSP check for pages that load the keyring (cl-6.security's S17 R1): a page without the meta, with 'unsafe-inline', with a wildcard,
++ * with the meta not first, or without default-src 'none' fails; the key page's own policy passes.   node newsroom/build/tests/test_keyring_csp.mjs   Written by cl-6.dev@PrompTugal.dinis. */
++import fs from 'node:fs'
++import { cspProblem } from '../features/login.mjs'
++let bad = 0
++const t = (what, got, want) => { if (got !== want) { bad++; console.error(`FAIL ${what}: ${JSON.stringify(got)}, want ${JSON.stringify(want)}`) } }
++const W = JSON.parse(fs.readFileSync(new URL('../../../assets/login/key-page.json', import.meta.url), 'utf8')), policy = W.csp
++const page = (csp, before = '') => `<!doctype html><head><meta charset="utf-8">${before}${csp === null ? '' : `<meta http-equiv="Content-Security-Policy" content="${csp}">`}<title>x</title></head>`
++t('the key page policy passes', cspProblem(page(policy)), '')
++t('no meta fails', !!cspProblem(page(null)), true)
++t("'unsafe-inline' in script-src fails", !!cspProblem(page(policy.replace("script-src 'self'", "script-src 'self' 'unsafe-inline'"))), true)
++t("'unsafe-eval' fails", !!cspProblem(page(policy + "; script-src 'unsafe-eval'")), true)
++t('a wildcard fails', !!cspProblem(page(policy.replace("img-src 'self'", 'img-src *'))), true)
++t("no default-src 'none' fails", !!cspProblem(page(policy.replace("default-src 'none'; ", ''))), true)
++t('a script host in script-src fails', !!cspProblem(page(policy.replace("script-src 'self'", "script-src 'self' https://cdn.example"))), true)
++t('the meta not first after the charset fails', !!cspProblem(page(policy, '<meta name="x" content="y">')), true)
++if (bad) { console.error(`${bad} failed`); process.exit(1) }
++console.log('test_keyring_csp: OK')
 diff --git a/newsroom/tools/person-key.mjs b/newsroom/tools/person-key.mjs
 index 344cc43d5..713ad27d9 100644
 --- a/newsroom/tools/person-key.mjs
