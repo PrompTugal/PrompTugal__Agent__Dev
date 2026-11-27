@@ -1,4 +1,4 @@
-From 54f9959fe02519b5497937bba2ab345922e63e69 Mon Sep 17 00:00:00 2001
+From 6543a707c2a4ab07bff28e1c181acc220c58dc4b Mon Sep 17 00:00:00 2001
 From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
 Date: Fri, 27 Nov 2026 02:37:54 +0000
 Subject: [PATCH] cl-6.dev@PrompTugal.dinis: S17: keys are made in the person's
@@ -21,10 +21,10 @@ Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
  assets/login/login.js                 | 170 ++++----------------------
  assets/obs/obs-view.js                |   6 +-
  data/site/nav.json                    |   5 +
- newsroom/build/features/login.mjs     |  15 ++-
+ newsroom/build/features/login.mjs     |  22 +++-
  newsroom/build/tests/test_keyring.mjs |  47 +++++++
  newsroom/tools/person-key.mjs         |   1 +
- 10 files changed, 276 insertions(+), 196 deletions(-)
+ 10 files changed, 283 insertions(+), 196 deletions(-)
  create mode 100644 assets/login/key-page.json
  create mode 100644 assets/login/key-words.json
  create mode 100644 assets/login/key.js
@@ -512,7 +512,7 @@ index 3af93591f..0b8b7097c 100644
      const ready = (document.readyState === 'loading' ? new Promise(r => document.addEventListener('DOMContentLoaded', r, { once: true })) : Promise.resolve()).then(check)
      window.PTLogin = { ready, state: () => state, signIn, signOut }
 diff --git a/assets/obs/obs-view.js b/assets/obs/obs-view.js
-index c4ec0ed2b..e58e3140f 100644
+index c4ec0ed2b..3237f2e92 100644
 --- a/assets/obs/obs-view.js
 +++ b/assets/obs/obs-view.js
 @@ -591,10 +591,8 @@
@@ -523,8 +523,8 @@ index c4ec0ed2b..e58e3140f 100644
 -            const inp = h('input', { type: 'password', placeholder: 'paste your key link (…#key=…)', autocomplete: 'off', style: 'width:100%;margin:4px 0' })
 -            if (KR) whoBox.append(inp, h('button', { type: 'button', text: 'Use my key', onclick: async () => { try { await KR.add(inp.value); inp.value = ''; location.reload() } catch (e) { log('error', e.message) } } }),
 -                h('p', { class: 'obsd-m', text: 'The key is kept in this browser only (IndexedDB, non-extractable) and never sent anywhere.' }))
-+            // the key is made and unlocked on its own page (S17, 27 Nov 2026); tick "Remember on this device" there to have it here
-+            whoBox.append(h('p', {}, ['To open the keys sealed to you, ', h('a', { href: '../../login/key/index.html', text: 'make or unlock your key' }), ' (and tick "Remember this key on this device" so this page can use it).']))
++            // keys are made and unlocked on /login/key/ only; this page does not load the keyring until it carries a CSP as strict as that page's (S17 R1, 27 Nov 2026)
++            whoBox.append(h('p', {}, ['Keys are made and unlocked on ', h('a', { href: '../../login/key/index.html', text: 'their own page' }), '. This page cannot use a key yet: it will, once it carries the same strict content-security policy.']))
              log('who', 'no site key in this browser'); return null }
          whoBox.append(h('p', {}, ['Signed in by key as ', h('b', { text: KR.person }), ' (', code(KR.fingerprint), '). The private half is a non-extractable CryptoKey in this browser\'s IndexedDB: the page can use it, never read it.']))
          log('who', `this browser holds ${KR.person}'s site key ${KR.fingerprint}`)
@@ -545,7 +545,7 @@ index e81eba3ad..8a491cefc 100644
        "column": "The newsroom",
        "label": "Design",
 diff --git a/newsroom/build/features/login.mjs b/newsroom/build/features/login.mjs
-index 3fbb47ea4..289e51365 100644
+index 3fbb47ea4..a6315bf82 100644
 --- a/newsroom/build/features/login.mjs
 +++ b/newsroom/build/features/login.mjs
 @@ -8,8 +8,8 @@
@@ -554,12 +554,26 @@ index 3fbb47ea4..289e51365 100644
  export const assets = { css: ['assets/login/login.css'], js: ['assets/login/login.js'] }
 -export const KEYRING_PAGES = ['login/index.html', 'newsroom/observability/index.html', 'talk/index.html']   // talk/: the reader's own talk page (talk.mjs; dev.places@, 15 Nov 2026, for security@'s review)
 -export function decorate(p) { if (KEYRING_PAGES.includes(p.rel)) p.assets = { css: [...(p.assets?.css || [])], js: ['assets/login/keyring.js', ...(p.assets?.js || [])] } }
-+export const KEYRING_PAGES = ['login/key/index.html', 'newsroom/observability/index.html', 'talk/index.html']   // login/key/ replaces login/ (27 Nov 2026, S17): the key is made and unlocked on its own page, which has its own CSP   // talk/: the reader's own talk page (talk.mjs; dev.places@, 15 Nov 2026, for security@'s review)
++export const KEYRING_PAGES = ['login/key/index.html']   // only the key page (27 Nov 2026, S17 R1): /talk/ and the observability drain return when each carries a CSP as strict as this page's and the frame guard
 +export function decorate(p) { if (KEYRING_PAGES.includes(p.rel) && p.rel !== 'login/key/index.html') p.assets = { css: [...(p.assets?.css || [])], js: ['assets/login/keyring.js', ...(p.assets?.js || [])] } }
  const REGISTER = 'board/person-keys.json', JSQR = 'assets/vendor/jsqr/1.4.0/jsQR.js', JSQR_VENDOR = 'assets/vendor/jsqr/1.4.0/VENDOR.md'
  const fp = jwk => 'sha256:' + crypto.createHash('sha256').update(`${jwk.crv}:${jwk.x}:${jwk.y}`).digest('hex').slice(0, 16)
  
-@@ -47,3 +47,14 @@ export function validate(gate) {
+@@ -39,6 +39,13 @@ export function validate(gate) {
+             if (k.status === 'active') { if (active[k.person]) out.push(`${REGISTER}: two active keys for ${k.person}`); active[k.person] = 1 }
+         }
+     }
++    // S17 R1: a page that loads the keyring carries a strict CSP as the first element after the charset (no inline script, no eval, no wildcard, no third-party script host)
++    for (const f of KEYRING_PAGES) {
++        if (![...gate.generated].includes(f)) { out.push(`${f}: missing`); continue }
++        const head = (gate.text(f).match(/<meta charset="utf-8">\s*<meta http-equiv="Content-Security-Policy" content="([^"]*)"/) || [])[1]
++        const sc = head && (head.match(/(?:^|;)\s*script-src ([^;]*)/) || [])[1]
++        if (!head || sc !== "'self'" || /unsafe-|\*/.test(head) || !/default-src 'none'/.test(head)) out.push(`${f}: loads the keyring without a strict CSP first in head (script-src 'self', default-src 'none', no unsafe-*)`)
++    }
+     // S1: the keyring only on the pages that use the key
+     for (const f of gate.generated) if (f.endsWith('.html') && !KEYRING_PAGES.includes(f) && gate.text(f).includes('login/keyring.js')) out.push(`${f}: loads assets/login/keyring.js; the key is for ${KEYRING_PAGES.join(' and ')} only (security@'s S1)`)
+     // the vendored QR reader is unedited
+@@ -47,3 +54,14 @@ export function validate(gate) {
      if (!/Apache License/.test(gate.text('assets/vendor/jsqr/1.4.0/LICENSE'))) out.push('assets/vendor/jsqr/1.4.0/LICENSE: the licence must stay beside the file')
      return out
  }
