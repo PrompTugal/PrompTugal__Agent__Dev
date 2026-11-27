@@ -17,9 +17,9 @@
     "pinned_in": "website newsroom/tools/place-signers.json pins cl-6.places by fingerprint (SHA256:xSUBWx9MZBhggV5fKfu8HSvSqD03ounn5o3R/6kasVA)"
   },
   "model": "sonnet",
-  "state": "running. Live on promptugal.news v0.1.2336 (since 12:00Z: article segments API; pay-for-what-you-read chip; /newsroom/agents/; /newsroom/activity/; the Tube chart; A7 paths check (warning); S9 (87 keys superseded); operator list own rule (O1); the conductor's new key; W1/S12 markdown safety; the free /weather/ page and camera links; the place sync with one pin per agent; place pages outside Portugal; London's registry entry). Held: the abp re-pin, London's pin (P17), P11 c.",
-  "focus": "S72 wiring, when CI's key exists: the signatures job with if: github.ref == 'refs/heads/dev' (security@ b02b3a398 point 1), deploy needs it, anchor.mjs and the launcher from A; once the sites read versions[v].integrity: drop the repeated .js, .css, .render and obs_tz .sha256 keys from the registry (security@'s low note, 2d812d6da); with signing enforced: bring worker branches by merge, not cherry-",
-  "updated": "2026-11-26T18:50Z",
+  "state": "running. Live on promptugal.news v0.1.2373 (since 07:3xZ): absolute dates, language menu off (English only), civic/journalist/devops/curator keys, home page: phone order, map legend with dates, enlarged Algarve with town names, grid order and blurbs, 'More from the front page' panel, map story counts per place, footer link to /agentic/, byline and chip 'Credit', '1 airline flight'; the news-flow front-matter gate (town, region, builds_on, level in the articles API). All post-reviewed by cl-6.security. Held: S17 (/login/ key made in the browser; passed security, wip-s17) for Dinis's go via cl-6.decisions, the abp re-pin, London's pin (P17), P11 c.",
+  "focus": "S17 release when Dinis says go (then: enrolment of his browser-made key, re-seal of newsroom/observability/sealed/dinis.json, revoke the 2 agent-issued person keys, bring /talk/ and the observability page back under a strict CSP); then the ontologist's news-flow work and whatever the designer and conductor route",
+  "updated": "2026-11-27T07:45Z",
   "timeline": [
     {
       "at": "2026-11-26T11:41Z",
@@ -84,6 +84,10 @@
     {
       "at": "2026-11-21T07:58Z",
       "event": "last status update of the source folder dev.places"
+    },
+    {
+      "at": "2026-11-27T07:45Z",
+      "event": "wake: nothing new since 04:30Z; no HOLD; S17 awaits Dinis's go; wip branches kept locally (wip-s17 is the one that matters)"
     }
   ],
   "waiting_on": [
@@ -93,7 +97,8 @@
     "Dinis: his key's SHA-256 fingerprint for newsroom/tools/operator-keys.json; security's S13 follow-up (a signed statement by his anchor at bootstrap) is mine to design",
     "Dinis (P8): the CI pins check (home review/2026-11-26-p8-abp-pins-workflow.yml, advisory); the org ruleset (cl-6.infra); ABP_PIN_KEY_SHA256 (Dinis and IaC); a workflow edit needs his word in this session",
     "cl-6.designer: the zero-moment line and explainer page (pay for what you read); cl-6.accountant: the article price check",
-    "Dinis: the camera-link ruling was given (APL, AEMTG only); IPMA on the 11 Nov article is cl-6.rights' open question with him"
+    "Dinis: the camera-link ruling was given (APL, AEMTG only); IPMA on the 11 Nov article is cl-6.rights' open question with him",
+    "Dinis (via cl-6.decisions): go for S17: the key page makes keys in the browser and retires the agent-issued link keys, so his observability drain (sealed to the old key) stops until a browser-made key of his is enrolled in board/person-keys.json and newsroom/observability/sealed/dinis.json is re-sealed; the content owner for content/login.md (still describes the QR flow; suggested text in review/2026-11-27-s17-plan-and-consequences.md)"
   ],
   "wake": "trig_01PrmumHe2QqRkn2P6fridbx (07:37 and 18:37 Lisbon)",
   "exceptions": [
