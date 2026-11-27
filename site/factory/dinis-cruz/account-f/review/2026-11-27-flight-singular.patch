@@ -1,0 +1,68 @@
+From 76492da9d5fa1e05e46120a33a62f92a35cc9b8e Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Fri, 27 Nov 2026 00:56:12 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: '1 airline flight' not '1 airline
+ flights': the front page's line, its numbers box and the map label now use
+ the singular for one (cl-6.synthetic's home-page read)
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ assets/viz/newsroom.json                 | 3 ++-
+ newsroom/build/features/front-e.mjs      | 4 ++--
+ newsroom/build/features/viz-newsroom.mjs | 2 +-
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/assets/viz/newsroom.json b/assets/viz/newsroom.json
+index 0249aa609..7ad0235dc 100644
+--- a/assets/viz/newsroom.json
++++ b/assets/viz/newsroom.json
+@@ -150,5 +150,6 @@
+   "arcs_twin": "- {a} and {b}: {what} ([source]({url}), read {read})",
+   "nowmap_twin_now": "{t}° now at {station} ({at} UTC); ",
+   "nowmap_warn_none": "IPMA: no warnings for the Faro district",
+-  "nowmap_flights": "{n} airline flights near Faro"
++  "nowmap_flights": "{n} airline flights near Faro",
++  "nowmap_flight_one": "{n} airline flight near Faro"
+ }
+diff --git a/newsroom/build/features/front-e.mjs b/newsroom/build/features/front-e.mjs
+index cd133ed05..feba2d007 100644
+--- a/newsroom/build/features/front-e.mjs
++++ b/newsroom/build/features/front-e.mjs
+@@ -143,7 +143,7 @@ function nowLine(ctx) {
+     // promptugal.news bills, so no IPMA values here (Dinis, 18 Nov 23:45: board/guidance/2026-11-18-billing-only-on-the-main-site.md):
+     // Faro airport (adsb.lol, ODbL) and a link to the weather on weather.promptugal.news
+     const esc = ctx.md.esc, ap = (F && F.airport) || R.airport
+-    const bits = [ap && put(item('nowlink'), { href: esc(ap.source), text: `Faro airport: ${ap.airline.length} airline flights near` }),
++    const bits = [ap && put(item('nowlink'), { href: esc(ap.source), text: `Faro airport: ${ap.airline.length} airline flight${ap.airline.length === 1 ? '' : 's'} near` }),
+         put(item('nowlink'), { href: 'https://weather.promptugal.news/places/algarve/', text: 'the weather and IPMA warnings: PrompTugal Weather' })].filter(Boolean)
+     return put(item('now'), { bits: bits.join(' · '), at: esc(String(R.read_at).slice(11, 16)) })
+ }
+@@ -159,7 +159,7 @@ function statsOf(ctx, PR, all) {
+         ...Object.entries(types).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t, n]) => [n, `on the maps: ${t}`]),
+         [sum(d => (d.events || []).length), 'events'], [sum(d => (d.sources || []).length), 'sources the agents read'], [sum(d => (d.gaps || []).length), 'gaps: looked for, not found'],
+         [all.filter(a => a.meta.region || a.meta.town).length, 'place stories written'], [signed, 'stories signed'],
+-        ...(F && F.airport ? [[F.airport.airline.length, `airline flights near Faro at ${String(F.airport.at).slice(11, 16)} UTC`]] : [])]
++        ...(F && F.airport ? [[F.airport.airline.length, `airline flight${F.airport.airline.length === 1 ? '' : 's'} near Faro at ${String(F.airport.at).slice(11, 16)} UTC`]] : [])]
+     return rows.map(([n, label]) => ({ n, label: ctx.md.esc(label) }))
+ }
+ 
+diff --git a/newsroom/build/features/viz-newsroom.mjs b/newsroom/build/features/viz-newsroom.mjs
+index 5f62cfd54..aa0921611 100644
+--- a/newsroom/build/features/viz-newsroom.mjs
++++ b/newsroom/build/features/viz-newsroom.mjs
+@@ -282,7 +282,7 @@ function nowMapHtml(ctx, region) {
+     const fr = rows.find(r => r.t.id === 'faro'), ap = fr && fr.n.airport
+     if (ap && placesAt(ctx).has('faro')) {
+         const fa = placesAt(ctx).get('faro').at, x = P.X0(fa[0]) + 96, y = P.Y0(fa[1]) + 40, al = arr(ap.airline)
+-        body += tf(T['now-flights'], { href: X(ap.page || 'https://globe.adsb.lol/'), title: X(al.map(f => `${f.callsign} (${f.type || '?'}, ${f.on_ground ? 'on the ground' : (f.alt_ft || '?') + ' ft'})`).join(', ') || C.nowmap_flights.replace('{n}', '0')), x: x.toFixed(1), y: y.toFixed(1), tx: (x + 16).toFixed(1), ty: (y + 4).toFixed(1), t: X(W(C.nowmap_flights, { n: al.length })) })
++        body += tf(T['now-flights'], { href: X(ap.page || 'https://globe.adsb.lol/'), title: X(al.map(f => `${f.callsign} (${f.type || '?'}, ${f.on_ground ? 'on the ground' : (f.alt_ft || '?') + ' ft'})`).join(', ') || C.nowmap_flights.replace('{n}', '0')), x: x.toFixed(1), y: y.toFixed(1), tx: (x + 16).toFixed(1), ty: (y + 4).toFixed(1), t: X(W(al.length === 1 ? C.nowmap_flight_one : C.nowmap_flights, { n: al.length })) })
+     }
+     const read = rows.map(r => r.n.read_at).filter(Boolean).sort().pop() || ''
+     const obsAt = rows.map(r => r.n.station && r.n.station.reading && r.n.station.reading.at).filter(Boolean).sort().pop() || ''
+-- 
+2.43.0
+
