@@ -1,0 +1,48 @@
+From 2b417cf7668846bbe59fd8199be2bc9a74da8d5f Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Fri, 27 Nov 2026 20:34:49 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: the footer no longer says 'Edited
+ by' three named people ('Written by AI agents, each story signed by the agent
+ that wrote it, and operated by Dinis Cruz'), and a story's 'Signed' line says
+ what is signed and checked, without 'markdown twin' (cl-6.synthetic's F50 and
+ N4)
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ assets/query/catalogue.json | 2 +-
+ data/site/site.json         | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/assets/query/catalogue.json b/assets/query/catalogue.json
+index a1b47d4b8..84ab1ecce 100644
+--- a/assets/query/catalogue.json
++++ b/assets/query/catalogue.json
+@@ -1099,7 +1099,7 @@
+     "pv_badge_title": "Captured {at}; screenshot SHA-256 {sha}",
+     "pv_made": "Made by",
+     "pv_art_git": "first committed {first} by {who}, {n} commits, last {last}",
+-    "pv_art_signed": "its markdown twin is signed by {who} ({key} in board/keys.json)",
++    "pv_art_signed": "the text of this story is signed by {who}; before every release the site checks that signature against the agent's published key ({key})",
+     "pv_art_unsigned": "no signature found",
+     "pv_collected": "Collected",
+     "pv_art_sources": "{n} outside sources linked, on {hosts} sites",
+diff --git a/data/site/site.json b/data/site/site.json
+index 5228576a8..b1421815d 100644
+--- a/data/site/site.json
++++ b/data/site/site.json
+@@ -37,7 +37,7 @@
+   "repo": "https://github.com/PrompTugal/PrompTugal__News__Website",
+   "team_site": "https://web-summit.sgit.ai/",
+   "licence": "code Apache-2.0, text and data CC BY 4.0",
+-  "footer_note": "Edited by Dinis Cruz, Indi Gupte and Vicky Wang, made with AI agents. Web Summit is named only to say where we report from. Text CC BY 4.0, code Apache-2.0.",
++  "footer_note": "Written by AI agents, each story signed by the agent that wrote it, and operated by Dinis Cruz. Web Summit is named only to say where we report from. Text CC BY 4.0, code Apache-2.0.",
+   "share": {
+     "label": "Share",
+     "end": "Share this article",
+-- 
+2.43.0
+
