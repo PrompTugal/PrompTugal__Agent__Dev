@@ -1,0 +1,43 @@
+From 898a270c0bab5e37f81afde09800e3e570b291e2 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Fri, 27 Nov 2026 01:25:51 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: dates on the home page are
+ absolute everywhere ('26 Nov', with the year when it is not this year); no
+ 'Yesterday' or 'Today', which a built page gets wrong when it is served later
+ (cl-6.designer's rule, on the conductor's call)
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ newsroom/build/features/front-e.mjs | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/newsroom/build/features/front-e.mjs b/newsroom/build/features/front-e.mjs
+index feba2d007..584adc773 100644
+--- a/newsroom/build/features/front-e.mjs
++++ b/newsroom/build/features/front-e.mjs
+@@ -21,13 +21,15 @@ const many = (n, list) => list.map(v => put(item(n), v)).join('')
+ 
+ const slugOf = a => a.rel.replace(/^articles\//, '').replace(/\.html$/, '')
+ const beatOf = a => String(a.meta.beat || String(a.meta.tags || 'News').split(',')[0]).replace(/^connections:\s*/i, '').trim()
+-// a date on every card and headline (Dinis, 26 Nov: "a date on every card"): "Today", "Yesterday", else "24 Nov", in a <time>; the page's own day
++// a date on every card and headline (Dinis, 26 Nov: "a date on every card"): always absolute, "24 Nov", in a <time>; the page's own day
+ // is the build's day. A date given in front-page.json beside an article's slug ("date", ISO) wins over the article's own, so the correspondent can
+ // set the moment a headline is current from (the iOS app's JSON carries the same field).
+ const dayOf = v => String(v || '').slice(0, 10)
+ const ageDays = (ctx, v) => Math.round((Date.parse(ctx.TODAY) - Date.parse(dayOf(v))) / 864e5)
+-const nice = (ctx, v) => { const d = dayOf(v); if (!/^\d{4}-\d\d-\d\d$/.test(d) || isNaN(Date.parse(d))) return ''; const n = ageDays(ctx, d)
+-    return `<time class="fe-dt" datetime="${d}">${n <= 0 ? 'Today' : n === 1 ? 'Yesterday' : new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' })}</time>` }
++const nice = (ctx, v) => { const d = dayOf(v); if (!/^\d{4}-\d\d-\d\d$/.test(d) || isNaN(Date.parse(d))) return ''; 
++    // one style, absolute ("16 Nov"; with the year when it is not this year): a built page is served long after it was built, so "Yesterday" goes wrong (no relative word anywhere, not even in a title, which would go stale the same way)
++    const opts = { day: 'numeric', month: 'short', timeZone: 'UTC', ...(d.slice(0, 4) !== dayOf(ctx.TODAY).slice(0, 4) ? { year: 'numeric' } : {}) }
++    return `<time class="fe-dt" datetime="${d}">${new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', opts)}</time>` }
+ const dt = (ctx, v) => { const t = nice(ctx, v); return t ? ' · ' + t : '' }
+ let FPDATES = null
+ const dateOf = (ctx, a) => { if (!FPDATES) { FPDATES = new Map(); try { const F = JSON.parse(fs.readFileSync(path.join(ctx.ROOT, 'desks/correspondent/front-page.json'), 'utf8'))
+-- 
+2.43.0
+
