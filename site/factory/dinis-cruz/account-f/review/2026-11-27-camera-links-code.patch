@@ -1,0 +1,74 @@
+From ba80cd2d1f2685c22d435a1b59db86f5db07c8f6 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Fri, 27 Nov 2026 20:25:01 +0000
+Subject: [PATCH 1/2] cl-6.dev@PrompTugal.dinis: the camera links reach the
+ town pages: a place with no 'now' file (Lisboa) still shows its cleared
+ links, and every shown link is also in the place's page.json (the datasci
+ audit), as data (cl-6.rights' camera-links ruling of 27 Nov: APL and AEMTG,
+ bare links, credited)
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ newsroom/build/features/by-place.mjs       | 4 +++-
+ newsroom/build/features/datasci-places.mjs | 2 ++
+ newsroom/build/features/weather.mjs        | 5 +++++
+ 3 files changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/newsroom/build/features/by-place.mjs b/newsroom/build/features/by-place.mjs
+index 26302226f..82f7c905e 100644
+--- a/newsroom/build/features/by-place.mjs
++++ b/newsroom/build/features/by-place.mjs
+@@ -164,7 +164,9 @@ function entries(ctx, items, cls, extra) {
+ const WEATHER = id => `https://weather.promptugal.news/places/${id}/`
+ const NOT_HERE = ['station', 'forecast', 'warnings', 'fire_risk', 'sea', 'uv']
+ function nowBlock(ctx, p, L) {
+-    let d; try { d = ctx.readJSON(`data/by-place/now/${p.id}.json`) } catch { return '' }
++    let d = null; try { d = ctx.readJSON(`data/by-place/now/${p.id}.json`) } catch { }
++    // a place with no now file (Lisboa) still shows its cleared camera links (cl-6.rights, 27 Nov 2026: APL and AEMTG, links only), alone in the block
++    if (!d) { const cams = camLines(ctx, p.id); return cams.length ? `{.mini-h}\n${W(L, 'h_now', { name: esc(ctx, p.name) })}\n\n{.bp-now}\n${cams.map(c => `- ${c}`).join('\n')}\n\n` : '' }
+     const t = s => String(s || '').slice(11, 16) + ' UTC', out = []
+     if (d.airport) out.push(`- **Faro airport** ${d.airport.airline.length} airline, ${d.airport.other_aircraft} other, ${d.airport.within_nm} nm${d.airport.airline.length ? ` (${d.airport.airline.slice(0, 6).map(a => esc(ctx, a.callsign)).join(', ')})` : ''} *[adsb.lol](${d.airport.page || d.airport.source}), ${d.airport.stale ? 'last read ' : ''}${t(d.airport.at)}*`)   // stale: the collector kept the last read (dev@, 17 Nov)
+     out.push(`- ${W(L, 'now_weather', { name: esc(ctx, p.name), url: WEATHER(p.id) })}`)
+diff --git a/newsroom/build/features/datasci-places.mjs b/newsroom/build/features/datasci-places.mjs
+index 6b3c8282d..73cfcf07b 100644
+--- a/newsroom/build/features/datasci-places.mjs
++++ b/newsroom/build/features/datasci-places.mjs
+@@ -20,6 +20,7 @@
+ import { levelOfArticle, listOf } from '../lib/article-flow.mjs'
+ import crypto from 'node:crypto'
+ import { api as byPlaceApi } from './by-place.mjs'
++import { camItems } from './weather.mjs'
+ import { withdrawn } from '../lib/withdrawn.mjs'
+ 
+ export const order = 84
+@@ -172,6 +173,7 @@ function pageView(ctx, M, r) {
+             { id: 'map', title: 'The AI map', items: r.ai_map },
+             ...side, how]
+     }
++    const cams = camItems(ctx, r.id); if (cams.length) sections.splice(1, 0, { id: 'cameras', title: 'Cameras: links to the operators', items: cams })
+     return { id: r.id, name: r.name, page: r.page, twin: r.twin, about: fillW(words(ctx).api.page_about, { page: r.page }), sections }
+ }
+ 
+diff --git a/newsroom/build/features/weather.mjs b/newsroom/build/features/weather.mjs
+index de42d1d7b..1f10455c8 100644
+--- a/newsroom/build/features/weather.mjs
++++ b/newsroom/build/features/weather.mjs
+@@ -33,6 +33,11 @@ export { fillers as fill }
+ export const quotesIpma = g => /\bIPMA\b[^.]*\b(warning|warnings|feed)\b[^.]*\b(yellow|orange|red|green)\b/i.test(String(g).slice(0, 500))
+ 
+ // the camera links for one town, for its "Now in" block: cleared operators only, only when the camera feed was read in the last 48 hours
++// the same cleared links as data, for the place's JSON (the audit holds every source a page shows to be in its API)
++export function camItems(ctx, placeId, now = new Date()) {
++    const S = snap(ctx), W = words(ctx); if (!S || !S.cams || !fresh(S.cams.read_at, W, now)) return []
++    return S.cams.items.filter(c => c.place === placeId && CAM_PAGES.includes(c.page) && safeUrl(c.page)).map(c => ({ name: c.name, page: c.page, credit: c.credit, read_at: S.cams.read_at, kind: 'link to the operator\'s own page' }))
++}
+ export function camLines(ctx, placeId, now = new Date()) {
+     const S = snap(ctx), W = words(ctx); if (!S || !S.cams || !fresh(S.cams.read_at, W, now)) return []
+     return S.cams.items.filter(c => c.place === placeId && CAM_PAGES.includes(c.page) && safeUrl(c.page)).map(c => fill(W.cam, { name: cell(c.name), page: safeUrl(c.page), credit: cell(c.credit), read: S.cams.read_at.slice(0, 10) }))
+-- 
+2.43.0
+
