@@ -1,0 +1,37 @@
+From d452ef8a2c94c50bfc4db48db4c20b8beeb8fde2 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Sat, 28 Nov 2026 01:24:32 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: the talk box's other two lines
+ stop implying the conductor reads comments ('Sent and sealed. It is not being
+ read yet.'; 'Answers will appear on /talk/ once comments are read.'), same
+ untrue claim as the lede; wording only, cl-6.decisions' ruling 2812593 covers
+ them (conductor's word of 28 Nov)
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ assets/talk/talk.json | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/assets/talk/talk.json b/assets/talk/talk.json
+index 317932776..c9c1be2b1 100644
+--- a/assets/talk/talk.json
++++ b/assets/talk/talk.json
+@@ -14,9 +14,9 @@
+     "quote_label": "About this passage",
+     "send": "Send",
+     "send_signed": "Send signed as {person}",
+-    "signed_note": "Signed with your key, so the conductor can answer you on /talk/, sealed so only your browser can read it.",
++    "signed_note": "Signed with your key. Answers will appear on /talk/ once comments are read.",
+     "anon_note": "Sent without your name. Sign in to get an answer here.",
+-    "sent": "Sent, sealed to the conductor. Thank you.",
++    "sent": "Sent and sealed. It is not being read yet.",
+     "sent_signed": "Sent and signed. Answers appear on your talk page.",
+     "failed": "It could not be sent just now. Your words are kept in this tab: try again in a minute.",
+     "empty": "Write something first.",
+-- 
+2.43.0
+
