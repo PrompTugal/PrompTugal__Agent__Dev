@@ -1,4 +1,4 @@
-From 63f102967d75747462d84803174473426c6204f2 Mon Sep 17 00:00:00 2001
+From 9e15f859e8d5f870ec0a9d5e0e4b0f5d16e3688a Mon Sep 17 00:00:00 2001
 From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
 Date: Sat, 28 Nov 2026 02:53:56 +0000
 Subject: [PATCH] cl-6.dev@PrompTugal.dinis: keys gate: home key pins (S19),
@@ -12,14 +12,14 @@ For: Dinis
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
 ---
- newsroom/build/lib/keys-changes.mjs        | 38 ++++++++++++++-
- newsroom/build/tests/test_keys_changes.mjs | 57 ++++++++++++++++++++++
+ newsroom/build/lib/keys-changes.mjs        | 38 ++++++++++++-
+ newsroom/build/tests/test_keys_changes.mjs | 63 ++++++++++++++++++++++
  newsroom/tools/home-key-pins.json          |  5 ++
- 3 files changed, 98 insertions(+), 2 deletions(-)
+ 3 files changed, 104 insertions(+), 2 deletions(-)
  create mode 100644 newsroom/tools/home-key-pins.json
 
 diff --git a/newsroom/build/lib/keys-changes.mjs b/newsroom/build/lib/keys-changes.mjs
-index f1db63336..866a8a15f 100644
+index f1db63336..fb91e62ff 100644
 --- a/newsroom/build/lib/keys-changes.mjs
 +++ b/newsroom/build/lib/keys-changes.mjs
 @@ -7,6 +7,10 @@
@@ -63,12 +63,12 @@ index f1db63336..866a8a15f 100644
 +                else if (!verify(c, opLines())) report('was re-created, not signed by an operator')
 +                else Object.assign(trust, { by: pinsAfter.by, pins: pinsAfter.pins })
 +            } else if (pinsBefore.exists) {
-+                const byChanged = pinsBefore.by !== pinsAfter.by || !pinsAfter.exists, pinsChanged = pinsAfter.exists && !same(pinsBefore.pins, pinsAfter.pins)
++                const byChanged = trustedBy !== pinsAfter.by || !pinsAfter.exists, pinsChanged = pinsAfter.exists && !same(pinsBefore.pins, pinsAfter.pins)
 +                if (byChanged || pinsChanged) {
 +                    // a pin added, changed or removed: an operator or an active key of the pinner as last accepted; a changed pinned_by or the deletion: an operator only
 +                    const byLines = !byChanged && trustedBy ? before.filter(k => k.status === 'active' && k.agent === trustedBy).flatMap(k => line(k, k.agent)) : []
 +                    if (!verify(c, [...opLines(), ...byLines])) report(`${!pinsAfter.exists ? 'was deleted' : byChanged ? 'changed its pinned_by' : 'had a pin added, changed or removed'}, not signed by ${byChanged ? 'an operator' : `an operator or an active key of ${trustedBy || 'the pinning agent'}`}`)
-+                    else Object.assign(trust, pinsAfter.exists ? { by: pinsAfter.by, pins: pinsAfter.pins } : { pins: [] })
++                    else Object.assign(trust, !pinsAfter.exists ? { pins: [] } : byChanged ? { by: pinsAfter.by, pins: pinsAfter.pins } : { pins: pinsAfter.pins })   // a pin-only change never moves the pinner
 +                }
 +            }
 +            const homeOk = e => { const ssh = e && sshOf(e); return !!ssh && trustedPins.some(x => x && x.agent === e.agent && x.ssh === ssh) }
@@ -93,10 +93,10 @@ index f1db63336..866a8a15f 100644
                  else problems.push(`${at}: ${x.id} ${x.removed ? 'removed' : 'changed'}, not signed by an active key of ${x.agent} as it stood in the parent`)
              }
 diff --git a/newsroom/build/tests/test_keys_changes.mjs b/newsroom/build/tests/test_keys_changes.mjs
-index 3d1ada2fb..15f5d78fc 100644
+index 3d1ada2fb..d6b7072f1 100644
 --- a/newsroom/build/tests/test_keys_changes.mjs
 +++ b/newsroom/build/tests/test_keys_changes.mjs
-@@ -84,6 +84,63 @@ t('a missing baseline is reported, not passed', checkKeyChanges({ root: tmp, bas
+@@ -84,6 +84,69 @@ t('a missing baseline is reported, not passed', checkKeyChanges({ root: tmp, bas
      prev = c2; commit([...keys, OPK, FAKE, { ...V, status: 'active' }, { ...OPK, status: 'superseded' }], KO, 'the operator key itself is retired by its own signature')
      t('an operator, active in the parent, may retire its own key', checkKeyChanges({ root: tmp, baseline: c2, operators: [fp(KO)] }).length, 0)
  }
@@ -137,7 +137,7 @@ index 3d1ada2fb..15f5d78fc 100644
 +    pinsFile('sec@x', [pin('h@x', H2)]); go(base, SEC, 'pin'); const b1 = prev
 +    pinsFile('h@x', [pin('h@x', H2)]); commit(base, SEC, 'by'); pinsFile('h@x', [pin('h@x', H2), pin('h@x', S1)]); commit(base, H, 'new pin')
 +    r = checkKeyChanges({ root: tmp, baseline: b1 })
-+    t('by then pin: both', [r.some(m => /changed its pinned_by/.test(m)), r.some(m => /had a pin added, changed or removed/.test(m))], [true, true])
++    t('by then pin: both', r.filter(m => /changed its pinned_by/.test(m)).length, 2)
 +    run(['reset', '-q', '--hard', b0]); prev = b0
 +    pinsFile('sec@x', [pin('h@x', H2)]); go(base, SEC, 'pin')
 +    pinsFile('sec@x', []); r = go(base, H, 'drop')
@@ -156,6 +156,12 @@ index 3d1ada2fb..15f5d78fc 100644
 +    commit([...base.slice(0, 1), retired, E('h-2', 'h@x', H2)], H2, 'hand-over')
 +    r = checkKeyChanges({ root: tmp, baseline: b0 })
 +    t('delete, re-create, hand-over: all three', [r.some(m => /was deleted/.test(m)), r.some(m => /re-created/.test(m)), r.some(m => /h-1 changed/.test(m))], [true, true, true])
++    // a stranger sets pinned_by to X (reported); the pinner then pins on top of it: the pinner does not move to X
++    run(['reset', '-q', '--hard', b0]); prev = b0
++    pinsFile('h@x', []); commit(base, H, 'stranger by'); pinsFile('h@x', [pin('h@x', S1)]); commit(base, SEC, 'pinner pin')
++    pinsFile('h@x', [pin('h@x', S1), pin('h@x', S2)]); commit(base, H, 'x pin')
++    r = checkKeyChanges({ root: tmp, baseline: b0 })
++    t('pinner not moved to X', r.filter(m => /changed its pinned_by/.test(m)).length, 3)
 +}
  fs.rmSync(tmp, { recursive: true, force: true })
  if (bad) { console.error(`${bad} failed`); process.exit(1) }
