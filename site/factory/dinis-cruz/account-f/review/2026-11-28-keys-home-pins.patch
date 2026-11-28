@@ -1,4 +1,4 @@
-From 562ca119da7d8a06846b1962667d166d16637e4a Mon Sep 17 00:00:00 2001
+From 63f102967d75747462d84803174473426c6204f2 Mon Sep 17 00:00:00 2001
 From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
 Date: Sat, 28 Nov 2026 02:53:56 +0000
 Subject: [PATCH] cl-6.dev@PrompTugal.dinis: keys gate: home key pins (S19),
@@ -12,14 +12,14 @@ For: Dinis
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
 ---
- newsroom/build/lib/keys-changes.mjs        | 32 ++++++++++++++-
- newsroom/build/tests/test_keys_changes.mjs | 45 ++++++++++++++++++++++
- newsroom/tools/home-key-pins.json          |  5 +++
- 3 files changed, 80 insertions(+), 2 deletions(-)
+ newsroom/build/lib/keys-changes.mjs        | 38 ++++++++++++++-
+ newsroom/build/tests/test_keys_changes.mjs | 57 ++++++++++++++++++++++
+ newsroom/tools/home-key-pins.json          |  5 ++
+ 3 files changed, 98 insertions(+), 2 deletions(-)
  create mode 100644 newsroom/tools/home-key-pins.json
 
 diff --git a/newsroom/build/lib/keys-changes.mjs b/newsroom/build/lib/keys-changes.mjs
-index f1db63336..089aa3366 100644
+index f1db63336..866a8a15f 100644
 --- a/newsroom/build/lib/keys-changes.mjs
 +++ b/newsroom/build/lib/keys-changes.mjs
 @@ -7,6 +7,10 @@
@@ -42,34 +42,40 @@ index f1db63336..089aa3366 100644
  const keysAt = (root, c) => { try { return (JSON.parse(git(root, ['show', `${c}:board/keys.json`])).keys) || [] } catch { return null } }
  const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null)
  
-@@ -53,10 +59,25 @@ export function checkKeyChanges({ root = ROOT, baseline = null, operators = [],
+@@ -53,10 +59,31 @@ export function checkKeyChanges({ root = ROOT, baseline = null, operators = [],
      const fpOf = ssh => { const f = path.join(tmp, `fp${n++}.pub`); fs.writeFileSync(f, ssh + '\n'); try { return (/(SHA256:\S+)/.exec(execFileSync('ssh-keygen', ['-lf', f], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })) || [])[1] || '' } catch { return '' } }
      const line = (k, who) => { const ssh = sshOf(k); return ssh ? [`${who} namespaces="git" ${ssh}`] : [] }
      try {
 -        const commits = (tryGit(root, ['rev-list', '--first-parent', '--reverse', `${baseline}..HEAD`, '--', 'board/keys.json']) || '').split('\n').filter(Boolean)
 +        const commits = (tryGit(root, ['rev-list', '--first-parent', '--reverse', `${baseline}..HEAD`, '--', 'board/keys.json', PINS]) || '').split('\n').filter(Boolean)
-+        // the pinning agent as last accepted: it moves only by a change an operator signed (or the file's first creation), so a pinned_by changed by a reported commit does not become trusted by the next one
-+        let trustedBy = pinsAt(root, baseline).by
++        // the pins as last ACCEPTED (cl-6.security, 28 Nov): the pinning agent and the pins move only by a change that was signed as the rules say, never by a reported commit, so a stranger's pin or a re-created file
++        // does not become trusted by the next commit. Taken from the baseline; the file's first creation (none at the baseline, none accepted yet) is not judged, any later creation is operator-only.
++        const t0 = pinsAt(root, baseline), trust = { by: t0.by, pins: t0.pins, had: t0.exists }
          for (const c of commits) {
              const parent = (tryGit(root, ['rev-parse', `${c}^`]) || '').trim(), before = parent && keysAt(root, parent), after = keysAt(root, c)
              if (!before || !after) { problems.push(`${c.slice(0, 9)}: board/keys.json unreadable`); continue }
 +            const pinsBefore = pinsAt(root, parent), pinsAfter = pinsAt(root, c), at0 = c.slice(0, 9)
-+            // ANY change to the pins file is judged (cl-6.security, 28 Nov): a pin added, changed or removed needs an operator or an active key of the pinning agent (pinned_by) as keys stood in the parent;
-+            // a change of pinned_by itself, or the file's deletion, is operator-only (the outgoing pinner cannot hand the role on). The first creation of the file (none in the parent) is not judged: it holds no pins to trust.
-+            if (pinsBefore.exists) {
++            const trustedPins = trust.pins, trustedBy = trust.by      // as they stood before this commit: a pin made in the same commit does not vouch for it
++            const opLines = () => before.filter(k => k.status === 'active').flatMap(k => { const ssh = sshOf(k); return ssh && operators.includes(fpOf(ssh)) ? [`operator namespaces="git" ${ssh}`] : [] })
++            const report = what => problems.push(`${at0}: the home key pins file ${what}`)
++            if (!pinsBefore.exists && pinsAfter.exists) {
++                if (!trust.had) Object.assign(trust, { by: pinsAfter.by, pins: pinsAfter.pins, had: true })          // the first creation: no pins to trust yet
++                else if (!verify(c, opLines())) report('was re-created, not signed by an operator')
++                else Object.assign(trust, { by: pinsAfter.by, pins: pinsAfter.pins })
++            } else if (pinsBefore.exists) {
 +                const byChanged = pinsBefore.by !== pinsAfter.by || !pinsAfter.exists, pinsChanged = pinsAfter.exists && !same(pinsBefore.pins, pinsAfter.pins)
 +                if (byChanged || pinsChanged) {
-+                    const opLines = before.filter(k => k.status === 'active').flatMap(k => { const ssh = sshOf(k); return ssh && operators.includes(fpOf(ssh)) ? [`operator namespaces="git" ${ssh}`] : [] })
++                    // a pin added, changed or removed: an operator or an active key of the pinner as last accepted; a changed pinned_by or the deletion: an operator only
 +                    const byLines = !byChanged && trustedBy ? before.filter(k => k.status === 'active' && k.agent === trustedBy).flatMap(k => line(k, k.agent)) : []
-+                    if (!verify(c, [...opLines, ...byLines])) problems.push(`${at0}: the home key pins file ${!pinsAfter.exists ? 'was deleted' : byChanged ? 'changed its pinned_by' : 'had a pin added, changed or removed'}, not signed by ${byChanged ? 'an operator' : `an operator or an active key of ${trustedBy || 'the pinning agent'}`}`)
-+                    else if (byChanged && pinsAfter.exists) trustedBy = pinsAfter.by
++                    if (!verify(c, [...opLines(), ...byLines])) report(`${!pinsAfter.exists ? 'was deleted' : byChanged ? 'changed its pinned_by' : 'had a pin added, changed or removed'}, not signed by ${byChanged ? 'an operator' : `an operator or an active key of ${trustedBy || 'the pinning agent'}`}`)
++                    else Object.assign(trust, pinsAfter.exists ? { by: pinsAfter.by, pins: pinsAfter.pins } : { pins: [] })
 +                }
-+            } else if (pinsAfter.exists) trustedBy = pinsAfter.by
-+            const homeOk = e => { const ssh = e && sshOf(e); return !!ssh && pinsBefore.pins.some(x => x && x.agent === e.agent && x.ssh === ssh) }
++            }
++            const homeOk = e => { const ssh = e && sshOf(e); return !!ssh && trustedPins.some(x => x && x.agent === e.agent && x.ssh === ssh) }
              const changed = changedEntries(before, after); if (!changed.length) continue
              const B = new Map(before.map(k => [k.id, k])), A = new Map(after.map(k => [k.id, k])), at = c.slice(0, 9)
              // the parent's active keys of an agent: the only keys that may vouch for an existing entry (an operator's key, by fingerprint, may vouch for any)
-@@ -72,8 +93,15 @@ export function checkKeyChanges({ root = ROOT, baseline = null, operators = [],
+@@ -72,8 +99,15 @@ export function checkKeyChanges({ root = ROOT, baseline = null, operators = [],
                  if (opOk()) continue                  // signed by an operator's key (listed by fingerprint): any entry
                  if (b && a && b.status !== 'active' && a.status === 'active') { problems.push(`${at}: ${x.id} re-activated (${b.status} to active); operator only`); continue }
                  if (b && a && b.agent !== a.agent) { problems.push(`${at}: ${x.id} agent changed (${b.agent} to ${a.agent}); operator only`); continue }
@@ -87,10 +93,10 @@ index f1db63336..089aa3366 100644
                  else problems.push(`${at}: ${x.id} ${x.removed ? 'removed' : 'changed'}, not signed by an active key of ${x.agent} as it stood in the parent`)
              }
 diff --git a/newsroom/build/tests/test_keys_changes.mjs b/newsroom/build/tests/test_keys_changes.mjs
-index 3d1ada2fb..0efee99e9 100644
+index 3d1ada2fb..15f5d78fc 100644
 --- a/newsroom/build/tests/test_keys_changes.mjs
 +++ b/newsroom/build/tests/test_keys_changes.mjs
-@@ -84,6 +84,51 @@ t('a missing baseline is reported, not passed', checkKeyChanges({ root: tmp, bas
+@@ -84,6 +84,63 @@ t('a missing baseline is reported, not passed', checkKeyChanges({ root: tmp, bas
      prev = c2; commit([...keys, OPK, FAKE, { ...V, status: 'active' }, { ...OPK, status: 'superseded' }], KO, 'the operator key itself is retired by its own signature')
      t('an operator, active in the parent, may retire its own key', checkKeyChanges({ root: tmp, baseline: c2, operators: [fp(KO)] }).length, 0)
  }
@@ -138,6 +144,18 @@ index 3d1ada2fb..0efee99e9 100644
 +    t('stranger removal', r.some(m => /had a pin added, changed or removed/.test(m)), true)
 +    fs.rmSync(path.join(tmp, 'newsroom/tools/home-key-pins.json')); r = go(base, SEC, 'delete')
 +    t('deleted', r.some(m => /was deleted/.test(m)), true)
++    // a reported pin does not vouch for the next commit's hand-over; delete then re-create is reported, and so is the hand-over after it
++    run(['reset', '-q', '--hard', b0]); prev = b0
++    pinsFile('sec@x', [pin('h@x', H2)]); commit(base, H, 'stranger pin')
++    commit([...base.slice(0, 1), retired, E('h-2', 'h@x', H2)], H2, 'hand-over')
++    r = checkKeyChanges({ root: tmp, baseline: b0 })
++    t('reported pin, then hand-over: both', [r.some(m => /pin added/.test(m)), r.some(m => /h-1 changed/.test(m))], [true, true])
++    run(['reset', '-q', '--hard', b0]); prev = b0
++    fs.rmSync(path.join(tmp, 'newsroom/tools/home-key-pins.json')); commit(base, SEC, 'del')
++    pinsFile('h@x', [pin('h@x', H2)]); commit(base, H, 'again')
++    commit([...base.slice(0, 1), retired, E('h-2', 'h@x', H2)], H2, 'hand-over')
++    r = checkKeyChanges({ root: tmp, baseline: b0 })
++    t('delete, re-create, hand-over: all three', [r.some(m => /was deleted/.test(m)), r.some(m => /re-created/.test(m)), r.some(m => /h-1 changed/.test(m))], [true, true, true])
 +}
  fs.rmSync(tmp, { recursive: true, force: true })
  if (bad) { console.error(`${bad} failed`); process.exit(1) }
