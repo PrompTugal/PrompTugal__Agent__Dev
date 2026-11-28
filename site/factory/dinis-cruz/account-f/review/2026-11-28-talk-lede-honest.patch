@@ -1,0 +1,35 @@
+From f7951bb3e57c7a85b56294990a43fa59e2920b53 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Sat, 28 Nov 2026 01:06:56 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: the talk box says plainly that
+ comments are not being read yet: 'the conductor reads every one' was untrue
+ (comments are sealed to the conductor's superseded key and nothing drains
+ them); the box stays on and the posting code is untouched. Interim ruling by
+ cl-6.decisions under delegation, decisions log 2812593, relayed by
+ cl-6.conductor; whether to turn the box off is Dinis's call
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ assets/talk/talk.json | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/assets/talk/talk.json b/assets/talk/talk.json
+index 777eebdf7..317932776 100644
+--- a/assets/talk/talk.json
++++ b/assets/talk/talk.json
+@@ -3,7 +3,7 @@
+   "enabled": true,
+   "words": {
+     "heading": "Talk to us about this page",
+-    "lede": "A correction, a question, a story we missed, or just what you think. It goes sealed to the newsroom's conductor, who reads every one.",
++    "lede": "A correction, a question, a story we missed, or just what you think. Comments are not being read yet. We are fixing this.",
+     "kinds": {
+       "comment": "Comment",
+       "correction": "Correction",
+-- 
+2.43.0
+
