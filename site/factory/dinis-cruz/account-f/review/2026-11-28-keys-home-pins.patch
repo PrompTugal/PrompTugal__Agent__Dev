@@ -1,0 +1,138 @@
+From 5ccb238a5314cd41321ab584b6d2c02b99fec466 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Sat, 28 Nov 2026 02:53:56 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: keys gate: home key pins (S19),
+ read from the parent, a new pin judged
+
+An added or changed key passes when it matches the agent's own published home key, pinned in newsroom/tools/home-key-pins.json by cl-6.security. A second key self-signed for an agent that already has one is reported unless pinned. Check 16 stays a warning.
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ newsroom/build/lib/keys-changes.mjs        | 24 ++++++++++++++--
+ newsroom/build/tests/test_keys_changes.mjs | 33 ++++++++++++++++++++++
+ newsroom/tools/home-key-pins.json          |  5 ++++
+ 3 files changed, 60 insertions(+), 2 deletions(-)
+ create mode 100644 newsroom/tools/home-key-pins.json
+
+diff --git a/newsroom/build/lib/keys-changes.mjs b/newsroom/build/lib/keys-changes.mjs
+index f1db63336..3d2e85ce2 100644
+--- a/newsroom/build/lib/keys-changes.mjs
++++ b/newsroom/build/lib/keys-changes.mjs
+@@ -7,6 +7,10 @@
+ //   a RE-ACTIVATION (superseded or revoked back to active) is always reported, even when the agent signs: a retired key's private half outlives its session.
+ // An entry whose ssh field holds no key counts by its bundle.sign key (the same key, in PEM); until cl-6.abp's S9 commit retires the ~109 entries that hold
+ // none, their bundle.sign keys count as their agents' keys (cl-6.security, 26 Nov 2026: low risk, most are ended sessions). An operator key vouches for any entry: it is recognised only by its ssh fingerprint listed in newsroom/tools/operator-keys.json (empty until Dinis states his), never by an agent name or role in board/keys.json, which any agent can add. The verifier is named on the command line. The result is
++// HOME KEY PINS (cl-6.security, 28 Nov 2026, S19): a key is also vouched for when it is byte-identical to the key its agent published in its own home (site/keys/<role>.json), recorded as a pin in
++//   newsroom/tools/home-key-pins.json. The pins are read from the commit's PARENT, never from the commit itself, so a push cannot pin its own key; a commit that adds or changes a pin is
++//   itself judged: it must be signed by an operator, or by an active key of the file's "pinned_by" agent (cl-6.security). An ADDED key for an agent that already has an active key, signed only by
++//   that new key, is reported unless it matches a pin; a hand-over (the added key retires the old) passes when the added key matches a pin and signs the commit.
+ // a list of problems; the gate shows them as warnings until Dinis's key is in board/keys.json, then as errors. Known gap: a first publication is
+ // self-signed. Pure of the gate: root, baseline and the operator list are parameters.
+ import { execFileSync } from 'node:child_process'
+@@ -20,6 +24,8 @@ const FIELDS = ['status', 'superseded', 'superseded_in', 'superseded_by', 'ssh',
+ const SSH = /^(ecdsa-sha2-nistp256|ssh-ed25519) AAAA[A-Za-z0-9+/]{40,}={0,3}$/
+ const git = (cwd, args) => execFileSync('git', args, { cwd, encoding: 'utf8', maxBuffer: 1 << 28, stdio: ['ignore', 'pipe', 'pipe'] })
+ const tryGit = (cwd, args) => { try { return git(cwd, args) } catch { return null } }
++const PINS = 'newsroom/tools/home-key-pins.json'
++const pinsAt = (root, c) => { try { const j = JSON.parse(git(root, ['show', `${c}:${PINS}`])); return { by: String(j.pinned_by || ''), pins: Array.isArray(j.pins) ? j.pins : [] } } catch { return { by: '', pins: [] } } }
+ const keysAt = (root, c) => { try { return (JSON.parse(git(root, ['show', `${c}:board/keys.json`])).keys) || [] } catch { return null } }
+ const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null)
+ 
+@@ -53,10 +59,18 @@ export function checkKeyChanges({ root = ROOT, baseline = null, operators = [],
+     const fpOf = ssh => { const f = path.join(tmp, `fp${n++}.pub`); fs.writeFileSync(f, ssh + '\n'); try { return (/(SHA256:\S+)/.exec(execFileSync('ssh-keygen', ['-lf', f], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })) || [])[1] || '' } catch { return '' } }
+     const line = (k, who) => { const ssh = sshOf(k); return ssh ? [`${who} namespaces="git" ${ssh}`] : [] }
+     try {
+-        const commits = (tryGit(root, ['rev-list', '--first-parent', '--reverse', `${baseline}..HEAD`, '--', 'board/keys.json']) || '').split('\n').filter(Boolean)
++        const commits = (tryGit(root, ['rev-list', '--first-parent', '--reverse', `${baseline}..HEAD`, '--', 'board/keys.json', PINS]) || '').split('\n').filter(Boolean)
+         for (const c of commits) {
+             const parent = (tryGit(root, ['rev-parse', `${c}^`]) || '').trim(), before = parent && keysAt(root, parent), after = keysAt(root, c)
+             if (!before || !after) { problems.push(`${c.slice(0, 9)}: board/keys.json unreadable`); continue }
++            const pinsBefore = pinsAt(root, parent), pinsAfter = pinsAt(root, c), at0 = c.slice(0, 9)
++            // a new or changed pin must be signed by an operator or by an active key of the pinning agent, as keys stood in the parent
++            if (pinsAfter.pins.some(x => !pinsBefore.pins.some(y => same(x, y)))) {
++                const opLines = before.filter(k => k.status === 'active').flatMap(k => { const ssh = sshOf(k); return ssh && operators.includes(fpOf(ssh)) ? [`operator namespaces="git" ${ssh}`] : [] })
++                const byLines = pinsBefore.by ? before.filter(k => k.status === 'active' && k.agent === pinsBefore.by).flatMap(k => line(k, k.agent)) : []
++                if (!verify(c, [...opLines, ...byLines])) problems.push(`${at0}: a home key pin was added or changed, not signed by an operator or an active key of ${pinsBefore.by || 'the pinning agent (none named in the parent)'}`)
++            }
++            const homeOk = e => { const ssh = e && sshOf(e); return !!ssh && pinsBefore.pins.some(x => x && x.agent === e.agent && x.ssh === ssh) }
+             const changed = changedEntries(before, after); if (!changed.length) continue
+             const B = new Map(before.map(k => [k.id, k])), A = new Map(after.map(k => [k.id, k])), at = c.slice(0, 9)
+             // the parent's active keys of an agent: the only keys that may vouch for an existing entry (an operator's key, by fingerprint, may vouch for any)
+@@ -72,8 +86,14 @@ export function checkKeyChanges({ root = ROOT, baseline = null, operators = [],
+                 if (opOk()) continue                  // signed by an operator's key (listed by fingerprint): any entry
+                 if (b && a && b.status !== 'active' && a.status === 'active') { problems.push(`${at}: ${x.id} re-activated (${b.status} to active); operator only`); continue }
+                 if (b && a && b.agent !== a.agent) { problems.push(`${at}: ${x.id} agent changed (${b.agent} to ${a.agent}); operator only`); continue }
+-                if (x.added) { if (!(ownOk(x.id) || parentOk(x.agent))) problems.push(`${at}: ${x.id} added, not signed by its own key or by an active key of ${x.agent}`); continue }
++                if (x.added) {
++                    if (!(ownOk(x.id) || parentOk(x.agent))) { problems.push(`${at}: ${x.id} added, not signed by its own key or by an active key of ${x.agent}`); continue }
++                    // a second key for an agent that already has one, vouched for only by itself, needs a home key pin (S19)
++                    if (!parentOk(x.agent) && parentKeys(x.agent).length && !homeOk(A.get(x.id))) problems.push(`${at}: ${x.id} added for ${x.agent}, which already has an active key: signed only by itself, and no home key pin matches it`)
++                    continue
++                }
+                 if (parentOk(x.agent)) continue
++                if (addedFor(x.agent).some(y => homeOk(A.get(y.id)))) continue      // a hand-over to a key pinned from the agent's own home, signed by that key
+                 if (addedFor(x.agent).length) problems.push(`${at}: ${x.id} ${x.removed ? 'removed' : 'changed'} in the commit that adds a key for ${x.agent} (hand-over; needs an operator)`)
+                 else problems.push(`${at}: ${x.id} ${x.removed ? 'removed' : 'changed'}, not signed by an active key of ${x.agent} as it stood in the parent`)
+             }
+diff --git a/newsroom/build/tests/test_keys_changes.mjs b/newsroom/build/tests/test_keys_changes.mjs
+index 3d1ada2fb..c007d641d 100644
+--- a/newsroom/build/tests/test_keys_changes.mjs
++++ b/newsroom/build/tests/test_keys_changes.mjs
+@@ -84,6 +84,39 @@ t('a missing baseline is reported, not passed', checkKeyChanges({ root: tmp, bas
+     prev = c2; commit([...keys, OPK, FAKE, { ...V, status: 'active' }, { ...OPK, status: 'superseded' }], KO, 'the operator key itself is retired by its own signature')
+     t('an operator, active in the parent, may retire its own key', checkKeyChanges({ root: tmp, baseline: c2, operators: [fp(KO)] }).length, 0)
+ }
++// home key pins (cl-6.security, 28 Nov 2026, S19): a key pinned from the agent's own home passes a hand-over; the pins are read from the parent, and a new pin is itself judged
++{
++    const H = key('h'), H2 = key('h2'), SEC = key('sec'), S1 = key('s1'), S2 = key('s2'), S3 = key('s3')
++    const pinsFile = (by, pins) => { fs.mkdirSync(path.join(tmp, 'newsroom/tools'), { recursive: true }); fs.writeFileSync(path.join(tmp, 'newsroom/tools/home-key-pins.json'), JSON.stringify({ pinned_by: by, pins }, null, 1) + '\n') }
++    const pin = (agent, k) => ({ agent, ssh: k.pub, home: 'x/y', path: 'site/keys/z.json', commit: 'c'.repeat(40) })
++    const base = [E('sec-1', 'sec@x', SEC), E('h-1', 'h@x', H)]
++    pinsFile('sec@x', []); const b0 = commit(base, null, 'base'); prev = b0
++    const go = (keys, k, msg) => { const c = commit(keys, k, msg); const got = checkKeyChanges({ root: tmp, baseline: prev }); prev = c; return got }
++    const retired = { ...base[1], status: 'superseded', superseded_in: 'q' }
++    // 1. a self-signed hand-over with no home match is reported
++    let r = go([...base.slice(0, 1), retired, E('h-2', 'h@x', H2)], H2, 'no pin')
++    t('unpinned hand-over reported', r.some(x => /h-1 changed in the commit that adds a key for h@x \(hand-over/.test(x)) && r.some(x => /h-2 added for h@x, which already has an active key/.test(x)), true)
++    // reset to the baseline state for the next cases
++    run(['reset', '-q', '--hard', b0]); prev = b0
++    // 2. a home match passes (the pin is made first, by the pinning agent's key, then the hand-over)
++    pinsFile('sec@x', [pin('h@x', H2)]); r = go(base, SEC, 'pin')
++    t('pin by pinner ok', r, [])
++    r = go([...base.slice(0, 1), retired, E('h-2', 'h@x', H2)], H2, 'pinned hand-over')
++    t('pinned hand-over passes', r, [])
++    // 3. a pin changed in the same push does not count
++    run(['reset', '-q', '--hard', b0]); prev = b0; pinsFile('sec@x', [])
++    pinsFile('sec@x', [pin('h@x', H2)])
++    r = go([...base.slice(0, 1), retired, E('h-2', 'h@x', H2)], H2, 'same-push pin')
++    t('same-push pin does not count', [r.some(x => /a home key pin was added or changed, not signed/.test(x)), r.some(x => /h-1 changed in the commit that adds a key/.test(x))], [true, true])
++    // 4. a pin for another agent's key does not vouch (the pin names its agent)
++    run(['reset', '-q', '--hard', b0]); prev = b0; pinsFile('sec@x', [pin('other@x', H2)]); go(base, SEC, 'pin for another')
++    r = go([...base.slice(0, 1), retired, E('h-2', 'h@x', H2)], H2, 'wrong-agent pin')
++    t('pin names its agent', r.some(x => /h-1 changed in the commit that adds a key/.test(x)), true)
++    // 5. a key added and the old one retired in one commit, signed by the old key, passes (as before)
++    run(['reset', '-q', '--hard', b0]); prev = b0
++    r = go([...base.slice(0, 1), retired, E('h-2', 'h@x', H2)], H, 'old key signs')
++    t('old-key hand-over passes', r, [])
++}
+ fs.rmSync(tmp, { recursive: true, force: true })
+ if (bad) { console.error(`${bad} failed`); process.exit(1) }
+ console.log('test_keys_changes: OK')
+diff --git a/newsroom/tools/home-key-pins.json b/newsroom/tools/home-key-pins.json
+new file mode 100644
+index 000000000..71480c03e
+--- /dev/null
++++ b/newsroom/tools/home-key-pins.json
+@@ -0,0 +1,5 @@
++{
++ "about": "Home key pins (cl-6.security, 28 Nov 2026, S19; lib/keys-changes.mjs): the public key an agent published in its own home (site/keys/<role>.json), pinned here by the pinning agent after reading it in the home repository. board/keys.json entries whose key matches a pin for the same agent pass a hand-over. Read from the commit's PARENT, never from the commit itself. A commit that adds or changes a pin must be signed by an operator (operator-keys.json) or by an active key of pinned_by. Each pin: agent, ssh (type and key, no comment), home (the repository), path, commit (the home commit it was read at), pinned (date).",
++ "pinned_by": "cl-6.security@PrompTugal.dinis",
++ "pins": []
++}
+-- 
+2.43.0
+
