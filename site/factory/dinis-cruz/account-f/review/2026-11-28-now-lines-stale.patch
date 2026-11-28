@@ -1,0 +1,69 @@
+From c343426fb6d13c1beb709b49509c6a9d08bb9d08 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Sat, 28 Nov 2026 09:37:02 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: 'Now' lines never show a stale or
+ future flight count as live (S12)
+
+The home page's 'Now in the Algarve' printed 'read 11:10 UTC', which was 26 Nov 11:10 from data/by-place/now/algarve.json (two days old, never refreshed), so it read as a future time. The line now shows the read date and time; a read older than 12 hours drops the Faro flight count (the weather link stays), and a time later than the build is not printed. The Faro town page's 'Faro airport' line has the same 12-hour rule.
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ assets/front-e/front-e.tmpl          | 3 ++-
+ newsroom/build/features/by-place.mjs | 4 +++-
+ newsroom/build/features/front-e.mjs  | 6 ++++--
+ 3 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/assets/front-e/front-e.tmpl b/assets/front-e/front-e.tmpl
+index 03358f457..230d339e8 100644
+--- a/assets/front-e/front-e.tmpl
++++ b/assets/front-e/front-e.tmpl
+@@ -50,7 +50,8 @@
+ <!-- item:mlbl --><text class="lbl" x="{{x}}" y="{{y}}" text-anchor="{{anchor}}">{{name}}</text>
+ <!-- item:mcnt --><text class="cnt" x="{{x}}" y="{{y}}">{{n}}</text>
+ <!-- item:mnext --><g class="next"><title>{{title}}: coming next</title><circle cx="{{x}}" cy="{{y}}" r="3.2"/><text x="{{lx}}" y="{{ly}}">{{title}}</text></g>
+-<!-- item:now --><p class="fe-now"><b>Now in the Algarve</b> {{bits}} <small>read {{at}} UTC · <a href="algarve/index.html">by town</a></small></p>
++<!-- item:now --><p class="fe-now"><b>Now in the Algarve</b> {{bits}} <small>{{read}}<a href="algarve/index.html">by town</a></small></p>
++<!-- item:nowread -->read {{at}} · 
+ <!-- item:nowlink --><a href="{{href}}" target="_blank" rel="noopener">{{text}}</a>
+ <!-- item:place --><li><a href="{{href}}"><b>{{name}}</b></a><small>{{counts}}</small><span class="fe-pa">{{about}}</span>{{newest}}</li>
+ <!-- item:stat --><li><b>{{n}}</b><span>{{label}}</span></li>
+diff --git a/newsroom/build/features/by-place.mjs b/newsroom/build/features/by-place.mjs
+index 82f7c905e..4956cad25 100644
+--- a/newsroom/build/features/by-place.mjs
++++ b/newsroom/build/features/by-place.mjs
+@@ -168,7 +168,9 @@ function nowBlock(ctx, p, L) {
+     // a place with no now file (Lisboa) still shows its cleared camera links (cl-6.rights, 27 Nov 2026: APL and AEMTG, links only), alone in the block
+     if (!d) { const cams = camLines(ctx, p.id); return cams.length ? `{.mini-h}\n${W(L, 'h_now', { name: esc(ctx, p.name) })}\n\n{.bp-now}\n${cams.map(c => `- ${c}`).join('\n')}\n\n` : '' }
+     const t = s => String(s || '').slice(11, 16) + ' UTC', out = []
+-    if (d.airport) out.push(`- **Faro airport** ${d.airport.airline.length} airline, ${d.airport.other_aircraft} other, ${d.airport.within_nm} nm${d.airport.airline.length ? ` (${d.airport.airline.slice(0, 6).map(a => esc(ctx, a.callsign)).join(', ')})` : ''} *[adsb.lol](${d.airport.page || d.airport.source}), ${d.airport.stale ? 'last read ' : ''}${t(d.airport.at)}*`)   // stale: the collector kept the last read (dev@, 17 Nov)
++    // a flight count is 'now' only while it is under 12 hours old and not from the future (S12, 28 Nov: '11:10 UTC' was 26 Nov); otherwise the line is left out, never shown as live
++    const apAge = d.airport ? Date.now() - Date.parse(d.airport.at) : NaN, apFresh = Number.isFinite(apAge) && apAge >= -300000 && apAge <= 12 * 3600000
++    if (d.airport && apFresh) out.push(`- **Faro airport** ${d.airport.airline.length} airline, ${d.airport.other_aircraft} other, ${d.airport.within_nm} nm${d.airport.airline.length ? ` (${d.airport.airline.slice(0, 6).map(a => esc(ctx, a.callsign)).join(', ')})` : ''} *[adsb.lol](${d.airport.page || d.airport.source}), ${d.airport.stale ? 'last read ' : ''}${t(d.airport.at)}*`)   // stale: the collector kept the last read (dev@, 17 Nov)
+     out.push(`- ${W(L, 'now_weather', { name: esc(ctx, p.name), url: WEATHER(p.id) })}`)
+     for (const c of camLines(ctx, p.id)) out.push(`- ${c}`)   // cleared operators' own pages, as links, while their feed is under 48 hours old
+     return `{.mini-h}\n${W(L, 'h_now', { name: esc(ctx, p.name) })}\n\n{.bp-now}\n${out.join('\n')}\n\n`
+diff --git a/newsroom/build/features/front-e.mjs b/newsroom/build/features/front-e.mjs
+index 2df28f79f..ead0c1928 100644
+--- a/newsroom/build/features/front-e.mjs
++++ b/newsroom/build/features/front-e.mjs
+@@ -167,9 +167,11 @@ function nowLine(ctx) {
+     // promptugal.news bills, so no IPMA values here (Dinis, 18 Nov 23:45: board/guidance/2026-11-18-billing-only-on-the-main-site.md):
+     // Faro airport (adsb.lol, ODbL) and a link to the weather on weather.promptugal.news
+     const esc = ctx.md.esc, ap = (F && F.airport) || R.airport
+-    const bits = [ap && put(item('nowlink'), { href: esc(ap.source), text: `Faro airport: ${ap.airline.length} airline flight${ap.airline.length === 1 ? '' : 's'} near` }),
++    // the read time is the file's own, with its date; a time later than the build, or older than 12 hours, is never shown as 'now': a future time is dropped, a stale flight count is left out (S12, 28 Nov: '11:10' was 26 Nov)
++    const ts = Date.parse(R.read_at), age = Date.now() - ts, ok = Number.isFinite(ts) && age >= -300000, fresh = ok && age <= 12 * 3600000
++    const bits = [fresh && ap && put(item('nowlink'), { href: esc(ap.source), text: `Faro airport: ${ap.airline.length} airline flight${ap.airline.length === 1 ? '' : 's'} near` }),
+         put(item('nowlink'), { href: 'https://weather.promptugal.news/places/algarve/', text: 'the weather and IPMA warnings: PrompTugal Weather' })].filter(Boolean)
+-    return put(item('now'), { bits: bits.join(' · '), at: esc(String(R.read_at).slice(11, 16)) })
++    return put(item('now'), { bits: bits.join(' · '), read: ok ? put(item('nowread'), { at: `${nice(ctx, R.read_at)} ${(/^\d{4}-\d\d-\d\dT(\d\d:\d\d)/.exec(String(R.read_at)) || [])[1] || ''} UTC` }) : '' })   // nice() returns its own escaped markup
+ }
+ 
+ // the numbers beside the stories (Dinis, 16 Nov: "add more statistics on the right-hand side"), all from the place files
+-- 
+2.43.0
+
