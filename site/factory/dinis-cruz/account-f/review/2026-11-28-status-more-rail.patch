@@ -1,0 +1,107 @@
+From 427e73becfb16d5597d4efd089cbe58dfcb5d955 Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Sat, 28 Nov 2026 08:41:59 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: status page: the tablet 'More'
+ fold and the left rail from 1100 px
+
+The row keeps eight pages and 'More' opens the rest on a line of its own (two lines at most at 700 px and over); from 1100 px the page list is a left rail beside the cards and the counts; under 700 px it stays the closed fold. cl-6.designer's last round, 28 Nov.
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ assets/newsroom/status-words.json      | 3 ++-
+ assets/newsroom/status.css             | 4 ++++
+ assets/newsroom/status.tmpl            | 5 +++--
+ newsroom/build/features/newsroom.mjs   | 2 +-
+ newsroom/build/lib/newsroom-status.mjs | 7 ++++---
+ 5 files changed, 14 insertions(+), 7 deletions(-)
+
+diff --git a/assets/newsroom/status-words.json b/assets/newsroom/status-words.json
+index 15060e906..f1d4fa4d1 100644
+--- a/assets/newsroom/status-words.json
++++ b/assets/newsroom/status-words.json
+@@ -56,5 +56,6 @@
+  "hb_waiting_none": "{b} {ag} {is} waiting on a decision or a grant. 0 are working now.",
+  "hb_waiting_some": "{w} {wag} {wis} working now; {b} {is} waiting on a decision or a grant.",
+  "nav_label": "Newsroom pages",
+- "here": "You are here"
++ "here": "You are here",
++ "nav_more": "More"
+ }
+diff --git a/assets/newsroom/status.css b/assets/newsroom/status.css
+index 737322079..c75f07c0c 100644
+--- a/assets/newsroom/status.css
++++ b/assets/newsroom/status.css
+@@ -25,3 +25,7 @@
+ .ns-list a[aria-current] { border-inline-start: 4px solid var(--ink); padding-inline-start: 8px; } .ns-pages > summary { cursor: pointer; font: 600 14px var(--sans); padding: 10px 0; min-height: 44px; box-sizing: border-box; }
+ @media (max-width: 699px) { .ns-row { display: none; } }
+ @media (min-width: 700px) { .ns-pages, .ns-foot { display: none; } .ns-row { flex-wrap: wrap; overflow-x: visible; } .ns-row .ns-here { display: none; } }
++/* tablet: the row keeps eight pages and "More" opens the rest on a line of its own; from 1100 px the list is a left rail beside the cards and the counts (cl-6.designer, last round, 28 Nov) */
++.ns-leftrail { display: none; } .ns-moretabs { flex: 1 0 100%; } .ns-moretabs > summary { cursor: pointer; padding: 10px 0 9px; } .ns-moretabs[open] { display: flex; flex-wrap: wrap; gap: 2px 18px; } .ns-moretabs[open] > summary { flex: 1 0 100%; }
++@media (max-width: 699px) { .ns-moretabs { display: none; } }
++@media (min-width: 1100px) { .ns-row { display: none; } .ns-top { grid-template-columns: 200px minmax(0, 1fr) 280px; grid-template-areas: "nav main rail"; } .ns-leftrail { display: block; grid-area: nav; align-self: start; } .ns-leftrail a { min-height: 34px; line-height: 34px; font: 600 13px var(--sans); } }
+diff --git a/assets/newsroom/status.tmpl b/assets/newsroom/status.tmpl
+index 38ec9ea47..81b73fcfe 100644
+--- a/assets/newsroom/status.tmpl
++++ b/assets/newsroom/status.tmpl
+@@ -18,8 +18,9 @@
+ <!-- item:p --><p>{{text}}</p>
+ <!-- item:rule --><p class="ns-rule">{{text}}</p>
+ <!-- item:decs --><div class="ns-decs">{{items}}</div>
+-<!-- item:top --><div class="ns-top"><aside class="ns-rail"><h2 id="heartbeat">{{heart_title}}</h2>{{heart}}</aside><div class="ns-main"><h2 id="waits">{{waits_title}}</h2><p>{{waits_about}}</p>{{cards}}<p class="ns-ptr">{{pointer}}</p></div></div>
++<!-- item:top --><div class="ns-top">{{leftrail}}<aside class="ns-rail"><h2 id="heartbeat">{{heart_title}}</h2>{{heart}}</aside><div class="ns-main"><h2 id="waits">{{waits_title}}</h2><p>{{waits_about}}</p>{{cards}}<p class="ns-ptr">{{pointer}}</p></div></div>
+ <!-- item:navlink --><a href="{{href}}">{{label}}</a>
+ <!-- item:navhere --><a href="{{href}}" aria-current="page">{{label}} <span class="ns-here">{{here}}</span></a>
+-<!-- item:navtop --><nav class="adm-tabs ns-row" aria-label="Newsroom">{{list}}</nav><details class="ns-pages"><summary>{{label}}</summary><nav class="ns-list" aria-label="{{label}}">{{list}}</nav></details>
++<!-- item:navtop --><nav class="adm-tabs ns-row" aria-label="Newsroom">{{first}}<details class="ns-moretabs"><summary>{{more}}</summary>{{rest}}</details></nav><details class="ns-pages"><summary>{{label}}</summary><nav class="ns-list" aria-label="{{label}}">{{list}}</nav></details>
+ <!-- item:navfoot --><nav class="ns-foot ns-list" aria-label="{{label}}">{{list}}</nav>
++<!-- item:navrail --><nav class="ns-leftrail ns-list" aria-label="{{label}}">{{list}}</nav>
+diff --git a/newsroom/build/features/newsroom.mjs b/newsroom/build/features/newsroom.mjs
+index 10583a47e..cbbba0990 100644
+--- a/newsroom/build/features/newsroom.mjs
++++ b/newsroom/build/features/newsroom.mjs
+@@ -196,7 +196,7 @@ function activityPage(ctx) {
+ function statusPage(ctx) {
+     const b = builder('newsroom/status/index.html'), W = ctx.readJSON('assets/newsroom/status-words.json')
+     const nav = statusNav(ctx, b, TABS)
+-    return page(b, { src: 'assets/newsroom/status-snapshot.json', title: W.title, crumbs: crumbs([null, W.title]), summary: W.summary, md: b.raw(nav.top, `**Newsroom:** ${nav.md}`) + statusMd(ctx, b) + '\n\n' + b.raw(nav.foot, ''), assets: { css: [...ASSETS.css, 'assets/newsroom/status.css'], js: ASSETS.js } })
++    return page(b, { src: 'assets/newsroom/status-snapshot.json', title: W.title, crumbs: crumbs([null, W.title]), summary: W.summary, md: b.raw(nav.top, `**Newsroom:** ${nav.md}`) + statusMd(ctx, b, nav) + '\n\n' + b.raw(nav.foot, ''), assets: { css: [...ASSETS.css, 'assets/newsroom/status.css'], js: ASSETS.js } })
+ }
+ function agentPage(ctx, m, a) {
+     const b = builder(agentRel(a))
+diff --git a/newsroom/build/lib/newsroom-status.mjs b/newsroom/build/lib/newsroom-status.mjs
+index e8efd2c53..59cd5f2bc 100644
+--- a/newsroom/build/lib/newsroom-status.mjs
++++ b/newsroom/build/lib/newsroom-status.mjs
+@@ -43,7 +43,7 @@ function agentsBlock(ctx, b, W, S) {
+ }
+ 
+ const pick = (S, k) => S && S[k] && (Array.isArray(S[k].items) || S[k].read_at) ? S[k] : null
+-export function statusMd(ctx, b = { raw: (h, m) => m }) {
++export function statusMd(ctx, b = { raw: (h, m) => m }, nav = null) {
+     const W = ctx.readJSON('assets/newsroom/status-words.json'), S = rd(ctx, 'assets/newsroom/status-snapshot.json') || {}
+     const built = new Date().toISOString().slice(0, 13).replace('T', ' ') + ':00 UTC'
+     const line = fill(W.built, { built, agents: S.agents ? hour(S.agents.read_at) || cell(S.agents.read_at) : W.not_read_short, data: S.data ? hour(S.data.read_at) || cell(S.data.read_at) : W.not_read_short })
+@@ -63,7 +63,7 @@ export function statusMd(ctx, b = { raw: (h, m) => m }) {
+     const decMd = x => `- **${cell(x.title)}**${x.summary ? `: ${cell(x.summary)}` : ''}${[['d_wait', x.if_you_wait]].filter(r => r[1]).map(r => `\n  - ${W[r[0]]} ${cell(r[1])}`).join('')}`
+     const cardsHtml = DEC && DEC.items.length ? put(item('decs'), { items: DEC.items.map(decOf).join('') }) : put(item('p'), { text: esc(W.none) }), cardsMd = DEC && DEC.items.length ? DEC.items.map(decMd).join('\n') : W.none
+     // the top of the page (cl-6.designer's loop 5 public mock): the heartbeat and the waiting decisions, side by side from 1100 px (the rail), stacked on a phone; the pointer says where the answers go, with no link and no id
+-    const top = b.raw(put(item('top'), { heart_title: esc(W.heart_title), heart: parts.length ? put(item('ul'), { items: parts.map(x => put(item('li'), { text: esc(x) })).join('') }) : put(item('p'), { text: esc(W.not_read) }), waits_title: esc(W.waits_title), waits_about: esc(W.waits_about), cards: cardsHtml, pointer: esc(W.d_pointer) }),
++    const top = b.raw(put(item('top'), { leftrail: nav ? nav.rail : '', heart_title: esc(W.heart_title), heart: parts.length ? put(item('ul'), { items: parts.map(x => put(item('li'), { text: esc(x) })).join('') }) : put(item('p'), { text: esc(W.not_read) }), waits_title: esc(W.waits_title), waits_about: esc(W.waits_about), cards: cardsHtml, pointer: esc(W.d_pointer) }),
+         `## ${W.heart_title} {#heartbeat}\n\n${heart}\n\n## ${W.waits_title} {#waits}\n\n${W.waits_about}\n\n${cardsMd}\n\n${W.d_pointer}`)
+     let dataBlock = W.data_none
+     if (D) {
+@@ -83,5 +83,6 @@ const day = s => { const m = /^(\d{4})-(\d\d)-(\d\d)/.exec(String(s || '')); ret
+ export function statusNav(ctx, b, tabs) {
+     const W = ctx.readJSON('assets/newsroom/status-words.json')
+     const list = tabs.map(([r, l]) => put(item(r === b.rel ? 'navhere' : 'navlink'), { href: esc(b.h(r)), label: esc(l), here: esc(W.here) })).join('')
+-    return { top: put(item('navtop'), { list, label: esc(W.nav_label) }), foot: put(item('navfoot'), { list, label: esc(W.nav_label) }), md: tabs.map(([r, l]) => `[${l}](${b.h(r).replace(/index\.html$/, 'index.md').replace(/\.html$/, '.md')})`).join(' · ') }
++    const link = ([r, l]) => put(item(r === b.rel ? 'navhere' : 'navlink'), { href: esc(b.h(r)), label: esc(l), here: esc(W.here) }), TOP = 8      // the row keeps the first eight; the rest sit behind "More" (two lines at most)
++    return { top: put(item('navtop'), { list, first: tabs.slice(0, TOP).map(link).join(''), rest: tabs.slice(TOP).map(link).join(''), more: esc(W.nav_more), label: esc(W.nav_label) }), rail: put(item('navrail'), { list, label: esc(W.nav_label) }), foot: put(item('navfoot'), { list, label: esc(W.nav_label) }), md: tabs.map(([r, l]) => `[${l}](${b.h(r).replace(/index\.html$/, 'index.md').replace(/\.html$/, '.md')})`).join(' · ') }
+ }
+-- 
+2.43.0
+
