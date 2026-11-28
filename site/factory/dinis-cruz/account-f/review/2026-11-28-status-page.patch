@@ -1,0 +1,575 @@
+From a559b356926f027c48705448e23b78949afd7d6e Mon Sep 17 00:00:00 2001
+From: "cl-6.dev@PrompTugal.dinis" <noreply@anthropic.com>
+Date: Sat, 28 Nov 2026 01:04:32 +0000
+Subject: [PATCH] cl-6.dev@PrompTugal.dinis: /newsroom/status/: the waits on
+ Dinis (the maestro's briefing and the decisions agent's open questions, read
+ by newsroom/tools/sync-status.mjs), every cl-6 agent by state, and a data
+ section that says 'not read yet' until the data agent's status file exists
+ (cell 2026-11-28-promptugal-status)
+
+Agent: cl-6.dev@PrompTugal.dinis
+Issue: WS-14
+For: Dinis
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016CrbJKEPqF3pNfbncgHqvy
+---
+ assets/newsroom/status-snapshot.json      | 373 ++++++++++++++++++++++
+ assets/newsroom/status-words.json         |  22 ++
+ newsroom/build/features/newsroom.mjs      |   9 +-
+ newsroom/build/lib/newsroom-status.mjs    |  18 ++
+ newsroom/build/tests/test_status_page.mjs |  26 ++
+ newsroom/tools/sync-status.mjs            |  34 ++
+ 6 files changed, 480 insertions(+), 2 deletions(-)
+ create mode 100644 assets/newsroom/status-snapshot.json
+ create mode 100644 assets/newsroom/status-words.json
+ create mode 100644 newsroom/build/lib/newsroom-status.mjs
+ create mode 100644 newsroom/build/tests/test_status_page.mjs
+ create mode 100644 newsroom/tools/sync-status.mjs
+
+diff --git a/assets/newsroom/status-snapshot.json b/assets/newsroom/status-snapshot.json
+new file mode 100644
+index 000000000..a5e0fa12d
+--- /dev/null
++++ b/assets/newsroom/status-snapshot.json
+@@ -0,0 +1,373 @@
++{
++ "about": "The waits on Dinis as the maestro's briefing and the decisions agent's questions list them, for /newsroom/status/. Never served as a file (features/served.mjs); the page shows the values escaped.",
++ "read": "2026-11-28T00:59Z",
++ "briefing": {
++  "read_at": "2026-11-28T00:59Z",
++  "updated": "2026-11-28T00:37Z",
++  "items": [
++   {
++    "id": "journalist-website",
++    "what": "Publishing is blocked: the journalist has no website attached. Route agreed by cl-6.abp and cl-6.decisions (questions.json a7914b5): the maestro starts a journalist session with PrompTugal__News__Website as its source; attaches the repository only, widens nothing (content/about/** stays held under P11 h; content/index.md not included).",
++    "urgency": "now: no new article since 26 Nov",
++    "line": "\"yes, start a journalist session with PrompTugal__News__Website as its source\""
++   },
++   {
++    "id": "strikes-session",
++    "what": "London strikes site: the page is ready in place.london's home; strikes.london.place.agent.promptugal.news still shows only the README. The publishing session is prepared; it needs your word in the maestro's session.",
++    "urgency": "today",
++    "line": "\"yes, start the strikes session\""
++   },
++   {
++    "id": "poet-research",
++    "what": "Poet research cell (briefed): where does the Google Search API access live (which environment or key), and may I start short-lived cell sessions (cl-6.abp then writes the cell role grant)?",
++    "urgency": "today",
++    "line": "\"Google Search is in <environment or key>; yes, start the poet research cell\""
++   },
++   {
++    "id": "librarian-c",
++    "what": "c.maestro relayed your yes for a librarian on account 6 that keeps one shared vocabulary (terms.json) for agenticcells.org, home AgentiCCells__Agent__Librarian (to be requested via AgentiCCells__Site__Factory). cl-6.librarian@dinis already exists but has been blocked on push since 26 Nov: reuse it, or start a new one?",
++    "urgency": "next",
++    "line": "\"reuse cl-6.librarian for the vocabulary\" or \"start a new AgentiCCells librarian\""
++   },
++   {
++    "id": "ideas-site",
++    "what": "Three site requests (ideas home, dinis-cruz.ideas, and the author site you cleared at 15:21) are drafted and validated; the route to account B is stalled at router.a. Paste the line below into factory.b's session, then merge its IaC PR.",
++    "urgency": "high",
++    "line": "\"commit to SovereignWebsite__IaC exactly as drafted, on my behalf, requests 2026-11-27__ideas, 2026-11-27__dinis-cruz (group ideas, with the NO_GROUP patch) and 2026-11-27__a-oliveira-cruz, from SovereignWebsite/Site__Agent__Conductor dev…"
++   },
++   {
++    "id": "work-cells",
++    "what": "Work cells: approve the name and whether cells get their own short-lived sessions (then cl-6.abp writes a cell role)",
++    "urgency": "today",
++    "line": "\"yes to work cells, with their own sessions\" (or name the change)"
++   },
++   {
++    "id": "meetscribe",
++    "what": "MeetScribe to the Chrome Web Store: give this account GitHub access to VoiceDebrief/VoiceDebrief__Chrome_Extension__MeetScribe, and decide scope (Meet only or any tab with audio), site (improve the existing one or new) and publisher account",
++    "urgency": "today",
++    "line": "\"Meet only, improve the existing site, publisher VoiceDebrief; access given, start the MeetScribe keeper\""
++   },
++   {
++    "id": "devops-website",
++    "what": "Same line in cl-6.devops's session",
++    "urgency": "medium",
++    "line": "add PrompTugal/PrompTugal__News__Website (push access)"
++   },
++   {
++    "id": "places-wake",
++    "what": "cl-6.places's wake still says sub-agents (record p11g); change it in its own session",
++    "urgency": "medium",
++    "line": "update your wake trig_0132oarAUsN5cwmgTAbj3GGk to run the places one after another, no sub-agents, never London"
++   },
++   {
++    "id": "resets",
++    "what": "Sessions past 50% (observability 22:3x UTC): cl-6.translator 69.1%, cl-6.reviewer 65.1%, cl-6.ontologist 64.8%, cl-6.security@dinis 64.9%, cl-6.library 63.2%, cl-6.abp 52.6% (new). cl-6.decisions and cl-6.journalist are back under 50%. Maestro 43.7%: handover ready before 50%.",
++    "urgency": "next",
++    "line": "\"yes, reset translator, reviewer, ontologist, library and abp\" (security@dinis is yours to reset)"
++   },
++   {
++    "id": "sgit-github",
++    "what": "SGit-AI is read-only from account 6: reconnect GitHub or install the Claude GitHub App on SGit-AI (blocks cl-6.website and any CLI dev)",
++    "urgency": "medium",
++    "line": ""
++   },
++   {
++    "id": "sgsend-decisions",
++    "what": "SG/Send vault API plan: decisions D1 to D7 (vault host, batch semantics, 403/401, lane rename, which 'mapping', unknown callers, open the PR)",
++    "urgency": "medium",
++    "line": ""
++   },
++   {
++    "id": "abp",
++    "what": "In cl-6.abp's session: the pin ABP_PIN_KEY_SHA256=d893179db8db24de127bf6437acc9da873c38416dd26c77a135609b82e322318 (environment), 'yes to P15' (api.tfl.gov.uk), the P9 pull-request opener, P16, a session-independent pin key",
++    "urgency": "medium",
++    "line": ""
++   },
++   {
++    "id": "network",
++    "what": "Network capture: limited environments, P1 yes (telemetry audits tool calls), a non-public home for host rows and the accountant's figures",
++    "urgency": "low",
++    "line": ""
++   },
++   {
++    "id": "librarian-push",
++    "what": "cl-6.librarian's push to dev was refused by its own permission check: say yes in its session",
++    "urgency": "low",
++    "line": ""
++   },
++   {
++    "id": "router-a",
++    "what": "Five messages for accounts A and B stuck on router.a (asleep): observability handover, CBR editor notice, signer full-id patch, CMS review, CMS proposal. Wake router.a or paste each",
++    "urgency": "low",
++    "line": ""
++   },
++   {
++    "id": "iac",
++    "what": "Merge PrompTugal__IaC #28 then #32",
++    "urgency": "low",
++    "line": ""
++   },
++   {
++    "id": "sgit-questions",
++    "what": "sgit conductor's open questions (map.md)",
++    "urgency": "low",
++    "line": ""
++   },
++   {
++    "id": "cbr-questions",
++    "what": "CBR conductor's open questions (map.md section 6)",
++    "urgency": "low",
++    "line": ""
++   },
++   {
++    "id": "sw-questions",
++    "what": "Sovereign Website conductor: decisions 2 to 4 (map.md section 6)",
++    "urgency": "low",
++    "line": ""
++   },
++   {
++    "id": "studio-c-cast",
++    "what": "Signed video with the cast: cl-6.studio's plan needs studio.c (account C); the cross-account route is stalled at router.a",
++    "urgency": "next",
++    "line": "\"cl-6.studio (session_016CrbJJe27HT4pDaUAkSFEi) will deliver a clean vertical Signed film (1080x1920, sound) and a timeline with cast slots (opening card, beside 'Who holds the keys? / You do.', closing card, optional small presenter in hi…"
++   },
++   {
++    "id": "vicky-n2-n3",
++    "what": "Two findings for Vicky's team on \"Two studies of agent-written code...\" (cl-6.synthetic, PrompTugal__Agent__Synthetic 6d37860): N2 the \"In short\" still says the second paper was read from its abstract only, though the 27 Nov update says full text; N3 the provenance block claims 6 outside sources on 3 sites, but the markup shows only arXiv and the licence. No agent route to her lane.",
++    "urgency": "next",
++    "line": "pass N2 and N3 to Vicky, with PrompTugal__Agent__Synthetic findings-2026-11-27-wake4.md (6d37860)"
++   }
++  ]
++ },
++ "questions": {
++  "read_at": "2026-11-28T00:59Z",
++  "updated": "2026-11-27T10:36Z",
++  "items": [
++   {
++    "id": "admin-signed-answers",
++    "what": "You asked for a full admin section (conductor session, event 989f8f75, 00:58Z 28 Nov). Proposed rule change, yours alone: an answer you sign in /admin/ with your published personal key counts as your own words for cl-6.abp grants, in place of typing lines in named sessions. Conditions: the signature checks against your key in board/keys.json; it names the question id and repeats its exact line; one-way doors (attach…",
++    "urgency": "normal: removes the type-this-in-session-X steps",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-28",
++    "line": "\"yes: my signed answers in admin count as my words for grants, once security passes the signing design\" (or no)",
++    "status": "open"
++   },
++   {
++    "id": "website-attach-editor",
++    "what": "This one step restarts the news: attach PrompTugal__News__Website (push) to cl-6.journalist. No new article since 26 Nov; four dated local leads (incl. the Guimaraes drill) wait in drafts since 27 Nov 01:15 (5925199); the Tube chart fix is held; journalist gets 403 on push and no other agent may write content/** or sign articles.",
++    "urgency": "first: the publication is stalled on it",
++    "by": "cl-6.conductor",
++    "since": "2026-11-27",
++    "line": "in cl-6.maestro's session (session_016CrbJLv54Kh4CSTzagW2G3): \"yes, start a journalist session with PrompTugal__News__Website as its source\". Attaches the repository only; widens nothing (content/about/** stays held under P11 h; no content…",
++    "status": "open"
++   },
++   {
++    "id": "strikes-attach",
++    "what": "London strikes page: maestro has the session prepared (Strikes repository attached, dev only, under abp's 10:39 conditions). Only your yes starts it. Replaces abp's dropped add_repo step (1b338c0).",
++    "urgency": "first: the strikes page is the only thing waiting on it",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "say 'yes, start the strikes session' in cl-6.maestro's session (session_016CrbJLv54Kh4CSTzagW2G3)",
++    "status": "open"
++   },
++   {
++    "id": "data-vaults",
++    "what": "cl-6.data: grant vaults/*/latest/** so the vault files publish too (18:03 release stopped on them)",
++    "urgency": "not blocking: interim release works (v0.1.159); vault files stay unpublished un…",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "\"yes to cl-6.data writing vaults/*/latest/** in News__Data, with an explicit allow-list in release.sh\" (meanwhile data releases data/ with vaults/ set aside, so the site is not stalled)",
++    "status": "open"
++   },
++   {
++    "id": "iac-34-37",
++    "what": "Merge IaC #34, #35, #36, #37 (approved; only Dinis may merge)",
++    "urgency": "high",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "Merge #34 at 289b934; merge #35 at aaf2e71; on #36 Edit, base to dev, merge at 1809f2b; merge #37 at 7c7cdf9. Then #38 (editor home, 326fabc) after its security pass.",
++    "status": "open"
++   },
++   {
++    "id": "section-key-prs",
++    "what": "Eight sections open their key PRs; dev-gate P19",
++    "urgency": "high",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "\"yes to signals, cyber, bulletins, events, library, live, videos and travel each opening one key PR, as cl-6.data did; and to dev-gate as infra designed (P19 in force: push work/cl-6.<agent>, no force)\"",
++    "status": "open"
++   },
++   {
++    "id": "signals-pins",
++    "what": "Signals copies security's pinned files",
++    "urgency": "medium",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "\"you may write .github/workflows/pages.yml and scripts/leak-scan.mjs on key/cl-6.signals only, byte for byte from cl-6.security's signed pins\"",
++    "status": "open"
++   },
++   {
++    "id": "s17",
++    "what": "Sign-in fix S17",
++    "urgency": "medium",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "\"yes to security's S17 fix steps 1 to 4, and to revoking my agent-issued key once the new one is enrolled; release order (b)\"",
++    "status": "open"
++   },
++   {
++    "id": "anchor-clear",
++    "what": "Delete SIG_BOOTSTRAP_ANCHOR on News__Data",
++    "urgency": "medium",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "Delete the repository variable once its run is green; tell cl-6.decisions which run passed",
++    "status": "open"
++   },
++   {
++    "id": "civic-history",
++    "what": "cl-6.civic history/** and board/team/civic/**",
++    "urgency": "low",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "\"yes to cl-6.civic writing history/** in PrompTugal__Agent__Civic and board/team/civic/** in PrompTugal__News__Civic, on security's conditions\"",
++    "status": "open"
++   },
++   {
++    "id": "rights-history",
++    "what": "cl-6.rights history/** (P5)",
++    "urgency": "low",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "\"yes to cl-6.rights writing history/** in PrompTugal__Agent__Rights, on security's conditions\"",
++    "status": "open"
++   },
++   {
++    "id": "places-wake",
++    "what": "cl-6.places wake prompt",
++    "urgency": "low",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "\"update your wake trig_0132oarAUsN5cwmgTAbj3GGk to run the places serially, no sub-agents, never London\"",
++    "status": "open"
++   },
++   {
++    "id": "rights-terms",
++    "what": "Rights items D6, R19, D3, D5, R18; P18 stage 2 (13 sources need Dinis)",
++    "urgency": "medium",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "See cl-6.rights findings.md (c8493f1)",
++    "status": "open"
++   },
++   {
++    "id": "provenance-design",
++    "what": "Human provenance, admin, CRM: seven questions",
++    "urgency": "medium",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "Anchor key holder and device; who gets keys; naming with consent; Gmail label, agent, drafts only; where CRM data lives; who reads feedback; is 'disagree' public",
++    "status": "open"
++   },
++   {
++    "id": "feedback-rate",
++    "what": "Feedback lane rate limit",
++    "urgency": "low",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "\"option 1: I'll ask SG/Send for a per-token limit\" or \"option 2: build the lanes.promptugal.news proxy\"",
++    "status": "open"
++   },
++   {
++    "id": "product",
++    "what": "Home page title and explainer page wording (the meter itself is now its own question, meter-charging)",
++    "urgency": "low",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "home page title line; explainer page line",
++    "status": "open"
++   },
++   {
++    "id": "s8-key",
++    "what": "One unpublished SSH key (SHA256:32dP45eSMmVSt/G/CGvcxl/P+MO3Nwj9xeTh/GSA2wc) signs commits for two other-account lanes: four more S8-lane commits (checker and curator, 10:10 to 15:38Z) and conductor@PrompTugal.jose's 89a121f71 (18:18Z). That lane's three board entries have no ssh field, so the two lanes' commits cannot be told apart. Security review 80cffb1, low. No agent can reach those lanes (cross-account routing…",
++    "urgency": "low",
++    "by": "cl-6.decisions@dinis",
++    "since": "2026-11-27",
++    "line": "Pass to both lane owners: each publishes the SSH key it signs with in its board/keys.json entry, through cl-6.dev's key-change path; if it is one person's machine key shared by both lanes, say so and publish it once, under that person.",
++    "status": "open"
++   },
++   {
++    "id": "s3-app",
++    "what": "S3: what is /app/ now? cl-6.designer needs your words before reworking it.",
++    "urgency": "normal: designer's next pass waits on it",
++    "by": "cl-6.designer (via cl-6.conductor)",
++    "since": "2026-11-27",
++    "line": "\"/app/ is now: ...\" (one sentence, your words)",
++    "status": "open"
++   },
++   {
++    "id": "meter-charging",
++    "what": "How does the pay-for-what-you-read meter charge? The explainer page and the meter chip's zero-moment text both wait on this.",
++    "urgency": "normal: blocks the explainer page and the chip text",
++    "by": "cl-6.designer (via cl-6.conductor)",
++    "since": "2026-11-27",
++    "line": "\"the meter charges: ...\" (unit, price and when it reaches zero, your words; no price is set until you say it)",
++    "status": "open"
++   },
++   {
++    "id": "s9-tagline-write",
++    "what": "S9 tagline: your 16 Nov decision fixed the wording, but no grant covers content/index.md in PrompTugal__News__Website, the only place 'Portugal town by town' is left. One-off write: cl-6.dev, one hand-signed commit, lines 2 and 3 only, security reviews the exact diff first, the one-off is marked used afterwards. Owning the front page is not part of this.",
++    "urgency": "low: short, one-off",
++    "by": "cl-6.abp (via cl-6.conductor)",
++    "since": "2026-11-27",
++    "line": "yes to cl-6.dev changing the tagline in content/index.md",
++    "status": "open"
++   },
++   {
++    "id": "algarve-camera-links",
++    "what": "Algarve camera links. cl-6.rights cleared APL Tejo Live and AEMTG for bare credited links. It holds MEO BeachCam (its terms cannot be read by a machine) and SkylineWebcams (its terms bar journalistic use without written authorisation, so a yes accepts that legal risk). You may say yes to MEO only. Until you answer, Algarve towns show no camera links.",
++    "urgency": "normal: Algarve towns show no camera links meanwhile",
++    "by": "cl-6.rights (via cl-6.conductor)",
++    "since": "2026-11-27",
++    "line": "\"A bare credited link to MEO BeachCam and SkylineWebcams pages is fine on promptugal.news.\" or, MEO only: \"A bare credited link to MEO BeachCam pages is fine on promptugal.news.\"",
++    "status": "open"
++   },
++   {
++    "id": "s8-story-findings",
++    "what": "Findings for the S8 lane (another account; maestro has no route there, cross-account routing is stalled at router.a). Story 'Two studies of agent-written code...': N2, its 'In short' says the second paper was read from its abstract only, but its own 27 Nov update says the full text was read; N3, its provenance block claims 6 outside sources on 3 sites, but the markup shows only arXiv and the licence. Source: PrompTu…",
++    "urgency": "low",
++    "by": "cl-6.synthetic (via cl-6.conductor)",
++    "since": "2026-11-27",
++    "line": "Pass N2 and N3 to that lane's owner yourself, or say how findings should reach it",
++    "status": "open"
++   },
++   {
++    "id": "newsletter-about-write",
++    "what": "Who may write /newsletter/ (F58) and About (F06) in PrompTugal__News__Website? /newsletter/ still lists 13 Nov editions and says subscribers are 'handled by the Web Summit team'; About needs fixing (held under P11 h). No agent may write either file. Same shape as the tagline: a one-off for named files, or a standing owner.",
++    "urgency": "normal: the newsletter page states something no longer true",
++    "by": "cl-6.synthetic (via cl-6.conductor)",
++    "since": "2026-11-27",
++    "line": "\"yes to <agent> fixing the /newsletter/ and About pages\" (name the agent; one-off, security reviews the diff)",
++    "status": "open"
++   },
++   {
++    "id": "footer-veto",
++    "what": "Footer (masthead responsibility): cl-6.security held the change, so it needs your word first, not a veto. Today the footer names you and two other people as editors. Options: (a) 'Written by AI agents, each story signed by the agent that wrote it, and operated by Dinis Cruz.' (b) keep the three names, with the other two people's consent; (c) name only the operator; (d) your own wording. Patch ready in cl-6.dev's hom…",
++    "urgency": "normal: held until you answer",
++    "by": "cl-6.dev (via cl-6.conductor)",
++    "since": "2026-11-27",
++    "line": "\"footer: (a)\", \"footer: (b)\", \"footer: (c)\" or \"footer: <your wording>\"",
++    "status": "open"
++   },
++   {
++    "id": "crm-vault-seal",
++    "what": "The conductor@PrompTugal.jose lane asks you to seal the outreach CRM vault. cl-6.security reviewed the request: sound, no secret in it, and it recommends sealing to that lane owner's personal key rather than an agent key. Security will check the committed blob afterwards.",
++    "urgency": "normal",
++    "by": "conductor@PrompTugal.jose (via cl-6.conductor)",
++    "since": "2026-11-27",
++    "line": "Seal it yourself (to the personal key security recommends), or say no; no agent can do this for you",
++    "status": "open"
++   }
++  ]
++ }
++}
+diff --git a/assets/newsroom/status-words.json b/assets/newsroom/status-words.json
+new file mode 100644
+index 000000000..4de998db5
+--- /dev/null
++++ b/assets/newsroom/status-words.json
+@@ -0,0 +1,22 @@
++{
++ "about": "The words of /newsroom/status/ (cell 2026-11-28-promptugal-status): the waits on Dinis, every agent, the data. Read by newsroom/build/lib/newsroom-status.mjs.",
++ "title": "Status",
++ "summary": "What is waiting on Dinis, what every agent is doing, and the state of the data, read from the files the agents keep.",
++ "lede": "One page for the state of everything: what waits on Dinis, what every agent is doing and what it waits on, and how fresh the data is. It is built from files the agents keep in their own repositories, read when the site is built; nothing here is typed by hand, and a file that could not be read says so.",
++ "waits_title": "Waits on Dinis",
++ "waits_about": "The maestro's briefing and the decisions agent's open questions, as they stand. Each has the line Dinis types or signs to answer it.",
++ "briefing_title": "From the briefing",
++ "questions_title": "Open questions",
++ "urgency": "Urgency",
++ "line": "The line that answers it",
++ "by": "Asked by",
++ "since": "since",
++ "none": "Nothing waiting.",
++ "read": "read",
++ "not_read": "not read yet: the file could not be fetched when the site was built",
++ "agents_title": "Every agent",
++ "agents_about": "Every agent of the cl-6 team, by what it is doing. Other teams' agents join here when their files are read.",
++ "data_title": "The data",
++ "data_none": "Not read yet: the data agent's status file is not part of the build yet. Until it is, this section stays empty rather than guess.",
++ "data_head": "| Dataset | Last refresh | Source | Rows | Freshness | Owner |\n|---|---|---|---|---|---|"
++}
+diff --git a/newsroom/build/features/newsroom.mjs b/newsroom/build/features/newsroom.mjs
+index 1728eb3a0..dddc23c5c 100644
+--- a/newsroom/build/features/newsroom.mjs
++++ b/newsroom/build/features/newsroom.mjs
+@@ -10,6 +10,7 @@
+ //   data/newsroom/team-site.json the desks' run lines, the newsroom's board issues and the keys' public facts, from the
+ //                             team's site by newsroom/tools/desks-snapshot.mjs
+ //   ctx.store, ctx.graph()    the data;  REALITY.md, content/brief/09-*.md, newsroom/build/validate.js: read as text
++import { statusMd } from '../lib/newsroom-status.mjs'
+ import path from 'node:path'
+ import { esc, cell } from '../lib/markdown.mjs'
+ import { json } from '../lib/writers.mjs'
+@@ -20,7 +21,7 @@ import * as d from './newsroom-draw.mjs'
+ import { model, liveCounts, fillCounts, lanesFor, parallels, readLedger, STAGES, personName } from './newsroom-model.mjs'
+ 
+ export const order = 91
+-export const TABS = [['newsroom/index.html', 'Overview'], ['newsroom/runs/index.html', 'Runs'], ['newsroom/dashboard/index.html', 'Dashboard'], ['newsroom/decisions/index.html', 'Decisions'], ['newsroom/notes/index.html', 'Notes'], ['newsroom/stories/index.html', 'Stories'], ['newsroom/desks/index.html', 'Desks'], ['newsroom/quality/index.html', 'Quality'], ['newsroom/agents/index.html', 'Agents'], ['newsroom/activity/index.html', 'Activity'], ['newsroom/live/index.html', 'Live'], ['newsroom/pieces/index.html', 'Pieces'], ['newsroom/decision-graph/index.html', 'Storm'], ['newsroom/timeline/index.html', 'Timeline'], ['newsroom/data/index.html', 'Data'], ['newsroom/workflows/index.html', 'Workflows'], ['newsroom/lab/index.html', 'Lab'], ['newsroom/observability/index.html', 'Observability'], ['newsroom/versions.html', 'Releases']]
++export const TABS = [['newsroom/index.html', 'Overview'], ['newsroom/runs/index.html', 'Runs'], ['newsroom/dashboard/index.html', 'Dashboard'], ['newsroom/decisions/index.html', 'Decisions'], ['newsroom/notes/index.html', 'Notes'], ['newsroom/stories/index.html', 'Stories'], ['newsroom/desks/index.html', 'Desks'], ['newsroom/quality/index.html', 'Quality'], ['newsroom/status/index.html', 'Status'], ['newsroom/agents/index.html', 'Agents'], ['newsroom/activity/index.html', 'Activity'], ['newsroom/live/index.html', 'Live'], ['newsroom/pieces/index.html', 'Pieces'], ['newsroom/decision-graph/index.html', 'Storm'], ['newsroom/timeline/index.html', 'Timeline'], ['newsroom/data/index.html', 'Data'], ['newsroom/workflows/index.html', 'Workflows'], ['newsroom/lab/index.html', 'Lab'], ['newsroom/observability/index.html', 'Observability'], ['newsroom/versions.html', 'Releases']]
+ export const LABEL = '<p class="nr-label"><a href="@@UP@@newsroom/index.html">The newsroom</a> · How PrompTugal.news is made, in public</p>'
+ const ASSETS = { css: ['assets/newsroom/newsroom.css'], js: ['assets/newsroom/newsroom.js'] }
+ const TEAM_BOARD = 'https://github.com/SGit-AI/SGit-AI__Website__Web-Summit/blob/dev/'
+@@ -192,6 +193,10 @@ function activityPage(ctx) {
+     const b = builder('newsroom/activity/index.html'), T = ctx.readJSON('assets/newsroom/activity.json')
+     return page(b, { src: 'assets/newsroom/activity-snapshot.json', title: T.title, crumbs: crumbs([null, T.title]), summary: T.summary, md: tabs(b, ctx) + activityMd(ctx, b, T) })
+ }
++function statusPage(ctx) {
++    const b = builder('newsroom/status/index.html'), W = ctx.readJSON('assets/newsroom/status-words.json')
++    return page(b, { src: 'assets/newsroom/status-snapshot.json', title: W.title, crumbs: crumbs([null, W.title]), summary: W.summary, md: tabs(b, ctx) + statusMd(ctx) })
++}
+ function agentPage(ctx, m, a) {
+     const b = builder(agentRel(a))
+     const facts = [
+@@ -397,7 +402,7 @@ export async function pages(ctx) {
+     const { loadFeatures } = await import('../lib/features.mjs')
+     FEATURES = await loadFeatures()
+     const m = model(ctx)
+-    return [overview(ctx, m), runsPage(ctx, m), agentsPage(ctx, m), activityPage(ctx), ...m.agents.map(a => agentPage(ctx, m, a)), timelinePage(ctx, m), dataPage(ctx, m), workflowsPage(ctx, m), labPage(ctx, m)]
++    return [overview(ctx, m), runsPage(ctx, m), agentsPage(ctx, m), activityPage(ctx), statusPage(ctx), ...m.agents.map(a => agentPage(ctx, m, a)), timelinePage(ctx, m), dataPage(ctx, m), workflowsPage(ctx, m), labPage(ctx, m)]
+ }
+ 
+ // the twin of a newsroom page: its markdown with each raw block's markdown in place (read at write time, after fill);
+diff --git a/newsroom/build/lib/newsroom-status.mjs b/newsroom/build/lib/newsroom-status.mjs
+new file mode 100644
+index 000000000..70e933297
+--- /dev/null
++++ b/newsroom/build/lib/newsroom-status.mjs
+@@ -0,0 +1,18 @@
++// /newsroom/status/: the waits on Dinis, every agent, the data (cell 2026-11-28-promptugal-status). The words are in assets/newsroom/status-words.json; the values in
++// assets/newsroom/status-snapshot.json (newsroom/tools/sync-status.mjs), agents-snapshot.json (sync-agents.mjs) and, when it exists, data-status.json. Every value goes through cell() and is never trusted.
++import { plain as cell } from './agent-text.mjs'
++import { cl6Section } from './newsroom-cl6.mjs'
++
++const rd = (ctx, f) => { try { return ctx.readJSON(f) } catch { return null } }
++const note = (W, f) => f ? `${W.read}: ${cell(f.read_at)}${f.updated ? ` (${cell(f.updated)})` : ''}` : W.not_read
++const item = (W, x) => [`- **${cell(x.what)}**`, x.urgency ? `  - ${W.urgency}: ${cell(x.urgency)}` : '', x.by ? `  - ${W.by}: ${cell(x.by)}${x.since ? `, ${W.since} ${cell(x.since)}` : ''}` : '', x.line ? `  - ${W.line}: ${cell(x.line)}` : ''].filter(Boolean).join('\n')
++
++export function statusMd(ctx) {
++    const W = ctx.readJSON('assets/newsroom/status-words.json'), S = rd(ctx, 'assets/newsroom/status-snapshot.json') || {}
++    const waits = (title, f) => `### ${title}\n\n${note(W, f)}\n\n${f && f.items.length ? f.items.map(x => item(W, x)).join('\n') : W.none}\n`
++    const T = ctx.readJSON('assets/newsroom/agents-cl6.json')
++    const agents = rd(ctx, 'assets/newsroom/agents-snapshot.json') ? cl6Section(ctx, T).replace(/^## .*\{#cl6\}\n\n[\s\S]*?\n\n## .*\{#dinis\}\n\n[\s\S]*?(?=\n## )/, '') : ''
++    const D = rd(ctx, 'assets/newsroom/data-status.json')
++    const rows = D && Array.isArray(D.datasets) ? D.datasets.map(d => `| ${cell(d.name)} | ${cell(d.last_refresh)} | ${cell(d.source)} | ${cell(d.rows)} | ${cell(d.freshness)} | ${cell(d.owner)} |`).join('\n') : ''
++    return `${W.lede}\n\n## ${W.waits_title} {#waits}\n\n${W.waits_about}\n\n${waits(W.briefing_title, S.briefing)}\n${waits(W.questions_title, S.questions)}\n## ${W.agents_title} {#agents}\n\n${W.agents_about}\n\n${agents}\n## ${W.data_title} {#data}\n\n${rows ? `${W.data_head}\n${rows}` : W.data_none}\n`
++}
+diff --git a/newsroom/build/tests/test_status_page.mjs b/newsroom/build/tests/test_status_page.mjs
+new file mode 100644
+index 000000000..8185a88d2
+--- /dev/null
++++ b/newsroom/build/tests/test_status_page.mjs
+@@ -0,0 +1,26 @@
++#!/usr/bin/env node
++/* test_status_page.mjs: /newsroom/status/'s feeds are cut to named fields, scrubbed, and rendered as plain text (cell 2026-11-28-promptugal-status).   node newsroom/build/tests/test_status_page.mjs */
++import fs from 'node:fs'
++import os from 'node:os'
++import path from 'node:path'
++import { fromBriefing, fromQuestions } from '../../tools/sync-status.mjs'
++import { statusMd } from '../lib/newsroom-status.mjs'
++let bad = 0
++const t = (what, got, want) => { if (JSON.stringify(got) !== JSON.stringify(want)) { bad++; console.error(`FAIL ${what}: ${JSON.stringify(got)}, want ${JSON.stringify(want)}`) } }
++const b = fromBriefing({ waiting_on_dinis: [{ id: 'a', what: 'say yes to jo@example.com or +351 912 345 678', urgency: 'now', where: 'https://claude.ai/code/session_x', line: '"yes"', extra: 'dropped' }, { id: 'm', what: 'pay $500 for it' }] })
++t('only the named fields, a contact scrubbed, a money item dropped, no session link kept', [b.length, Object.keys(b[0]).sort(), /@|912|claude\.ai/.test(JSON.stringify(b))], [1, ['id', 'line', 'urgency', 'what'], false])
++const q = fromQuestions({ questions: [{ id: 'q1', question: 'a', status: 'open', since: '2026-11-28T01:00Z', asked_by: 'x' }, { id: 'q2', question: 'b', status: 'answered' }, { id: 'q3', question: 'c', status: 'closed' }] })
++t('answered and closed questions are left out; since is a day', [q.map(x => x.id), q[0].since], [['q1'], '2026-11-28'])
++// rendering: hostile text stays text
++const root = fs.mkdtempSync(path.join(os.tmpdir(), 'status-')); fs.mkdirSync(path.join(root, 'assets/newsroom'), { recursive: true })
++const w = JSON.parse(fs.readFileSync(new URL('../../../assets/newsroom/status-words.json', import.meta.url), 'utf8'))
++fs.writeFileSync(path.join(root, 'assets/newsroom/status-words.json'), JSON.stringify(w))
++fs.writeFileSync(path.join(root, 'assets/newsroom/agents-cl6.json'), fs.readFileSync(new URL('../../../assets/newsroom/agents-cl6.json', import.meta.url)))
++fs.writeFileSync(path.join(root, 'assets/newsroom/status-snapshot.json'), JSON.stringify({ briefing: { read_at: 'x', items: [{ id: 'h', what: '[click](javascript:alert(1)) <img src=x onerror=alert(1)> | pipe', urgency: 'now' }] }, questions: null }))
++const md = statusMd({ readJSON: f => JSON.parse(fs.readFileSync(path.join(root, f), 'utf8')) })
++t('hostile text is not a link or a tag', [/\]\(javascript:/.test(md), /<img/.test(md)], [false, false])
++t('a feed that could not be read says so', md.includes(w.not_read), true)
++t('the data section says it is not read yet', md.includes(w.data_none), true)
++fs.rmSync(root, { recursive: true, force: true })
++if (bad) { console.error(`${bad} failed`); process.exit(1) }
++console.log('test_status_page: OK')
+diff --git a/newsroom/tools/sync-status.mjs b/newsroom/tools/sync-status.mjs
+new file mode 100644
+index 000000000..b45f2ac9f
+--- /dev/null
++++ b/newsroom/tools/sync-status.mjs
+@@ -0,0 +1,34 @@
++#!/usr/bin/env node
++// Snapshot for /newsroom/status/ (cell 2026-11-28-promptugal-status, cl-6.maestro's brief, Dinis's word of 28 Nov): the waits on Dinis, read raw from
++// the maestro's briefing.json (waiting_on_dinis[]) and the decisions agent's questions.json (questions[]), both public repositories, no token. Only the named fields are
++// kept, each cut and scrubbed (agent-text.mjs); no session link, no contact, no money. Written to assets/newsroom/status-snapshot.json, which the build reads. A feed that does not answer
++// keeps its previous values and read time. Run before a release:  node newsroom/tools/sync-status.mjs      cl-6.dev@PrompTugal.dinis
++import fs from 'node:fs'
++import path from 'node:path'
++import { fileURLToPath } from 'node:url'
++import { cut, noMoney } from '../build/lib/agent-text.mjs'
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..'), OUT = path.join(ROOT, 'assets/newsroom/status-snapshot.json')
++const RAW = 'https://raw.githubusercontent.com/', F = 'site/factory/dinis-cruz/account-f/'
++export const FEEDS = {
++    briefing: `${RAW}SovereignWebsite/Site__Agent__Maestro__Claude__6/dev/${F}briefing.json`,
++    questions: `${RAW}SovereignWebsite/Site__Agent__Decisions/dev/${F}questions.json`,
++}
++const get = async u => { try { const r = await fetch(u, { signal: AbortSignal.timeout(30000) }); return r.ok ? await r.json() : null } catch { return null } }
++const day = s => /^\d{4}-\d\d-\d\d/.test(String(s || '')) ? String(s).slice(0, 10) : ''
++// the shapes, kept apart so a test can feed them without the network
++export const fromBriefing = j => noMoney((j && Array.isArray(j.waiting_on_dinis) ? j.waiting_on_dinis : []).map(x => ({ id: cut(x.id, 60), what: cut(x.what, 420), urgency: cut(x.urgency, 80), line: cut(x.line, 240) })))
++export const fromQuestions = j => noMoney((j && Array.isArray(j.questions) ? j.questions : []).filter(x => !/^(answered|closed|done|withdrawn)/i.test(String(x.status || ''))).map(x => ({ id: cut(x.id, 60), what: cut(x.question, 420), urgency: cut(x.urgency, 80), by: cut(x.asked_by, 80), since: day(x.since), line: cut(x.line_to_paste, 240), status: cut(x.status, 40) })))
++
++if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
++    let old = {}; try { old = JSON.parse(fs.readFileSync(OUT, 'utf8')) } catch { }
++    const [b, q] = await Promise.all([get(FEEDS.briefing), get(FEEDS.questions)]), at = new Date().toISOString().slice(0, 16) + 'Z'
++    const out = {
++        about: 'The waits on Dinis as the maestro\'s briefing and the decisions agent\'s questions list them, for /newsroom/status/. Never served as a file (features/served.mjs); the page shows the values escaped.',
++        read: at,
++        briefing: b ? { read_at: at, updated: cut(b.updated, 40), items: fromBriefing(b) } : old.briefing || null,
++        questions: q ? { read_at: at, updated: cut(q.updated, 40), items: fromQuestions(q) } : old.questions || null,
++    }
++    fs.writeFileSync(OUT, JSON.stringify(out, null, 1) + '\n')
++    console.log(`sync-status: briefing ${out.briefing ? out.briefing.items.length : '-'}, questions ${out.questions ? out.questions.items.length : '-'}`)
++}
+-- 
+2.43.0
+
