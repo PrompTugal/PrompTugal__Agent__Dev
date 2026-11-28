@@ -19,7 +19,7 @@
  "model": "sonnet",
  "state": "running. Live on promptugal.news v0.1.2422. Since the 27 Nov entry (all passed by cl-6.security): the public mode of /newsroom/status/ (v0.1.2414, default deny in sync-status.mjs: only decisions flagged public: true, only title, summary and if-it-waits), status round 2 (v0.1.2417: folds, right rail, answer pointer) and the page-list round (v0.1.2419: the newsroom list is a closed fold on a phone; no word 'blocked'), the S19 home-key-pins gate (v0.1.2418; check 16 stays WARN, the pins file ships empty, cl-6.security fills it), and this wake's status snapshot refresh (v0.1.2422). Data source pages: built as a patch, then withdrawn; cl-6.data's own passed in its repository (the conductor ruled I write nothing in PrompTugal__News__Data).",
  "focus": "S17 release when Dinis says go (then: enrolment of his browser-made key, re-seal of newsroom/observability/sealed/dinis.json, revoke the 2 agent-issued person keys, bring /talk/ and the observability page back under a strict CSP); then the ontologist's news-flow work and whatever the designer and conductor route",
- "updated": "2026-11-28T09:52Z",
+ "updated": "2026-11-28T11:30Z",
  "timeline": [
   {
    "at": "2026-11-26T11:41Z",
@@ -95,11 +95,11 @@
   }
  ],
  "waiting_on": [
+  "(none for P11 c: Dinis's yes of 28 Nov, about 11:20Z, in this session: 'yes to cl-6.dev writing the website's place data (data/by-place/*.json and data/by-place/now/*.json in PrompTugal__News__Website) only by running the signed place sync (newsroom/tools/sync-places.mjs), as in record 2026-11-26__abp-p11-c'; the hold of 09:58Z is lifted; first run after it found nothing new in the homes)",
   "Dinis's go for the S17 key page (branch wip-s17, patch review/2026-11-27-s17-login-keys.patch), via cl-6.conductor and cl-6.decisions",
   "the editorial word on the masthead footer note (branch wip-footer)",
   "cl-6.security: a pin to build for S19 (maestro.c has no home key file to pin; closes by maestro.c publishing a home key, or by Dinis's operator key); the route is agreed: security signs one commit on dev HEAD, I verify and push it unchanged as a fast-forward",
   "cl-6.designer: whether the 'More' fold at tablet width and the left rail at 1100 px are still wanted for the status page (not built)",
-  "Dinis's words for P11 c (the signed place sync), via cl-6.abp and cl-6.decisions: HELD since 28 Nov 09:58Z by cl-6.conductor's word after abp's ruling; I run no place sync and make no place-sync commit until he says yes (the v0.1.2423 run stays live; it is logged as a gap from decisions' 07:40Z 'in force' message)",
   "Dinis's two lines (via abp) for a second signed sync, sync-data-now, for the Faro flight count; data-signers.json is a protected path owned by cl-6.security; I build nothing and create nothing until then; the Faro count stays hidden"
  ],
  "wake": "trig_01PrmumHe2QqRkn2P6fridbx (07:37 and 18:37 Lisbon)",
@@ -145,6 +145,12 @@
    "what": "ran the signed place sync (v0.1.2423, 54 files) and released it, on the conductor's and decisions' word that P11 c was in force and cl-6.security's byte check",
    "rule": "P11 c: place data only through the signed sync, with Dinis's words for the grant",
    "why": "abp ruled at 09:58Z that the grant rests on the endorsement delegation only; the conductor logged it as a gap from decisions' message, not my breach; I stopped the sync at once"
+  },
+  {
+   "time": "2026-11-28T11:30Z",
+   "what": "the place sync was held 09:58Z to about 11:20Z (no run, no commit); Dinis's own words lifted it",
+   "rule": "P11 c",
+   "why": "the v0.1.2423 run happened before the grant had his words; his yes now covers the sync going forward"
   }
  ]
 }
